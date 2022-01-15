@@ -1,0 +1,8 @@
+#!/bin/bash
+
+CP="${CP:-/home/afs/ASF/xsd4ld/target/classes}"
+## commons codec
+REPO=/home/afs/.m2/repo/
+CP="$CP:$REPO/commons-codec/commons-codec/1.15/commons-codec-1.15.jar"
+
+java -cp "$CP" xsd4ld.cmd.CmdDT "$@"

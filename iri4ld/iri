@@ -1,0 +1,9 @@
+#!/bin/bash
+
+H="$HOME/ASF/iri4ld"
+
+CMD=org.seaborne.rfc3986.cmd.CmdIRI
+
+java -cp $H/target/classes $CMD "$@"
+#java --module-path target/iri4ld-0.0.0-SNAPSHOT.jar \
+#     --module org.seaborne.rfc3986/iri.CmdIRI "$@"

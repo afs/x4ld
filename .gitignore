@@ -1,0 +1,20 @@
+*.class
+target/
+
+# Eclipse
+.project
+.classpath
+.settings
+
+\#*
+.#*
+
+# Dev work file.
+generate
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+hs_err_pid*
