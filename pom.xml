@@ -54,6 +54,7 @@
     <module>iri4ld</module>
     <module>xsd4ld</module>
     <module>lang4ld</module>
+    <module>mt4ld</module>
   </modules>
 
   <dependencyManagement>
