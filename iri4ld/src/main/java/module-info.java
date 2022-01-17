@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-module org.seaborne.rfc3986 {
+module org.seaborne.iri4ld {
     exports org.seaborne.rfc3986;
     exports org.seaborne.rfc3986.cmd;
 }

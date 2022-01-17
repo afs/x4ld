@@ -18,6 +18,7 @@
 package xsd4ld;
 
 import org.junit.Test ;
+import org.seaborne.xsd4ld.XSD;
 
 /** Test of the machinery for numbers and derived types.
  * @see TestIntegerRange

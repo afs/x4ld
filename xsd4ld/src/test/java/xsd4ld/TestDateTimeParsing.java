@@ -19,7 +19,7 @@ package xsd4ld;
 
 import junit.framework.TestCase ;
 import org.junit.Test ;
-import xsd4ld.lib.DateTimeStruct;
+import org.seaborne.xsd4ld.lib.DateTimeStruct;
 
 
 public class TestDateTimeParsing extends TestCase

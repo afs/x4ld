@@ -19,6 +19,7 @@ package langtag;
 
 import org.junit.Assert ;
 import org.junit.Test ;
+import org.seaborne.lang4ld.LangTag;
 
 public abstract class AbstractTestLangTag extends Assert {
 

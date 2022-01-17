@@ -18,6 +18,11 @@
 package xsd4ld;
 
 import org.junit.Test ;
+import org.seaborne.xsd4ld.XSD;
+import org.seaborne.xsd4ld.XSDConst;
+import org.seaborne.xsd4ld.XSDDatatype;
+import org.seaborne.xsd4ld.XSDTypeRegistry;
+
 import static org.junit.Assert.* ;
 
 public class TestDatatype {

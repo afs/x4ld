@@ -19,6 +19,7 @@ package xsd4ld;
 
 import static xsd4ld.LibTestXSD.* ;
 import org.junit.Test ;
+import org.seaborne.xsd4ld.XSD;
 
 public class TestBinary {
     // No whitespace allowed

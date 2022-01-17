@@ -21,6 +21,7 @@ import static xsd4ld.LibTestXSD.invalid ;
 import static xsd4ld.LibTestXSD.valid ;
 
 import org.junit.Test ;
+import org.seaborne.xsd4ld.XSD;
 
 public class TestAnyURI {
     

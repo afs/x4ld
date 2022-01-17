@@ -19,6 +19,8 @@ package xsd4ld;
 
 import static org.junit.Assert.* ;
 
+import org.seaborne.xsd4ld.XSDDatatype;
+
 public class LibTestXSD {
 
     static void valid(String lex, XSDDatatype type) {

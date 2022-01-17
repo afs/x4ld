@@ -23,6 +23,8 @@ import java.util.Collection ;
 import org.junit.Test ;
 import org.junit.runner.RunWith ;
 import org.junit.runners.Parameterized ;
+import org.seaborne.xsd4ld.XSD;
+import org.seaborne.xsd4ld.XSDDatatype;
 
 /** test of integers and all derived types */
 @RunWith(Parameterized.class)

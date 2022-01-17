@@ -17,8 +17,9 @@
 
 package xsd4ld;
 
+import static org.seaborne.xsd4ld.XSD.*;
 import static xsd4ld.LibTestXSD.*;
-import static xsd4ld.XSD.*;
+
 import org.junit.Test;
 
 /** Test for xsd:dateTime etc

@@ -17,6 +17,9 @@
 
 package langtag;
 
+import org.seaborne.lang4ld.LangTag;
+import org.seaborne.lang4ld.LangTagParserAlt;
+
 public class TestLangTagParserAlt extends AbstractTestLangTag {
 
     @Override

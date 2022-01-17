@@ -17,7 +17,7 @@
 
 package xsd4ld;
 
-import static xsd4ld.XSD.* ;
+import static org.seaborne.xsd4ld.XSD.*;
 import static xsd4ld.LibTestXSD.* ;
 import org.junit.Test ;
 

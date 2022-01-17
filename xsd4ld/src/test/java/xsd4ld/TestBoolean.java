@@ -18,6 +18,7 @@
 package xsd4ld;
 
 import org.junit.Test ;
+import org.seaborne.xsd4ld.XSD;
 
 public class TestBoolean {
     @Test public void boolean_01() { LibTestXSD.valid("true", XSD.xsdBoolean) ; }

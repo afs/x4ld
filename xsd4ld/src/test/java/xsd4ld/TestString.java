@@ -18,6 +18,8 @@
 package xsd4ld;
 
 import org.junit.Test ;
+import org.seaborne.xsd4ld.XSD;
+
 import static org.junit.Assert.* ;
 
 /** Test of the machinery for strings and derived types.

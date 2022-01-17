@@ -21,6 +21,7 @@ package mt4ld;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+import org.seaborne.mt4ld.MimeType;
 
 public class TestMimeType {
     @Test public void parse_01() { test("text/plain"); }
