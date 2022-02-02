@@ -85,7 +85,7 @@
         <!-- For testing only -->
         <groupId>org.apache.jena</groupId>
         <artifactId>jena-iri</artifactId>
-        <version>4.3.2</version>
+        <version>4.4.0</version>
         <scope>test</scope>
       </dependency>
 
