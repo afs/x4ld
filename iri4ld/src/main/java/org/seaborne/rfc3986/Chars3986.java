@@ -29,11 +29,13 @@ public class Chars3986 {
     //  pct-encoded   = "%" HEXDIG HEXDIG
     //
     //  unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
-    //  iunreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
+    //  iunreserved   = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
     //  reserved      = gen-delims / sub-delims
     //  gen-delims    = ":" / "/" / "?" / "#" / "[" / "]" / "@"
     //  sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
     //                / "*" / "+" / "," / ";" / "="
+    //  ipchar        = iunreserved / pct-encoded / sub-delims / ":" / "@"
+    //                = ipchar / ucschar
 
     /** RFC3986 pchar */
     public static boolean isPChar(char ch, String str, int posn) {
@@ -70,12 +72,13 @@ public class Chars3986 {
         return isAlpha(ch) || isUcsChar(ch);
     }
 
+    // RFC 3987
     //  ucschar        = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF
-    //  / %x10000-1FFFD / %x20000-2FFFD / %x30000-3FFFD
-    //  / %x40000-4FFFD / %x50000-5FFFD / %x60000-6FFFD
-    //  / %x70000-7FFFD / %x80000-8FFFD / %x90000-9FFFD
-    //  / %xA0000-AFFFD / %xB0000-BFFFD / %xC0000-CFFFD
-    //  / %xD0000-DFFFD / %xE1000-EFFFD
+    //                 / %x10000-1FFFD / %x20000-2FFFD / %x30000-3FFFD
+    //                 / %x40000-4FFFD / %x50000-5FFFD / %x60000-6FFFD
+    //                 / %x70000-7FFFD / %x80000-8FFFD / %x90000-9FFFD
+    //                 / %xA0000-AFFFD / %xB0000-BFFFD / %xC0000-CFFFD
+    //                 / %xD0000-DFFFD / %xE1000-EFFFD
 
     // Surrogates are "hi-lo" : DC000-DFFF and D800-DFFF
     // We assume the java string is valid and surrogates are correctly in high-low pairs.
@@ -104,7 +107,7 @@ public class Chars3986 {
         boolean b = range(ch, 0xA0, 0xD7FF)  || range(ch, 0xF900, 0xFDCF)  || range(ch, 0xFDF0, 0xFFEF);
         if ( b )
             return true;
-        if ( ch < 0x1000 )
+        if ( ch < 0x10000 )
             return false;
         // 32 bit checks.
         return
@@ -117,19 +120,15 @@ public class Chars3986 {
 
     //iprivate       = %xE000-F8FF / %xF0000-FFFFD / %x100000-10FFFD
     public static boolean isIPrivate(char ch) {
-        return range(ch, 0xE000, 0xF8FF)
-            // Java is 16 bits chars.
-           ;
+        // Java is 16 bits chars.
+        return range(ch, 0xE000, 0xF8FF) ;
     }
 
     public static boolean int_isIPrivate(int ch) {
         return range(ch, 0xE000, 0xF8FF) || range(ch, 0xF0000, 0xFFFFD) || range(ch, 0x100000, 0X10FFFD);
     }
 
-    public static boolean isDigit(char ch) {
-        return range(ch, '0', '9');
-    }
-
+    /** RFC 3986 : unreserved */
     public static boolean unreserved(char ch) {
         if ( isAlpha(ch) || isDigit(ch) )
             return true;
@@ -140,6 +139,7 @@ public class Chars3986 {
         return false;
     }
 
+    /** RFC 3987 : iunreserved */
     public static boolean iunreserved(char ch) {
         if ( isIAlpha(ch) || isDigit(ch) )
             return true;
@@ -150,6 +150,7 @@ public class Chars3986 {
         return false;
     }
 
+    /** RFC 3986 : sub-delims */
     public static boolean subDelims(char ch) {
         switch(ch) {
             case '!': case '$': case '&': case '\'': case '(': case ')':
@@ -158,6 +159,7 @@ public class Chars3986 {
         return false;
     }
 
+    /** RFC 3986 : gen-delims / sub-delims */
     public static boolean genDelims(char ch) {
         switch(ch) {
             case ':': case '/': case '?': case '#': case '[': case ']': case '@': return true;
@@ -191,6 +193,10 @@ public class Chars3986 {
     /** Test whether a character is in a character range (both ends inclusive) */
     public static boolean range(int ch, int start, int finish) {
         return ch >= start && ch <= finish;
+    }
+
+    public static boolean isDigit(char ch) {
+        return range(ch, '0', '9');
     }
 
     /**
