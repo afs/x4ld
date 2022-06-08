@@ -1,6 +1,6 @@
 #!/bin/bash
 
-H="$HOME/ASF/iri4ld"
+H="$HOME/ASF/x4ld/iri4ld"
 
 CMD=org.seaborne.rfc3986.cmd.CmdIRI
 
