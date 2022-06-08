@@ -1006,11 +1006,11 @@ public class IRI3986 implements IRI {
         boolean matches = pattern.matcher(iriStr).matches();
 
         if ( !matches )
-            schemeError("urn", "does not match the 'assigned-name' rule regular expression (\"urn\" \":\" NID \":\" NSS)");
+            schemeError("urn", "URI does not match the 'assigned-name' rule regular expression (\"urn\" \":\" NID \":\" NSS)");
         if ( hasQuery() ) {
             String qs = getQuery();
             if ( ! qs.startsWith("+") && ! qs.startsWith("=") )
-                schemeError("urn", "improper start to query string.");
+                schemeError("URN", "improper start to query string.");
             urnCharCheck("query", qs);
         }
 

@@ -27,7 +27,6 @@ public class SystemIRI3986 {
         errorHandler = errHandler;
     }
 
-    ///* package*/ static Compliance SCHEME_SPECIFIC          = Compliance.STRICT;
     /* package*/ static Compliance HTTPx_SCHEME      = Compliance.STRICT;
     /* package*/ static Compliance URN_SCHEME        = Compliance.STRICT;
     /* package*/ static Compliance FILE_SCHEME       = Compliance.STRICT;
