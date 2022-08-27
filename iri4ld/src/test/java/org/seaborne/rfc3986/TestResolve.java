@@ -26,168 +26,314 @@ import org.junit.Test;
 public class TestResolve {
 
     @Test
-    public void resolve_01() {
+    public void resolve_blank_ref_1() {
         testResolve("http://example/dir/", "", "http://example/dir/");
     }
 
     @Test
-    public void resolve_02() {
-        testResolve("http://example/dir/", "A", "http://example/dir/A");
+    public void resolve_blank_ref_2() {
+        testResolve("http://example/dir/x", "", "http://example/dir/x");
     }
 
     @Test
-    public void resolve_03() {
-        testResolve("http://example/dir", "A", "http://example/A");
+    public void resolve_blank_ref_3() {
+        testResolve("http://example/", "", "http://example/");
     }
 
     @Test
-    public void resolve_04() {
-        testResolve("http://example/dir", "A/", "http://example/A/");
+    public void resolve_blank_ref_4() {
+        testResolve("http://example/x", "", "http://example/x");
     }
 
     @Test
-    public void resolve_05() {
-        testResolve("http://example/dir1/dir2/dir3/dir4", "..", "http://example/dir1/dir2/");
+    public void resolve_blank_ref_5() {
+        testResolve("http://example/x//y", "", "http://example/x//y");
     }
 
     @Test
-    public void resolve_06() {
-        testResolve("http://example/dir1/dir2/", "..", "http://example/dir1/");
+    public void resolve_blank_ref_6() {
+        testResolve("http://example//x/y", "", "http://example//x/y");
     }
 
     @Test
-    public void resolve_07() {
-        testResolve("http://example/dir1/dir2", "..", "http://example/");
-    }
-
-    @Test
-    public void resolve_08() {
-        testResolve("http://example/dir1/dir2/f3", "..", "http://example/dir1/");
-    }
-
-    @Test
-    public void resolve_09() {
-        testResolve("http://example/dir1/dir2/", "../a", "http://example/dir1/a");
-    }
-
-    @Test
-    public void resolve_10() {
-        testResolve("http://example/dir1/dir2/f3", "../a", "http://example/dir1/a");
-    }
-
-    @Test
-    public void resolve_11() {
-        testResolve("http://example/dir1/f2", "../a", "http://example/a");
-    }
-
-    @Test
-    public void resolve_12() {
-        testResolve("http://example/dir1/dir2/", "..", "http://example/dir1/");
-    }
-
-    @Test
-    public void resolve_13() {
-        testResolve("http://example/dir/", "..", "http://example/");
-    }
-
-    @Test
-    public void resolve_14() {
-        testResolve("http://example/dir", "..", "http://example/");
-    }
-
-    @Test
-    public void resolve_15() {
-        testResolve("http://example/", "..", "http://example/");
-    }
-
-    @Test
-    public void resolve_16() {
-        testResolve("http://example", "..", "http://example/");
-    }
-
-    @Test
-    public void resolve_17() {
+    public void resolve_abs_01() {
         testResolve("http://example/path?query#frag", "http://host", "http://host");
     }
 
     @Test
-    public void resolve_18() {
-        testResolve("http://example/", "abc", "http://example/abc");
+    public void resolve_abs_02() {
+        testResolve("http://example/path?query#frag", "http://host/dir1/../dir2/", "http://host/dir2/");
     }
 
     @Test
-    public void resolve_19() {
-        testResolve("http://example", "abc", "http://example/abc");
-    }
-
-    @Test
-    public void resolve_20() {
-        testResolve("http://example/dir/file", ".", "http://example/dir/");
-    }
-
-    @Test
-    public void resolve_21() {
-        testResolve("http://example/dir/", ".", "http://example/dir/");
-    }
-
-    @Test
-    public void resolve_22() {
-        testResolve("http://example/dir1/dir2/", ".", "http://example/dir1/dir2/");
-    }
-
-    @Test
-    public void resolve_23() {
-        testResolve("http://example/", ".", "http://example/");
-    }
-
-    @Test
-    public void resolve_24() {
-        testResolve("http://example/#fragment", "path?q=arg", "http://example/path?q=arg");
-    }
-
-    @Test
-    public void resolve_25() {
-        testResolve("http://example/", "../path?q=arg", "http://example/path?q=arg");
-    }
-
-    @Test
-    public void resolve_26() {
-        testResolve("http://example/?query", "../path?q=arg", "http://example/path?q=arg");
-    }
-
-    @Test
-    public void resolve_27() {
-        testResolve("http://example/?query", "../path?q=arg", "http://example/path?q=arg");
-    }
-
-    @Test
-    public void resolve_28() {
-        testResolve("http://example/path", "?query", "http://example/path?query");
-    }
-
-    @Test
-    public void resolve_29() {
-        testResolve("http://example/path", "#frag", "http://example/path#frag");
-    }
-
-    @Test
-    public void resolve_30() {
-        testResolve("http://example/path", "..#frag", "http://example/#frag");
-    }
-
-    @Test
-    public void resolve_31() {
-        testResolve("http://example/path#fragment", "..#frag", "http://example/#frag");
-    }
-
-    @Test
-    public void resolve_32() {
+    public void resolve_abs_10() {
         testResolve("http://example/dir1/dir2/", "/OtherPath", "http://example/OtherPath");
     }
 
     @Test
-    public void resolve_33() {
+    public void resolve_abs_11() {
         testResolve("http://example/dir1/dir2/", "//EX/OtherPath", "http://EX/OtherPath");
+    }
+
+    @Test
+    public void resolve_abs_12() {
+        testResolve("http:", "//EX/OtherPath", "http://EX/OtherPath");
+    }
+
+    @Test
+    public void resolve_ref_1() {
+        testResolve("http://example/dir/", "A", "http://example/dir/A");
+    }
+
+    @Test
+    public void resolve_ref_2() {
+        testResolve("http://example/dir", "A", "http://example/A");
+    }
+
+    @Test
+    public void resolve_ref_3() {
+        testResolve("http://example/dir", "A/", "http://example/A/");
+    }
+
+    @Test
+    public void resolve_ref_4() {
+        testResolve("http://example/dir/", "A/", "http://example/dir/A/");
+    }
+
+    @Test
+    public void resolve_dot_01() {
+        testResolve("http://example/dir1/dir2/", ".", "http://example/dir1/dir2/");
+    }
+
+    @Test
+    public void resolve_dot_02() {
+        testResolve("http://example/", ".", "http://example/");
+    }
+
+    @Test
+    public void resolve_dot_03() {
+        testResolve("http://example/dir1/dir2/x", ".", "http://example/dir1/dir2/");
+    }
+
+    @Test
+    public void resolve_dot_04() {
+        testResolve("http://example/x", ".", "http://example/");
+    }
+
+    @Test
+    public void resolve_dot_05() {
+        testResolve("http://example/dir/", "./.", "http://example/dir/");
+    }
+
+    @Test
+    public void resolve_dot_06() {
+        testResolve("http://example/", "./.", "http://example/");
+    }
+
+    @Test
+    public void resolve_dot_07() {
+        testResolve("http://example/x", "./.", "http://example/");
+    }
+
+    @Test
+    public void resolve_dot_08() {
+        testResolve("http://example/dir/x", "./.", "http://example/dir/");
+    }
+
+    @Test
+    public void resolve_dot_09() {
+        testResolve("http://example", ".", "http://example/");
+    }
+
+    @Test
+    public void resolve_dotdot_00() {
+        testResolve("http://example/dir1/dir2/dir3/", "..", "http://example/dir1/dir2/");
+    }
+
+    @Test
+    public void resolve_dotdot_01() {
+        testResolve("http://example/", "..", "http://example/");
+    }
+
+    @Test
+    public void resolve_dotdot_02() {
+        testResolve("http://example/x", "..", "http://example/");
+    }
+
+    @Test
+    public void resolve_dotdot_03() {
+        testResolve("http://example/dir/", "..", "http://example/");
+    }
+
+    @Test
+    public void resolve_dotdot_10() {
+        testResolve("http://example/dir1/dir2/dir3/", "../..", "http://example/dir1/");
+    }
+    @Test
+    public void resolve_dotdot_11() {
+        testResolve("http://example/dir1/dir2/dir3/", "../../..", "http://example/");
+    }
+    @Test
+    public void resolve_dotdot_12() {
+        testResolve("http://example/dir1/dir2/dir3/", "../../../..", "http://example/");
+    }
+
+    @Test
+    public void resolve_dotdot_13() {
+        testResolve("http://example/dir1/dir2/dir3/x", "..", "http://example/dir1/dir2/");
+    }
+    @Test
+    public void resolve_dotdot_14() {
+        testResolve("http://example/dir1/dir2/dir3/x", "../..", "http://example/dir1/");
+    }
+    @Test
+    public void resolve_dotdot_15() {
+        testResolve("http://example/dir1/dir2/dir3/x", "../../..", "http://example/");
+    }
+    @Test
+    public void resolve_dotdot_16() {
+        testResolve("http://example/dir1/dir2/dir3/x", "../../../..", "http://example/");
+    }
+
+    @Test
+    public void resolve_dotdot_20() {
+        testResolve("http://example", "..", "http://example/");
+    }
+
+    @Test
+    public void resolve_01() {
+        testResolve("http://example/dir1/dir2/", "../.", "http://example/dir1/");
+    }
+
+    @Test
+    public void resolve_02() {
+        testResolve("http://example/dir1/dir2/", "./..", "http://example/dir1/");
+    }
+
+    @Test
+    public void resolve_03() {
+        testResolve("http://example/dir1/dir2/dir3/x", ".././..", "http://example/dir1/");
+    }
+
+    @Test
+    public void resolve_04() {
+        testResolve("http://example/dir1/dir2/", "./../A", "http://example/dir1/A");
+    }
+
+    @Test
+    public void resolve_05() {
+        testResolve("http://example/dir1/dir2/", "./../A/.", "http://example/dir1/A/");
+    }
+
+    @Test
+    public void resolve_06() {
+        testResolve("http://example/dir1/dir2/", "../A", "http://example/dir1/A");
+    }
+
+    @Test
+    public void resolve_07() {
+        testResolve("http://example/dir1/dir2/f3", "../A", "http://example/dir1/A");
+    }
+
+    @Test
+    public void resolve_08() {
+        testResolve("http://example/f2", "../A", "http://example/A");
+    }
+
+    @Test
+    public void resolve_09() {
+        testResolve("http://example/", "../A", "http://example/A");
+    }
+
+    @Test
+    public void resolve_parts_01() {
+        testResolve("http://example/#fragment", "path?q=arg", "http://example/path?q=arg");
+    }
+
+    @Test
+    public void resolve_parts_02() {
+        testResolve("http://example/", "../path?q=arg", "http://example/path?q=arg");
+    }
+
+    @Test
+    public void resolve_parts_03() {
+        testResolve("http://example/?query", "../path?q=arg", "http://example/path?q=arg");
+    }
+
+    @Test
+    public void resolve_parts_04() {
+        testResolve("http://example/?query", "../path?q=arg", "http://example/path?q=arg");
+    }
+
+    @Test
+    public void resolve_parts_05() {
+        testResolve("http://example/path", "?query", "http://example/path?query");
+    }
+
+    @Test
+    public void resolve_parts_06() {
+        testResolve("http://example/path", "#frag", "http://example/path#frag");
+    }
+
+    @Test
+    public void resolve_parts_07() {
+        testResolve("http://example/path", "..#frag", "http://example/#frag");
+    }
+
+    @Test
+    public void resolve_parts_08() {
+        testResolve("http://example/path#fragment", "..#frag", "http://example/#frag");
+    }
+
+    @Test
+    public void resolve_rel_base_01() {
+        testResolve("a/b", "c/d", "a/c/d");
+    }
+
+    @Test
+    public void resolve_rel_base_02() {
+        testResolve("a/b/", "c/d", "a/b/c/d");
+    }
+
+    @Test
+    public void resolve_rel_base_03() {
+        testResolve("a", ".", "");
+    }
+
+    @Test
+    public void resolve_rel_base_04() {
+        testResolve("d/", ".", "d/");
+    }
+
+
+    @Test
+    public void resolve_rel_base_05() {
+        testResolve("a", "..", "");
+    }
+
+    @Test
+    public void resolve_rel_base_06() {
+        testResolve("dir/a", "..", "");
+    }
+
+    @Test
+    public void resolve_rel_base_07() {
+        testResolve("dir1/dir2/", "..", "dir1/");
+    }
+
+    @Test
+    public void resolve_rel_base_08() {
+        testResolve("a//b", ".", "a//");
+    }
+
+    @Test
+    public void resolve_rel_base_09() {
+        testResolve("a/b", "//EX/OtherPath", "//EX/OtherPath");
+    }
+
+    @Test
+    public void resolve_rel_base_10() {
+        testResolve("a/b", "/OtherPath", "/OtherPath");
     }
 
     private void testResolve(String base, String rel, String expected) {

@@ -622,7 +622,7 @@ public class IRI3986 implements IRI {
 
         if ( basePath.equals(targetPath) &&
                 ( iri.hasFragment() || iri.hasQuery() ) ) {
-            var relIRI = build(null, null, "", iri.getQuery(), iri.getFragment());
+            IRI3986 relIRI = build(null, null, "", iri.getQuery(), iri.getFragment());
             return relIRI;
         }
 
@@ -630,7 +630,7 @@ public class IRI3986 implements IRI {
 
         if ( relPath == null )
             return null;
-        var relIRI = build(null, null, relPath, iri.getQuery(), iri.getFragment());
+        IRI3986 relIRI = build(null, null, relPath, iri.getQuery(), iri.getFragment());
         return relIRI;
     }
 
@@ -797,15 +797,19 @@ public class IRI3986 implements IRI {
     /** 5.2.4.  Remove Dot Segments */
     private static String remove_dot_segments(String path) {
         String s1 = remove_dot_segments$(path);
-//        if ( false ) {
-//            String s2 = jenaIRIremoveDotSegments(path);
-//            if ( ! Objects.equals(s1, s2) )
-//                System.err.printf("remove_dot_segments : %s %s\n", s1, s2);
-//        }
+        if ( false ) {
+            // Checking code.
+            String s2 = ParseLib.jenaIRIremoveDotSegments(path);
+            if ( ! Objects.equals(s1, s2) )
+                System.err.printf("remove_dot_segments : IRI3986:%s  Jena IRI:%s\n", s1, s2);
+        }
         return s1;
     }
 
-    /* Implement using segments. -- * 5.2.4.  Remove Dot Segments */
+    /*
+     * Implement using a single segment stack, null out unwanted elements, then recombine into a string.
+     * (Maybe easier to have a second output segments, and transfer across.
+     */
     private static String remove_dot_segments$(String path) {
         if ( path == null || path.isEmpty() )
             return "";
@@ -835,11 +839,17 @@ public class IRI3986 implements IRI {
                 // Remove.
                 segments[j] = null;
             if ( s.equals("..") ) {
-                // Remove.
+                // Remove the ".."
                 segments[j] = null;
-                // and remove previous
-                if ( j >= 1 )
-                    segments[j-1] = null;
+                // and remove first unset previous
+                if ( j >= 1 ) {
+                    for ( int j2 = j-1 ; j2 >= 0 ; j2-- ) {
+                        if ( segments[j2] != null ) {
+                            segments[j2] = null;
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -850,7 +860,10 @@ public class IRI3986 implements IRI {
         for ( int k = 0 ; k < segments.length ; k++ ) {
             if ( segments[k] == null )
                 continue;
-            if ( segments[k].isEmpty() )
+            // This turns "//" into "/".
+            // The first segment is empty when parsing "/a/b/c" and we put in "/" already,
+            // so do this for the top element and otherwise leave "//" in place.
+            if ( k==0 && segments[k].isEmpty() )
                 continue;
             joiner.add(segments[k]);
         }
@@ -860,85 +873,17 @@ public class IRI3986 implements IRI {
         return s;
     }
 
-//    // >> Copied from jena-iri for comparison.
-//    static String jenaIRIremoveDotSegments(String path) {
-//        // 5.2.4 step 1.
-//        int inputBufferStart = 0;
-//        int inputBufferEnd = path.length();
-//        StringBuffer output = new StringBuffer();
-//        // 5.2.4 step 2.
-//        while (inputBufferStart < inputBufferEnd) {
-//            String in = path.substring(inputBufferStart);
-//            // 5.2.4 step 2A
-//            if (in.startsWith("./")) {
-//                inputBufferStart += 2;
-//                continue;
-//            }
-//            if (in.startsWith("../")) {
-//                inputBufferStart += 3;
-//                continue;
-//            }
-//            // 5.2.4 2 B.
-//            if (in.startsWith("/./")) {
-//                inputBufferStart += 2;
-//                continue;
-//            }
-//            if (in.equals("/.")) {
-//                in = "/"; // don't continue, process below.
-//                inputBufferStart += 2; // force end of loop
-//            }
-//            // 5.2.4 2 C.
-//            if (in.startsWith("/../")) {
-//                inputBufferStart += 3;
-//                removeLastSeqment(output);
-//                continue;
-//            }
-//            if (in.equals("/..")) {
-//                in = "/"; // don't continue, process below.
-//                inputBufferStart += 3; // force end of loop
-//                removeLastSeqment(output);
-//            }
-//            // 5.2.4 2 D.
-//            if (in.equals(".")) {
-//                inputBufferStart += 1;
-//                continue;
-//            }
-//            if (in.equals("..")) {
-//                inputBufferStart += 2;
-//                continue;
-//            }
-//            // 5.2.4 2 E.
-//            int nextSlash = in.indexOf('/', 1);
-//            if (nextSlash == -1)
-//                nextSlash = in.length();
-//            inputBufferStart += nextSlash;
-//            output.append(in.substring(0, nextSlash));
-//        }
-//        // 5.2.4 3
-//        return output.toString();
-//    }
-//
-//    private static void removeLastSeqment(StringBuffer output) {
-//        int ix = output.length();
-//        while (ix > 0) {
-//            ix--;
-//            if (output.charAt(ix) == '/')
-//                break;
-//        }
-//        output.setLength(ix);
-//    }
-//    // << Copied from jena-iri
+    static IRI3986 build(String scheme, String authority, String path, String query, String fragment) {
+        String s = rebuild(scheme, authority, path, query, fragment);
+        return IRI3986.create(s);
+    }
 
     /** RFC 3986 : 5.3.  Component Recomposition */
     public String rebuild() {
         return rebuild(getScheme(), getAuthority(), getPath(), getQuery(), getFragment());
     }
 
-    static IRI3986 build(String scheme, String authority, String path, String query, String fragment) {
-        String s = rebuild(scheme, authority, path, query, fragment);
-        return IRI3986.create(s);
-    }
-
+    // 5.3.  Component Recomposition
     private static String rebuild(String scheme, String authority, String path, String query, String fragment) {
         StringBuilder result = new StringBuilder();
         if ( scheme != null ) {
@@ -1001,12 +946,12 @@ public class IRI3986 implements IRI {
 
         String scheme = getScheme();
         if ( ! scheme.equals("urn") )
-            schemeError("urn", "scheme name is not lowercase 'urn'");
+            schemeMsg("urn", "scheme name is not lowercase 'urn'");
         // Matched: anchored. (find() is not).
         boolean matches = pattern.matcher(iriStr).matches();
 
         if ( !matches )
-            schemeError("urn", "URI does not match the 'assigned-name' rule regular expression (\"urn\" \":\" NID \":\" NSS)");
+            schemeMsg("urn", "URI does not match the 'assigned-name' rule regular expression (\"urn\" \":\" NID \":\" NSS)");
         if ( hasQuery() ) {
             String qs = getQuery();
             if ( ! qs.startsWith("+") && ! qs.startsWith("=") )
@@ -1143,7 +1088,6 @@ public class IRI3986 implements IRI {
         // No specific checks.
     }
 
-
     // ---- Scheme
 
     private void schemeMsg(String schemeName, String msg) {
@@ -1151,10 +1095,9 @@ public class IRI3986 implements IRI {
             schemeWarning(schemeName, msg);
         else
             schemeError(schemeName, msg);
-
     }
 
-    //scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+    // scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
     private int scheme(int start) {
         int p = start;
         int end = length;

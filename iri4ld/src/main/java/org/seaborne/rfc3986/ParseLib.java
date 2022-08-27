@@ -88,4 +88,74 @@ package org.seaborne.rfc3986;
         buff.append(hexDigitsUC[n3]);
         buff.append(hexDigitsUC[n4]);
     }
+
+    // >> Copied from jena-iri for comparison.
+    static String jenaIRIremoveDotSegments(String path) {
+        // 5.2.4 step 1.
+        int inputBufferStart = 0;
+        int inputBufferEnd = path.length();
+        StringBuffer output = new StringBuffer();
+        // 5.2.4 step 2.
+        while (inputBufferStart < inputBufferEnd) {
+            String in = path.substring(inputBufferStart);
+            // 5.2.4 step 2A
+            if (in.startsWith("./")) {
+                inputBufferStart += 2;
+                continue;
+            }
+            if (in.startsWith("../")) {
+                inputBufferStart += 3;
+                continue;
+            }
+            // 5.2.4 2 B.
+            if (in.startsWith("/./")) {
+                inputBufferStart += 2;
+                continue;
+            }
+            if (in.equals("/.")) {
+                in = "/"; // don't continue, process below.
+                inputBufferStart += 2; // force end of loop
+            }
+            // 5.2.4 2 C.
+            if (in.startsWith("/../")) {
+                inputBufferStart += 3;
+                removeLastSeqment(output);
+                continue;
+            }
+            if (in.equals("/..")) {
+                in = "/"; // don't continue, process below.
+                inputBufferStart += 3; // force end of loop
+                removeLastSeqment(output);
+            }
+            // 5.2.4 2 D.
+            if (in.equals(".")) {
+                inputBufferStart += 1;
+                continue;
+            }
+            if (in.equals("..")) {
+                inputBufferStart += 2;
+                continue;
+            }
+            // 5.2.4 2 E.
+            int nextSlash = in.indexOf('/', 1);
+            if (nextSlash == -1)
+                nextSlash = in.length();
+            inputBufferStart += nextSlash;
+            output.append(in.substring(0, nextSlash));
+        }
+        // 5.2.4 3
+        return output.toString();
+    }
+
+    private static void removeLastSeqment(StringBuffer output) {
+        int ix = output.length();
+        while (ix > 0) {
+            ix--;
+            if (output.charAt(ix) == '/')
+                break;
+        }
+        output.setLength(ix);
+    }
+    // << Copied from jena-iri
+
 }

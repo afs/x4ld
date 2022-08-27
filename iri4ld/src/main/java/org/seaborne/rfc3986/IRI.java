@@ -35,7 +35,7 @@ public interface IRI {
      * That is, two IRI objects with the same components are ".equals"and have the same ".hashCode".
      * (Like java.lang.String where "same chars" means "equals".)
      * Specifically, if two IRI objects are parsed from the same string or return the same "str()"
-     * they are .equals ahd hance also have the same .hashCode
+     * they are .equals and hence also have the same .hashCode.
      */
     @Override
     public boolean equals(Object obj);
@@ -96,7 +96,7 @@ public interface IRI {
         return firstChar(path) != '/';
     }
 
-    private char firstChar(String str) {
+    private static char firstChar(String str) {
         if ( str.isEmpty() )
             return 0xFFFF;
         return str.charAt(0);
@@ -120,5 +120,4 @@ public interface IRI {
      * <a href="https://tools.ietf.org/html/rfc3986#section-6.2.2">RFC 3986, Section 6.2.2 : Syntax-Based Normalization.</a>.
      */
     public IRI normalize();
-
 }
