@@ -42,6 +42,7 @@
   <properties>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
     <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
+    <java.version>11</java.version>
     <ver.junit>4.13.2</ver.junit>
     <ver.slf4j>2.0.0</ver.slf4j>
     <ver.log4j2>2.18.0</ver.log4j2>
@@ -111,7 +112,7 @@
           <version>3.10.1</version>
           <configuration>
 	          <encoding>UTF-8</encoding>
-            <release>17</release>
+            <release>${java.version}</release>
           </configuration>
         </plugin>
 
@@ -147,7 +148,7 @@
           <executions>
             <execution>
               <id>attach-sources</id>
-              <!-- <phase>package</phase> package is the default -->
+              <phase>package</phase>
               <goals>
                 <goal>jar-no-fork</goal>
               </goals>
