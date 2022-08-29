@@ -23,14 +23,25 @@ import static org.junit.Assert.*;
 import java.util.Locale;
 
 import org.apache.jena.iri.IRI;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.seaborne.rfc3986.SystemIRI3986.Compliance;
 
 /** Detailed testing IPv6 parsing is in {@link TestParseIPv6Address} */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestRFC3986 {
     // Assumes full authority parsing and not scheme-specific checks.
+
+    @Before public void setup() {
+        SystemIRI3986.strictMode("all", Compliance.STRICT);
+    }
+
+    @AfterClass public static void reset() {
+        SystemIRI3986.strictMode("all", Compliance.STRICT);
+    }
 
     // ---- Compare to jena-iri
     @Test public void parse_00() { good("http://host"); }
@@ -82,25 +93,11 @@ public class TestRFC3986 {
     @Test public void parse_21() { good("http://host/path?q=abc/def#abc/def"); }
     @Test public void parse_22() { good("http://host/path?q=abc/def#abc?def"); }
 
-    // HTTP scheme specific rules.
-    @Test public void parse_http_01()   { badSpecific("http:///file/name.txt"); }
-
-    // HTTP scheme specific rules.
-    @Test public void parse_http_02()   { badSpecific("HTTP:///file/name.txt"); }
-
-    // This is treated as legal with path and no authority.
-    //@Test public void parse_http_02a()   { badSpecific("http:/file/name.txt"); }
-
-    @Test public void parse_http_03()   { badSpecific("http://users@host/file/name.txt"); }
-
     @Test public void parse_http_04()   { good("nothttp://users@host/file/name.txt"); }
 
     @Test public void parse_http_05()   { good("nothttp://users@/file/name.txt"); }
 
     @Test public void parse_file_01() { good("file:///file/name.txt"); }
-
-    // We reject "file://host/" forms.
-    @Test public void parse_file_02() { badSpecific("file://host/file/name.txt"); }
 
     // This is legal by RFC 8089 (jena-iri, based on the original RFC 1738, fails this with missing authority).
     @Test public void parse_file_03() { goodNoIRICheck("file:/file/name.txt"); }
@@ -131,11 +128,6 @@ public class TestRFC3986 {
     @Test public void parse_uuid_05()   { good("urn:uuid:"+(testUUID.toUpperCase(Locale.ROOT))); }
 
     @Test public void parse_uuid_06()   { goodNoIRICheck("URN:UUID:"+testUUID); }
-
-    @Test public void parse_uuid_07()   { badSpecific("urn:uuid:0000"); }
-
-    @Test public void parse_uuid_08()   { badSpecific("uuid:0000-1111"); }
-
 
     @Test public void parse_ftp_01()    { good("ftp://user@host:3333/abc/def?qs=ghi#jkl"); }
 
@@ -201,52 +193,6 @@ public class TestRFC3986 {
 
     // [] not allowed.
     @Test public void bad_frag_1() { bad("http://eg.com/test.txt#xpointer(/unit[5])"); }
-
-    // ---- bad by scheme.
-    @Test public void parse_http_bad_01() { badSpecific("http://user@host:8081/abc/def?qs=ghi#jkl"); }
-
-    //  urn:2char:1char
-    // urn:NID:NSS where NID is at least 2 alphas, and at most 32 long
-    @Test public void parse_urn_bad_01() { badSpecific("urn:"); }
-    @Test public void parse_urn_bad_02() { badSpecific("urn:x:abc"); }
-
-    @Test public void parse_urn_bad_03() { badSpecific("urn:abc:"); }
-    // 33 chars
-    @Test public void parse_urn_bad_04() { badSpecific("urn:abcdefghij-123456789-123456789-yz:a"); }
-
-    // Bad by URN specific rule for the query components.
-    @Test public void parse_urn_bad_05() { badSpecific("urn:local:abc/def?query=foo"); }
-
-    @Test public void parse_urn_uuid_bad_01() {
-        badSpecific("urn:uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9?query=foo");
-    }
-
-    @Test public void parse_urn_uuid_bad_02() {
-        badSpecific("urn:uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9#frag");
-    }
-
-    @Test public void parse_urn_uuid_bad_03() {
-        // Bad length
-        badSpecific("urn:uuid:06e775ac");
-    }
-
-    @Test public void parse_urn_uuid_bad_04() {
-        // Bad character
-        badSpecific("urn:uuid:06e775ac-ZZZZ-11b2-801c-8086f2cc00c9");
-    }
-
-    @Test public void parse_uuid_bad_01() {
-        badSpecific("uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9?query=foo");
-    }
-
-    @Test public void parse_uuid_bad_02() {
-        badSpecific("uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9#frag");
-    }
-
-    @Test public void parse_uuid_bad_03() {
-        badSpecific("uuid:06e775ac-2c38-11b2");
-    }
-
     @Test public void equals_01()           {
         IRI3986 iri1 = IRI3986.create("http://example/");
         IRI3986 iri2 = IRI3986.create("http://example/");
@@ -294,15 +240,6 @@ public class TestRFC3986 {
         try {
             RFC3986.check(string);
             fail("Did not fail: "+string);
-        } catch (IRIParseException ex) {}
-    }
-
-    private void badSpecific(String string) {
-        RFC3986.check(string);
-        try {
-            RFC3986.create(string)
-                .schemeSpecificRules();
-            fail("Expected a parse exception: '"+string+"'");
         } catch (IRIParseException ex) {}
     }
 }

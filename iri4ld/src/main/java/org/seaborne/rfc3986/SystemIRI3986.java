@@ -27,20 +27,27 @@ public class SystemIRI3986 {
         errorHandler = errHandler;
     }
 
-    /* package*/ static Compliance HTTPx_SCHEME      = Compliance.STRICT;
-    /* package*/ static Compliance URN_SCHEME        = Compliance.STRICT;
-    /* package*/ static Compliance FILE_SCHEME       = Compliance.STRICT;
+    /* package*/ static Compliance Compliance_HTTPx_SCHEME      = Compliance.STRICT;
+    /* package*/ static Compliance Compliance_URN_SCHEME        = Compliance.STRICT;
+    /* package*/ static Compliance Compliance_FILE_SCHEME       = Compliance.STRICT;
 
     public static void strictMode(String scheme, Compliance compliance) {
+        if ( "all".equals(scheme) ) {
+            Compliance_HTTPx_SCHEME      = compliance;
+            Compliance_URN_SCHEME        = compliance;
+            Compliance_FILE_SCHEME       = compliance;
+            return;
+        }
+
         switch (scheme) {
             case "http" :
-                SystemIRI3986.HTTPx_SCHEME = compliance;
+                Compliance_HTTPx_SCHEME = compliance;
                 break;
             case "urn" :
-                SystemIRI3986.URN_SCHEME = compliance;
+                Compliance_URN_SCHEME = compliance;
                 break;
             case "file" :
-                SystemIRI3986.FILE_SCHEME = compliance;
+                Compliance_FILE_SCHEME = compliance;
                 break;
         }
     }
@@ -48,11 +55,11 @@ public class SystemIRI3986 {
     public static Compliance getStrictMode(String scheme) {
         switch (scheme) {
             case "http" :
-                return SystemIRI3986.HTTPx_SCHEME;
+                return SystemIRI3986.Compliance_HTTPx_SCHEME;
             case "urn" :
-                return SystemIRI3986.URN_SCHEME;
+                return SystemIRI3986.Compliance_URN_SCHEME;
             case "file" :
-                return SystemIRI3986.FILE_SCHEME;
+                return SystemIRI3986.Compliance_FILE_SCHEME;
             default:
                 return SystemIRI3986.Compliance.NOT_STRICT;
         }
@@ -89,9 +96,9 @@ public class SystemIRI3986 {
         error(scheme+" URI scheme -- "+s);
     }
 
-    static void schemeWarning(char[] scheme, String s) {
-        schemeError(String.copyValueOf(scheme), s);
-    }
+//    static void schemeWarning(char[] scheme, String s) {
+//        schemeError(String.copyValueOf(scheme), s);
+//    }
 
     static void schemeWarning(String scheme, String s) {
         warning(scheme+" URI scheme -- "+s);

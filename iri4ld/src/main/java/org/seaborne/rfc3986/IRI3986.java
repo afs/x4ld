@@ -19,9 +19,13 @@
 package org.seaborne.rfc3986;
 
 import static java.lang.String.format;
-import static org.seaborne.rfc3986.Chars3986.*;
+import static org.seaborne.rfc3986.Chars3986.EOF;
+import static org.seaborne.rfc3986.Chars3986.displayChar;
 import static org.seaborne.rfc3986.SystemIRI3986.*;
-import static org.seaborne.rfc3986.SystemIRI3986.Compliance.*;
+import static org.seaborne.rfc3986.SystemIRI3986.Compliance.NOT_STRICT;
+import static org.seaborne.rfc3986.SystemIRI3986.Compliance.STRICT;
+import static org.seaborne.rfc3986.URIScheme.*;
+import static org.seaborne.rfc3986.URIScheme.matches;
 
 import java.text.Normalizer;
 import java.util.Locale;
@@ -379,59 +383,6 @@ public class IRI3986 implements IRI {
         if ( x0 > x1 )
             return EOF;
         return charAt(x0);
-    }
-
-    // Registrations: URIs: https://www.iana.org/assignments/uri-schemes/uri-schemes.xhtml
-    // Registrations: URNs: https://www.iana.org/assignments/urn-namespaces/urn-namespaces.xhtml
-    private static String Scheme_HTTP     = "http:";
-    private static String Scheme_HTTPS    = "https:";
-    private static String Scheme_URN      = "urn:";
-    private static String Scheme_URN_UUID = "urn:uuid:";
-    private static String Scheme_DID      = "did:";
-    private static String Scheme_FILE     = "file:";
-    private static String Scheme_Example  = "example:"; // RFC 7595 and registered.
-    // It's not officially registered but may be found in the wild.
-    private static String Scheme_UUID     = "uuid:";
-
-    private boolean isScheme(String scheme) { return iriStr.regionMatches(true, 0, scheme, 0, scheme.length()); }
-
-    /**
-     * Apply scheme specific rules.
-     * Return 'this' if there are no violations.
-     */
-    public IRI3986 schemeSpecificRules() {
-        if ( ! hasScheme() )
-            // no scheme, no checks.
-            return this;
-        // General RFC 3986 warnings.
-        // * userinfo
-
-//        // Error in http? Check.
-//        if ( hasUserInfo() ) // getAuthority().contains("@") )
-//           warning("URI", "userinfo (e.g. user:password) in authority section");
-
-        // * empty port.
-//      if ( hasPort() && (port0 == port1) ) //getPort().isEmpty()
-//      warning("http", "port is empty");
-
-        if ( isScheme(Scheme_HTTP) )
-            checkHTTPx(true);
-        else if ( isScheme(Scheme_HTTPS) )
-            checkHTTPx(false);
-        else if ( isScheme(Scheme_FILE) )
-            checkFILE();
-        else if ( isScheme(Scheme_URN_UUID) ) // Special case of URNs.
-            checkUUID(Scheme_URN_UUID);
-        else if ( isScheme(Scheme_URN) )
-            checkURN();
-        else if ( isScheme(Scheme_UUID) )
-            checkUUID(Scheme_UUID);
-        else if ( isScheme(Scheme_DID) )
-            checkDID();
-        else if ( isScheme(Scheme_Example) )
-            checkExample();
-
-        return this;
     }
 
     /** Encode RFC 3987 (IRI) as strict 3986 (URI) using %-encoding */
@@ -911,9 +862,149 @@ public class IRI3986 implements IRI {
         return result.toString();
     }
 
+    // --- Scheme specific checking.
+
+
+//    private static final String SchemeName_HTTP      = "http";
+//    private static final String SchemeName_HTTPS     = "https";
+//    private static final String SchemeName_URN       = "urn";
+//    private static final String SchemeName_URN_UUID  = "urn:uuid";
+//    private static final String SchemeName_DID       = "did";
+//    private static final String SchemeName_FILE      = "file";
+//    private static final String SchemeName_Example   = "example"; // RFC 7595 and registered.
+//    // It's not officially registered but may be found in the wild.
+//    private static final String SchemeName_UUID      = "uuid";
+//
+//    // Compile time constants.
+//    private static final String Scheme_HTTP      = SchemeName_HTTP+":";
+//    private static final String Scheme_HTTPS     = SchemeName_HTTPS+":";
+//    private static final String Scheme_URN       = SchemeName_URN+":";
+//    private static final String Scheme_URN_UUID  = SchemeName_URN_UUID+":";
+//    private static final String Scheme_DID       = SchemeName_DID+":";
+//    private static final String Scheme_FILE      = SchemeName_FILE+":";
+//    private static final String Scheme_Example   = SchemeName_Example+":";
+//    private static final String Scheme_UUID      = SchemeName_UUID+":";
+//
+//    // Test the IRI string, this does not touch the scheme name slot.
+//    private final boolean isScheme(String scheme) { return iriStr.regionMatches(true, 0, scheme, 0, scheme.length()); }
+
+    private enum MessageCategory { ERROR, WARNING };
+
+    /**
+     * Apply scheme specific rules.
+     * Return 'this' if there are no violations.
+     */
+    public IRI3986 schemeSpecificRules() {
+        if ( ! hasScheme() )
+            // no scheme, no checks.
+            return this;
+
+        // General RFC 3986 warnings.
+        // * userinfo
+        //        // Error in http? Check.
+        //        if ( hasUserInfo() ) // getAuthority().contains("@") )
+        //           warning("URI", "userinfo (e.g. user:password) in authority section");
+
+        // * empty port.
+        //      if ( hasPort() && (port0 == port1) ) //getPort().isEmpty()
+        //      warning("http", "port is empty");
+
+        // Scheme is not necessarily lowercase.
+        // We could do dispatch twice, once fast path (assumes lower case) with a switch statement.
+
+
+
+        if ( matches(iriStr, HTTPS) )
+            checkHTTPx(HTTPS);
+        else if ( matches(iriStr, HTTP) )
+            checkHTTPx(HTTP);
+        else if ( matches(iriStr, URN_UUID) )
+            checkUUID(URN_UUID);
+        else if ( matches(iriStr, URN) )
+            checkURN();
+        else if ( matches(iriStr, FILE) )
+            checkFILE();
+        else if ( matches(iriStr, UUID) )
+            checkUUID(UUID);
+        else if ( matches(iriStr, DID) )
+            checkDID();
+        else if ( matches(iriStr, EXAMPLE) )
+            checkExample();
+
+        return this;
+    }
+
+    private void checkHTTPx(URIScheme scheme) {
+        String schemeName = scheme.getName();
+        boolean strict = ( Compliance_HTTPx_SCHEME == STRICT );
+        // Some things are always error, some always warnings, and some depend on strictness.
+        MessageCategory category = strict ? MessageCategory.ERROR : MessageCategory.WARNING;
+
+        checkSchemeName(Compliance_HTTPx_SCHEME, scheme);
+
+        /*
+         * https://tools.ietf.org/html/rfc2616#section-3.2.2
+         *
+         *   http_URL = "http:" "//" host [ ":" port ] [ abs_path [ "?" query ]]
+         */
+
+        /*
+         * https://tools.ietf.org/html/rfc7230#section-2.7.1
+         *
+         *   A sender MUST NOT generate an "http" URI with an empty host
+         *   identifier.  A recipient that processes such a URI reference MUST
+         *   reject it as invalid.
+         */
+        // See https://tools.ietf.org/html/rfc7230#section-2.7.1
+
+        if ( ! hasAuthority() || (authority0 == authority1) )
+            schemeError(schemeName, "http and https URI schemes require //host/");
+
+        if ( hasHost() && (host0 == host1) )
+            schemeMsg(category, schemeName, "http and https URI schemes do not allow the host to be empty");
+
+        // https://tools.ietf.org/html/rfc3986#section-3.2.3
+        if ( hasPort() && (port0 == port1) ) //getHost().isEmpty()
+            schemeWarning(schemeName, "Port is empty - omit the ':'");
+
+         /*
+         * https://tools.ietf.org/html/rfc7230#section-2.7.1
+         *
+         *   A sender MUST NOT
+         *   generate the userinfo subcomponent (and its "@" delimiter) when an
+         *   "http" URI reference is generated within a message as a request
+         *   target or header field value.  Before making use of an "http" URI
+         *   reference received from an untrusted source, a recipient SHOULD parse
+         *   for userinfo and treat its presence as an error; it is likely being
+         *   used to obscure the authority for the sake of phishing attacks.
+         *
+         * ----
+         *  And in linked data, any URI is a request target.
+         */
+
+        if ( hasUserInfo() )
+            schemeMsg(category, schemeName, "userinfo (e.g. user:password) in authority section");
+
+        if ( hasPort() ) {
+            switch ( scheme ) {
+                case HTTP:
+                    if ( getPort().equals("80") )
+                        schemeWarning(schemeName, "Default port 80 should be omitted");
+                    break;
+                case HTTPS:
+                    if ( getPort().equals("443") )
+                        schemeWarning(schemeName, "Default port 443 should be omitted");
+                    break;
+                default:
+                    throw new IllegalStateException();
+            }
+        }
+    }
+
     // URN specific.
     //   "urn", ASCII, min 2 char NID min two char NSS (urn:NID:NSS)
     //   Query string starts ?+ or ?=
+
 
     /*
         namestring    = assigned-name
@@ -937,25 +1028,43 @@ public class IRI3986 implements IRI {
     // NID, can be one char and can be "X-" (RFC 2141)
     // NSS, and it's colon can be absent. base names can be <urn:nid:> but not <urn:nid>
     private static Pattern URN_PATTERN_ASSIGNED_NAME_LOOSE = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,31}:(?:.*)");
+    // Common bad cases : "urn:x:" and "urn:X-ABC:"
+    private static Pattern URN_PATTERN_BAD_NID_1 = Pattern.compile("^urn:(?:[a-zA-Z0-9])(?::(?:.*))?");
+    private static Pattern URN_PATTERN_BAD_NID_2 = Pattern.compile("^urn:X-:");
 
+    /** Check "urn:". Additional check for "urn:uuid:" available in {'link {@link #checkUUID(String)}. */
     private void checkURN() {
-//        if ( URN_SCHEME == NOT_STRICT )
+        // If the dispatch didn't include "urn:uuid:"
+//        if ( matches(iriStr, URN_UUID) )
+//            // Special case of URNs.
+//            checkUUID(Scheme_URN_UUID);
 //            return;
+//        }
 
-        Pattern pattern = ( URN_SCHEME == STRICT ) ? URN_PATTERN_ASSIGNED_NAME_STRICT : URN_PATTERN_ASSIGNED_NAME_LOOSE;
+        String schemeName = "urn";
+        boolean strict = ( Compliance_URN_SCHEME == STRICT );
+        MessageCategory category = strict ? MessageCategory.ERROR : MessageCategory.WARNING;
 
-        String scheme = getScheme();
-        if ( ! scheme.equals("urn") )
-            schemeMsg("urn", "scheme name is not lowercase 'urn'");
+        checkSchemeName(Compliance_URN_SCHEME, URN);
+
+        Pattern pattern = strict ? URN_PATTERN_ASSIGNED_NAME_STRICT : URN_PATTERN_ASSIGNED_NAME_LOOSE;
+
+        String iriScheme = getScheme();
+        if ( ! schemeName.equals(iriScheme) )
+            schemeMsg(category, "urn", "scheme name is not lowercase 'urn'");
         // Matched: anchored. (find() is not).
         boolean matches = pattern.matcher(iriStr).matches();
 
-        if ( !matches )
-            schemeMsg("urn", "URI does not match the 'assigned-name' rule regular expression (\"urn\" \":\" NID \":\" NSS)");
+        if ( !matches ) {
+            if ( URN_PATTERN_BAD_NID_1.matcher(iriStr).matches() )
+                schemeMsg(category, schemeName, "NID must be at least 2 characters");
+            else
+                schemeMsg(category, schemeName, "URI does not match the 'assigned-name' rule regular expression (\"urn\" \":\" NID \":\" NSS)");
+        }
         if ( hasQuery() ) {
             String qs = getQuery();
             if ( ! qs.startsWith("+") && ! qs.startsWith("=") )
-                schemeError("URN", "improper start to query string.");
+                schemeError(schemeName, "improper start to query string.");
             urnCharCheck("query", qs);
         }
 
@@ -971,64 +1080,10 @@ public class IRI3986 implements IRI {
         }
     }
 
-    private void checkHTTPx(boolean isHTTP) {
-        String schemeName = isHTTP ? "http" : "https";
-
-        /*
-         * https://tools.ietf.org/html/rfc2616#section-3.2.2
-         *
-         *   http_URL = "http:" "//" host [ ":" port ] [ abs_path [ "?" query ]]
-         */
-
-        /*
-         * https://tools.ietf.org/html/rfc7230#section-2.7.1
-         *
-         *   A sender MUST NOT generate an "http" URI with an empty host
-         *   identifier.  A recipient that processes such a URI reference MUST
-         *   reject it as invalid.
-         */
-        // See https://tools.ietf.org/html/rfc7230#section-2.7.1
-
-        if ( ! hasAuthority() )
-            schemeError(schemeName, "http and https URI schemes require //");
-
-        if ( hasHost() && (host0 == host1) )
-            schemeMsg(schemeName, "http and https URI schemes do not allow the host to be empty");
-
-        // https://tools.ietf.org/html/rfc3986#section-3.2.3
-        if ( hasPort() && (port0 == port1) ) //getHost().isEmpty()
-            schemeWarning(schemeName, "Port is empty - omit the ':'");
-
-         /*
-         * https://tools.ietf.org/html/rfc7230#section-2.7.1
-         *
-         *   A sender MUST NOT
-         *   generate the userinfo subcomponent (and its "@" delimiter) when an
-         *   "http" URI reference is generated within a message as a request
-         *   target or header field value.  Before making use of an "http" URI
-         *   reference received from an untrusted source, a recipient SHOULD parse
-         *   for userinfo and treat its presence as an error; it is likely being
-         *   used to obscure the authority for the sake of phishing attacks.
-         *
-         * ----
-         *  And in linked data, any URI is a request target.
-         */
-
-        if ( hasUserInfo() )
-            schemeMsg(schemeName, "userinfo (e.g. user:password) in authority section");
-
-        if ( hasPort() ) {
-            if ( isHTTP ) {
-                if ( getPort().equals("80") )
-                    schemeWarning(schemeName, "Default port 80 should be omitted");
-            } else {
-                if ( getPort().equals("443") )
-                    schemeWarning(schemeName, "Default port 443 should be omitted");
-            }
-        }
-    }
-
+    /** Check "file:" */
     private void checkFILE() {
+        checkSchemeName(Compliance_FILE_SCHEME, URIScheme.FILE);
+
         // We only support file:// because file://path1/path2/ makes the host "path1" (which is then ignored!)
         if ( hasAuthority() && authority0 != authority1 ) {
             // file://path1/path2/..., so path becomes the "authority"
@@ -1039,45 +1094,56 @@ public class IRI3986 implements IRI {
     /**
      *  Both "urn:uuid:" and the unofficial "uuid:"
      */
-    private static Pattern UUID_PATTERN_LC = Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                                                           Pattern.CASE_INSENSITIVE);
-    private static Pattern UUID_PATTERN_AnyCase = Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
+    private static Pattern UUID_PATTERN_LC = Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
+    private static Pattern UUID_PATTERN_UC = Pattern.compile("^(?:urn:uuid|uuid):[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$");
 
-    private void checkUUID(String schemeTest) {
+    private static Pattern UUID_PATTERN_AnyCase = Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                                                             Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Checks for "urn:" and "urn:uuid:"
+     * @param schemeName (without ":")
+     */
+    private void checkUUID(URIScheme scheme) {
         boolean matches = UUID_PATTERN_LC.matcher(iriStr).matches();
         if ( matches )
             return;
 
-        String scheme = getScheme();
-        if ( ! scheme.equals("urn") )
-            schemeError("urn", "scheme name is not lowercase 'urn'");
+        String schemeName = scheme.getName();
+        String schemePrefix = scheme.getPrefix();
+        if ( ! iriStr.startsWith(schemePrefix) )
+            schemeError(schemeName, "scheme name is not lowercase '"+scheme.getPrefix()+"'");
 
-        int idx = schemeTest.length();
-        int uuidLen = iriStr.length()-schemeTest.length();
-        String uuidStr = iriStr.substring(idx);
+        // Offset in the of the UUID starting point. Skip ':'
+        int offset = scheme.getPrefix().length();
+        int uuidLen = iriStr.length()-offset;
+        String uuidStr = iriStr.substring(offset);
+
+        // Specific tests, specific messages
         if ( uuidLen != 36 )
-            schemeError(schemeTest, "Bad UUID string (wrong length): "+uuidStr);
+            schemeError(schemeName, "Bad UUID string (wrong length): "+uuidStr);
         if ( hasQuery() )
-            schemeError(schemeTest, "query component not allowed: "+iriStr);
+            schemeError(schemeName, "query component not allowed: "+iriStr);
         if ( hasFragment() )
-            schemeError(schemeTest, "fragment not allowed: "+iriStr);
+            schemeError(schemeName, "fragment not allowed: "+iriStr);
 
         boolean matchesAnyCase = UUID_PATTERN_AnyCase.matcher(iriStr).matches();
         if ( matchesAnyCase )
-            schemeWarning(schemeTest, "Lowercase recommended for UUID string: "+uuidStr);
+            schemeWarning(schemeName, "Lowercase recommended for UUID string: "+uuidStr);
         else
-            // Didn't match UUID_PATTERN_LC
-            schemeError(scheme, "Not a valid UUID string: "+uuidStr);
+            // Didn't match UUID_PATTERN_LC or UUID_PATTERN_AnyCase
+            schemeError(schemeName, "Not a valid UUID string: "+uuidStr);
     }
 
     /**
      * @see ParseDID
      */
     private void checkDID() {
+        //checkSchemeName(STRICT, DID);
         try {
             ParseDID.parse(iriStr, true);
         } catch (RuntimeException ex) {
-            schemeError("did", "Invalid DID: "+ex.getMessage());
+            schemeError(DID.getName(), "Invalid DID: "+ex.getMessage());
         }
     }
 
@@ -1085,16 +1151,39 @@ public class IRI3986 implements IRI {
      * URI scheme "example:" from RFC 7595
      */
     private void checkExample() {
-        // No specific checks.
+        checkSchemeName(STRICT, EXAMPLE);
     }
 
-    // ---- Scheme
+    private void checkSchemeName(Compliance compliance, URIScheme scheme) {
+        if ( compliance == NOT_STRICT )
+            return;
 
-    private void schemeMsg(String schemeName, String msg) {
-        if ( HTTPx_SCHEME == NOT_STRICT )
-            schemeWarning(schemeName, msg);
-        else
-            schemeError(schemeName, msg);
+        String correctSchemeName = scheme.getName();
+
+        if ( ! hasScheme() ) {
+            schemeWarning(correctSchemeName, "No scheme name");
+            return;
+        }
+
+        if ( ! URIScheme.matchesExact(iriStr, scheme) ) {
+            if ( URIScheme.matches(iriStr, scheme) )
+                schemeWarning(correctSchemeName, "Scheme name should be lowercase");
+            else
+                schemeWarning(correctSchemeName, "Scheme name should be '"+correctSchemeName+"'");
+        }
+    }
+
+    /** Error if strict, warning is not */
+    private void schemeMsg(MessageCategory category, String schemeName, String msg) {
+        Objects.requireNonNull(category);
+        switch(category) {
+            case WARNING:
+                schemeWarning(schemeName, msg);
+                break;
+            case ERROR:
+                schemeError(schemeName, msg);
+                break;
+        }
     }
 
     // scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
@@ -1292,8 +1381,9 @@ public class IRI3986 implements IRI {
         } else
             host1 = limit;
 
-        // XXX Check DNS name.
+        // TODO
         // IPv4 address or DNS name between host0 and host1.
+        //ParseIPv4Address.checkIPv4(iriStr, host0, host1);
 
         return limit;
     }
@@ -1755,4 +1845,3 @@ public class IRI3986 implements IRI {
                                ; white space
 
  */
-
