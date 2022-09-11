@@ -18,6 +18,8 @@
 
 package org.seaborne.rfc3986;
 
+import java.util.regex.Pattern;
+
 public class ParseDID {
 
     private static char EOF = Chars3986.EOF ;
@@ -38,8 +40,9 @@ public class ParseDID {
     At least one char for method-specific-id; end char not ":"
 
     April 2021: At-risk : add: empty  method-specific-id
-
 */
+    private static Pattern DID_PATTERN = Pattern.compile("^did:[a-z]+:(?:(?:[A-Za-z0-9.-_]|%[0-9]A-Fa-f]{2})+)$");
+
     static
     public void parse(String string, boolean allowPercentEncoding) {
         if ( ! string.startsWith("did:") )
@@ -127,7 +130,7 @@ public class ParseDID {
     }
 
     static class DIDParseException extends IRIParseException {
-        DIDParseException(String msg) {super(msg);}
+        DIDParseException(String msg) { super(msg); }
     }
 
     private static void error(String didString, String msg) {

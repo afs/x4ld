@@ -21,17 +21,23 @@ package org.seaborne.rfc3986;
 import static java.lang.String.format;
 import static org.seaborne.rfc3986.Chars3986.EOF;
 import static org.seaborne.rfc3986.Chars3986.displayChar;
-import static org.seaborne.rfc3986.SystemIRI3986.*;
+import static org.seaborne.rfc3986.ErrorIRI3986.parseError;
+import static org.seaborne.rfc3986.ErrorIRI3986.schemeError;
+import static org.seaborne.rfc3986.ErrorIRI3986.schemeWarning;
+import static org.seaborne.rfc3986.SystemIRI3986.Compliance_FILE_SCHEME;
+import static org.seaborne.rfc3986.SystemIRI3986.Compliance_HTTPx_SCHEME;
+import static org.seaborne.rfc3986.SystemIRI3986.Compliance_URN_SCHEME;
 import static org.seaborne.rfc3986.SystemIRI3986.Compliance.NOT_STRICT;
 import static org.seaborne.rfc3986.SystemIRI3986.Compliance.STRICT;
 import static org.seaborne.rfc3986.URIScheme.*;
-import static org.seaborne.rfc3986.URIScheme.matches;
 
 import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
+
+import org.seaborne.rfc3986.SystemIRI3986.Compliance;
 
 /**
  * Implementation of RFC 3986 (URI), RFC 3987 (IRI). As is common, these are referred to
@@ -363,7 +369,12 @@ public class IRI3986 implements IRI {
         return hasPath() && firstChar(path0, path1) != '/';
     }
 
-    /** Don't make the parts during parsing but wait until needed, if at all */
+    /**
+     * Don't make the parts during parsing but wait until needed, if at all.
+     * Assigning to a object member is atomic and even if two part/assignment overlap,
+     * they are the same value-equals string.
+     *
+     */
     private static String part(String str, int start, int finish) {
         if ( start >= 0 ) {
             if ( finish > str.length() ) {
@@ -864,30 +875,6 @@ public class IRI3986 implements IRI {
 
     // --- Scheme specific checking.
 
-
-//    private static final String SchemeName_HTTP      = "http";
-//    private static final String SchemeName_HTTPS     = "https";
-//    private static final String SchemeName_URN       = "urn";
-//    private static final String SchemeName_URN_UUID  = "urn:uuid";
-//    private static final String SchemeName_DID       = "did";
-//    private static final String SchemeName_FILE      = "file";
-//    private static final String SchemeName_Example   = "example"; // RFC 7595 and registered.
-//    // It's not officially registered but may be found in the wild.
-//    private static final String SchemeName_UUID      = "uuid";
-//
-//    // Compile time constants.
-//    private static final String Scheme_HTTP      = SchemeName_HTTP+":";
-//    private static final String Scheme_HTTPS     = SchemeName_HTTPS+":";
-//    private static final String Scheme_URN       = SchemeName_URN+":";
-//    private static final String Scheme_URN_UUID  = SchemeName_URN_UUID+":";
-//    private static final String Scheme_DID       = SchemeName_DID+":";
-//    private static final String Scheme_FILE      = SchemeName_FILE+":";
-//    private static final String Scheme_Example   = SchemeName_Example+":";
-//    private static final String Scheme_UUID      = SchemeName_UUID+":";
-//
-//    // Test the IRI string, this does not touch the scheme name slot.
-//    private final boolean isScheme(String scheme) { return iriStr.regionMatches(true, 0, scheme, 0, scheme.length()); }
-
     private enum MessageCategory { ERROR, WARNING };
 
     /**
@@ -895,6 +882,9 @@ public class IRI3986 implements IRI {
      * Return 'this' if there are no violations.
      */
     public IRI3986 schemeSpecificRules() {
+
+        checkGeneral();
+
         if ( ! hasScheme() )
             // no scheme, no checks.
             return this;
@@ -911,8 +901,6 @@ public class IRI3986 implements IRI {
 
         // Scheme is not necessarily lowercase.
         // We could do dispatch twice, once fast path (assumes lower case) with a switch statement.
-
-
 
         if ( matches(iriStr, HTTPS) )
             checkHTTPx(HTTPS);
@@ -932,6 +920,37 @@ public class IRI3986 implements IRI {
             checkExample();
 
         return this;
+    }
+
+    private void checkGeneral() {
+        // TODO
+        // lower case scheme
+        // Use of %abIf two URIs
+
+        // If no normalized ...
+
+        // Other normalizations.
+
+
+        // RFC 3986 section 3.1
+        /*
+         * Although schemes are case-
+         * insensitive, the canonical form is lowercase and documents that
+         * specify schemes must do so with lowercase letters.  An implementation
+         * should accept uppercase letters as equivalent to lowercase in scheme
+         * names (e.g., allow "HTTP" as well as "http") for the sake of
+         * robustness but should only produce lowercase scheme names for
+         * consistency.
+         */
+
+        // RFC 3986 section 2.1
+        /*
+         * If two URIs
+         * differ only in the case of hexadecimal digits used in percent-encoded
+         * octets, they are equivalent.  For consistency, URI producers and
+         * normalizers should use uppercase hexadecimal digits for all percent-
+         * encodings.
+        */
     }
 
     private void checkHTTPx(URIScheme scheme) {
@@ -1185,6 +1204,8 @@ public class IRI3986 implements IRI {
                 break;
         }
     }
+
+    // --- pArsing
 
     // scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
     private int scheme(int start) {
@@ -1466,7 +1487,7 @@ public class IRI3986 implements IRI {
                 if ( ch == '?' || ch == '#' )
                     break;
                 // Not IPChar
-                parseError(p+1, format("Bad character in IRI path: "+ch+" (U+%04X)", (int)ch));
+                parseError(p+1, format("Bad character in IRI path: %s (U+%04X)", Character.toString((int)ch), (int)ch));
             }
             allowColon = true;
             segStart = p+1;

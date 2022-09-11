@@ -27,7 +27,6 @@ public class CmdIRI {
             System.exit(1);
         }
 
-        // Default!
         ErrorHandler errorHandler = new ErrorHandler() {
             @Override
             public void warning(String message) {
@@ -42,7 +41,7 @@ public class CmdIRI {
         for (String iriStr : args ) {
             if ( iriStr.startsWith("<") && iriStr.endsWith(">") )
                 iriStr = iriStr.substring(1, iriStr.length()-1);
-           try {
+            try {
                 IRI3986 iri = RFC3986.create(iriStr);
                 IRI3986 iri1 = iri.normalize();
 

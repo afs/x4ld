@@ -101,7 +101,7 @@ public class ParseDNS {
     }
 
     static class DNSParseException extends IRIParseException {
-        DNSParseException(String msg) {super(msg);}
+        DNSParseException(String msg) { super(msg); }
     }
 
     private void error(String msg) {

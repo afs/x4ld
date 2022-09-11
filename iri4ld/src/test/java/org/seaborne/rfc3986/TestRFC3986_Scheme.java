@@ -27,6 +27,12 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.seaborne.rfc3986.SystemIRI3986.Compliance;
 
+/**
+ * Scheme specific tests
+ *
+ * @see TestRFC3986 -- for parsing the URI grammar.
+ * @see TestRFC3986_Features
+ */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestRFC3986_Scheme {
     @Before public void setup() {

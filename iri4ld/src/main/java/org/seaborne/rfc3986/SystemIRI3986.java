@@ -23,10 +23,6 @@ public class SystemIRI3986 {
 
     public enum Compliance { STRICT, NOT_STRICT }
 
-    public static void setErrorHandler(ErrorHandler errHandler) {
-        errorHandler = errHandler;
-    }
-
     /* package*/ static Compliance Compliance_HTTPx_SCHEME      = Compliance.STRICT;
     /* package*/ static Compliance Compliance_URN_SCHEME        = Compliance.STRICT;
     /* package*/ static Compliance Compliance_FILE_SCHEME       = Compliance.STRICT;
@@ -65,50 +61,20 @@ public class SystemIRI3986 {
         }
     }
 
-    // Default!
-    private static ErrorHandler errorHandler = s -> { throw new IRIParseException(s); };
+    /** System default : throw exception on errors, siolent about warnings. */
+    private static final ErrorHandler errorHandlerSystemDefault =
+            ErrorHandler.create(s -> { throw new IRIParseException(s); }, null);
+    /**
+     * System error handler.
+     * The initial setting is one that throws errors, and ignore warnings.
+     */
+    private static ErrorHandler errorHandler = errorHandlerSystemDefault;
 
-    static void parseError(int posn, String s) {
-        if ( posn >= 0 )
-            s = "[Posn "+posn+"] "+s;
-        error(s);
+    public static void setErrorHandler(ErrorHandler errHandler) {
+        errorHandler = errHandler;
     }
 
-    static void parseError(String s) {
-        error(s);
-    }
-
-    static void parseWarning(int posn, String s) {
-        if ( posn >= 0 )
-            s = "[Posn "+posn+"] "+s;
-        warning(s);
-    }
-
-    static void parseWarning(String s) {
-        warning(s);
-    }
-
-    static void schemeError(char[] scheme, String s) {
-        schemeError(String.copyValueOf(scheme), s);
-    }
-
-    static void schemeError(String scheme, String s) {
-        error(scheme+" URI scheme -- "+s);
-    }
-
-//    static void schemeWarning(char[] scheme, String s) {
-//        schemeError(String.copyValueOf(scheme), s);
-//    }
-
-    static void schemeWarning(String scheme, String s) {
-        warning(scheme+" URI scheme -- "+s);
-    }
-
-    private static void error(String s) {
-        errorHandler.error(s);
-    }
-
-    private static void warning(String s) {
-        errorHandler.warning(s);
+    public static ErrorHandler getErrorHandler() {
+        return errorHandler;
     }
 }

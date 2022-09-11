@@ -30,9 +30,15 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.seaborne.rfc3986.SystemIRI3986.Compliance;
 
-/** Detailed testing IPv6 parsing is in {@link TestParseIPv6Address} */
+
+/**
+ * General parsing of URIs, not scheme specific rules.
+ * @see TestRFC3986_Scheme
+ * @see TestRFC3986_Features
+ */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestRFC3986 {
+    // Detailed testing IPv6 parsing is in {@link TestParseIPv6Address}
     // Assumes full authority parsing and not scheme-specific checks.
 
     @Before public void setup() {

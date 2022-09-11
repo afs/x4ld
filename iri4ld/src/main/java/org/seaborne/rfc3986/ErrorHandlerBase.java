@@ -18,29 +18,37 @@
 
 package org.seaborne.rfc3986;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
- * An Error handler captures the policy for dealing with warnings, errors and
- * fatal errors. Fatal errors mean termination of processing and must throw
- * an exception. Errors and warnings may throw an exception to terminate
- * processing or may return after, for example, logging a message. The exact
- * policy is determined the error handler itself.
+ * This error handler is a pair of functions, one for warnings, one for errors.
  */
-@FunctionalInterface
-public interface ErrorHandler
-{
+public class ErrorHandlerBase implements ErrorHandler {
+
+    private final Consumer<String> onError;
+    private final Consumer<String> onWarning;
+
     /**
-     * Create an error handler with two functions, one for warning, one for error.
-     * A value of null implies using a "no action" function.s
+     * Create an error handler.
      */
     public static ErrorHandler create(Consumer<String> onError, Consumer<String> onWarning) {
-        return ErrorHandlerBase.create(onError, onWarning);
+        return new ErrorHandlerBase(handler(onError), handler(onWarning));
     }
 
-    /** Report a warning. This method may return. */
-    public default void warning(String message) { }
+    private ErrorHandlerBase(Consumer<String> onError, Consumer<String> onWarning) {
+        this.onError = Objects.requireNonNull(onError, "onError");
+        this.onWarning = Objects.requireNonNull(onWarning, "onWarning");
+    }
 
-    /** Report an error : should not return. */
-    public void error(String message) ;
+    /** Ensure consumer is defined : default null to "do nothing" */
+    private static Consumer<String> handler(Consumer<String> eventHandler) {
+        return eventHandler == null ? (x)->{} : eventHandler;
+    }
+
+    @Override
+    public void warning(String message) { onWarning.accept(message); }
+
+    @Override
+    public void error(String message) { onError.accept(message); }
 }

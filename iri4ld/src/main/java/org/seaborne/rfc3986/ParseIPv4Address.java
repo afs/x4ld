@@ -46,14 +46,14 @@ public class ParseIPv4Address {
         if ( start < 0 || end < 0 || end > length )
             throw new IllegalArgumentException();
         if ( length == 0 || start >= end )
-            throw new IRIParseException("Empty IPv6 address");
+            ErrorIRI3986.parseError("Empty IPv6 address");
         parseIPv4(string, start, end);
     }
 
     private static int parseIPv4(CharSequence string, int start, int end) {
         int q = ipv4(string, start, end);
         if ( q != end )
-            throw new IRIParseException("IPV4 address too long (final dec-octet too long)");
+            ErrorIRI3986.parseError("IPV4 address too long (final dec-octet too long)");
         return q;
     }
 
@@ -65,14 +65,14 @@ public class ParseIPv4Address {
         for ( int i = 0 ; i < 4 ; i++ ) {
             int x = ipv4_digits(string, p, end);
             if ( x < 0 || x == p )
-                throw new IRIParseException("Bad IPv4 address (no digits)");
+                ErrorIRI3986.parseError("Bad IPv4 address (no digits)");
             // Check for in 0-255.
             if ( x-p == 3 )
                 checkIPv4Value(string, p);
             if ( i != 3 ) {
                 char ch = charAt(string, x);
                 if ( ch != '.' )
-                    throw new IRIParseException("Bad IPv4 address (dot not found after 3 digits)");
+                    ErrorIRI3986.parseError("Bad IPv4 address (dot not found after 3 digits)");
                 x++;
             }
             p = x;
@@ -102,7 +102,7 @@ public class ParseIPv4Address {
         char ch3 = charAt(string, p+2);
         int v = (ch1-'0')*100 + (ch2-'0')*10 + (ch3-'0');
         if ( v > 255 )
-            throw new IRIParseException("IPv4 number out of range 0-255.");
+            ErrorIRI3986.parseError("IPv4 number out of range 0-255.");
     }
 
     /** Look at the end of the character sequence for an IPv4 address. */
@@ -139,7 +139,7 @@ public class ParseIPv4Address {
         if ( ! isIPv4 )
             return -1;
         if ( countDot != 3 )
-            throw new IRIParseException("Malformed IPv4 address as part of IPv6 []");
+            ErrorIRI3986.parseError("Malformed IPv4 address as part of IPv6 []");
 
         // Move to start of IPv4 address. => function.
         for ( int i = 0 ; i < 3 ; i++ ) {
@@ -154,7 +154,7 @@ public class ParseIPv4Address {
         // check p .
         char ch = charAt(string, p-1);
         if ( ch != ':' )
-            throw new IRIParseException("Malformed IPv4 address as part of IPv6; can't find ':' separator");
+            ErrorIRI3986.parseError("Malformed IPv4 address as part of IPv6; can't find ':' separator");
         // Location of last :
         return p;
     }
