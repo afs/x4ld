@@ -20,12 +20,13 @@ package org.seaborne.rfc3986;
 
 public interface IRI {
     // Operations like relativize and resolve left to external functions.
+    //
 
     /** The IRI in string form. This is guaranteed to parse to an equals IRI. */
     public String str();
 
-//    /** Human-readable appearance. Use {@link #str()} to a string to use in code. */
-//    @Override public String toString();
+    /** Human-readable appearance. Use {@link #str()} to a string to use in code. */
+    @Override public String toString();
 
     /** Java hashCode. */
     @Override

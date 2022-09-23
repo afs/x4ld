@@ -34,7 +34,6 @@ import static org.seaborne.rfc3986.URIScheme.*;
 import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.StringJoiner;
 import java.util.regex.Pattern;
 
 import org.seaborne.rfc3986.SystemIRI3986.Compliance;
@@ -120,7 +119,7 @@ public class IRI3986 implements IRI {
      * This operation optionally also applies some scheme specific rules.
      */
     /*package*/ static void check(String iristr, boolean applySchemeSpecificRules) {
-        IRI3986 iri = new IRI3986(iristr).process();
+        IRI3986 iri = newAndParse(iristr);
         if ( applySchemeSpecificRules )
             iri.schemeSpecificRules();
     }
@@ -132,9 +131,24 @@ public class IRI3986 implements IRI {
      * URI scheme specific rules-- see {@link #schemeSpecificRules()}.
      */
     public static IRI3986 create(String iristr) {
-        IRI3986 iri = new IRI3986(iristr).process();
+        IRI3986 iri = newAndParse(iristr);
         return iri;
     }
+
+    /**
+     * Create an IRI3986, parsing the string to set all the members
+     * If bad, by the syntax defined by RFC 3986, throws an exception.
+     * This operations does not check the resulting IRI conforms to
+     * URI scheme specific rules-- see {@link #schemeSpecificRules()}.
+     * <p>
+     * This function should be the only way to create {@link IRI3986} objects
+     * except for special cases.
+     */
+    private static IRI3986 newAndParse(String iristr) {
+        IRI3986 iri = new IRI3986(iristr).parse();
+        return iri;
+    }
+
 
     // Always set,
     private final String iriStr;
@@ -174,28 +188,13 @@ public class IRI3986 implements IRI {
     private int fragment0 = -1;
     private int fragment1 = -1;
     private String fragment = null;
-    /*package*/ IRI3986(String iriStr) {
+    private IRI3986(String iriStr) {
         this.iriStr = iriStr;
         this.length = iriStr.length();
     }
 
-    /** The IRI in string form. This is guaranteed to parse to an ".equals" IRI. */
-    @Override
-    public final String str() {
-        if ( iriStr != null )
-            return iriStr;
-        return rebuild();
-    }
-
-    /** Human-readable appearance. Use {@link #str()} to a string to use in code. */
-    @Override
-    public String toString() {
-        // Human readable form - may be overridden.
-        return str();
-    }
-
     /** Parse (i.e. check) or create an IRI object. */
-    /*package*/ IRI3986 process() {
+    private IRI3986 parse() {
         int x = scheme(0);
         if ( x > 0 ) {
             // URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
@@ -222,6 +221,21 @@ public class IRI3986 implements IRI {
             parseError("Bad character in "+label+" component: "+displayChar(charAt(x)));
         }
         return this;
+    }
+
+    /** The IRI in string form. This is guaranteed to parse to a ".equals" IRI. */
+    @Override
+    public final String str() {
+        if ( iriStr != null )
+            return iriStr;
+        return rebuild();
+    }
+
+    /** Human-readable appearance. Use {@link #str()} to a string to use in code. */
+    @Override
+    public String toString() {
+        // Human readable form - may be overridden.
+        return str();
     }
 
     @Override
@@ -475,7 +489,7 @@ public class IRI3986 implements IRI {
 //     6.2.2.3.  Path Segment Normalization
 
         if ( path != null )
-            path = remove_dot_segments(path);
+            path = AlgIRI.remove_dot_segments(path);
         if ( path == null || path.isEmpty() )
             path = "/";
 
@@ -507,7 +521,7 @@ public class IRI3986 implements IRI {
         }
 
         String s = rebuild(scheme, authority, path, query, fragment);
-        return new IRI3986(s).process();
+        return newAndParse(s);
     }
 
     private String normalizePercent(String str) {
@@ -524,8 +538,8 @@ public class IRI3986 implements IRI {
                 sb.append(ch);
                 continue;
             }
-            char ch1 = toUpper(str.charAt(i+1));
-            char ch2 = toUpper(str.charAt(i+2));
+            char ch1 = toUpperASCII(str.charAt(i+1));
+            char ch2 = toUpperASCII(str.charAt(i+2));
             i += 2;
             char x = (char)(Chars3986.hexValue(ch1)*16 + Chars3986.hexValue(ch2));
 
@@ -540,12 +554,14 @@ public class IRI3986 implements IRI {
         return sb.toString();
     }
 
-    private char toUpper(char ch) {
+    /** Uppercase - ASCI only (used for percent encoding) */
+    private char toUpperASCII(char ch) {
         if (ch >= 'a' && ch <= 'z')
             ch = (char)(ch + ('A'-'a'));
         return ch;
     }
 
+    /** Lowercase, locale insensitive */
     private String toLowerCase(String string) {
         if ( string == null )
             return null;
@@ -554,293 +570,33 @@ public class IRI3986 implements IRI {
 
     /**
      * Return (if possible), an IRI that is relative to the base argument.
-     * If this IRI is a relative path, this is returned unchanged.
      * <p>
-     * The base must have a scheme, have no fragment and no query string.
+     * The base must have a scheme, and must not have a query string.
+     * <p>
+     * Any fragment on the base IRI is lost.
      * <p>
      * If no relative IRI can be found, return null.
      */
     public IRI3986 relativize(IRI3986 iri) {
         // "this" is the base.
-        return relativize(this, iri);
-    }
-    private static IRI3986 relativize(IRI3986 base, IRI3986 iri) {
-        Objects.requireNonNull(iri);
-        if ( ! base.hasScheme() || base.hasQuery() )
-            return null;
-        if ( ! iri.hasScheme() && !iri.hasAuthority() )
-            return null;
-        if ( ! Objects.equals(iri.getScheme(), base.getScheme()) )
-            return null;
-        if ( ! Objects.equals(iri.getAuthority(), base.getAuthority()) )
-            return null;
-//        if ( ! Objects.equals(base.getHost(), this.getHost()) )
-//            return null;
-//        if ( ! Objects.equals(base.getPort(), this.getPort()) )
-//            return null;
-
-        String basePath = base.getPath();
-        String targetPath = iri.getPath();
-
-        if ( basePath.equals(targetPath) &&
-                ( iri.hasFragment() || iri.hasQuery() ) ) {
-            IRI3986 relIRI = build(null, null, "", iri.getQuery(), iri.getFragment());
-            return relIRI;
-        }
-
-        String relPath = relativePath(basePath, targetPath);
-
-        if ( relPath == null )
-            return null;
-        IRI3986 relIRI = build(null, null, relPath, iri.getQuery(), iri.getFragment());
-        return relIRI;
-    }
-
-    /**
-     * Calculate a relative path so that resolve("base", relative path) = "path". This is
-     * limited to the case where basePath is a prefix of path segments for the path
-     * to be made relative.
-     * <p>
-     * If basePath == path, return "".
-     * <p>
-     * It is "same document", "child" relative, and does not
-     * return not "network" ("//host/a/c" or "/a/c" for same schema and host ) or
-     * parent ("../a/b/c") relative IRIs.
-     * <p>
-     */
-    private static String relativePath(String basePath, String path) {
-        if ( basePath.equals(path) )
-            return "";
-        int idx = basePath.lastIndexOf('/');
-        if ( idx < 0 )
-            return null;
-        // Include the "/"
-        String basePrefix = basePath.substring(0,idx);
-        if ( ! path.startsWith(basePrefix) )
-            return null;
-        String relPath = path.substring(idx+1);
-
-        // Initial segment has ':' ? A ':' before first '/'
-        int rColon = relPath.indexOf(':');
-        if ( rColon < 0 )
-            return relPath;
-        int rPathSep = relPath.indexOf('/');
-        if ( rPathSep < 0 || rColon < rPathSep )
-            // and so rPathSep != 0.
-            relPath = "./"+relPath;
-        return relPath;
+        return AlgIRI.relativize(this, iri);
     }
 
     /** Resolve an IRI , using this as the base. <a href=https://tools.ietf.org/html/rfc3986#section-5">RFC 3986 section 5</a> */
     public IRI3986 resolve(IRI3986 other) {
         //if ( ! hasScheme()() ) {}
         // Base must have scheme. Be lax.
-        return transformReferences(other, this);
+        /* 5.2.2.  Transform References */
+        return AlgIRI.resolve(this, other);
     }
 
-    /** 5.2.2.  Transform References */
-    private static IRI3986 transformReferences(IRI3986 reference, IRI3986 base) {
-        // Base should be absolute
-        String t_scheme = null;
-        String t_authority = "";
-        String t_path = "";
-        String t_query = null;
-        String t_fragment = null;
-
-//        -- The URI reference is parsed into the five URI components
-//        --
-//        (R.scheme, R.authority, R.path, R.query, R.fragment) = parse(R);
-//
-//        -- A non-strict parser may ignore a scheme in the reference
-//        -- if it is identical to the base URI's scheme.
-//        --
-//        if ((not strict) and (R.scheme == Base.scheme)) then
-//           undefine(R.scheme);
-//        endif;
-//
-//        if defined(R.scheme) then
-//           T.scheme    = R.scheme;
-//           T.authority = R.authority;
-//           T.path      = remove_dot_segments(R.path);
-//           T.query     = R.query;
-//        else
-//           if defined(R.authority) then
-//              T.authority = R.authority;
-//              T.path      = remove_dot_segments(R.path);
-//              T.query     = R.query;
-//           else
-//              if (R.path == "") then
-//                 T.path = Base.path;
-//                 if defined(R.query) then
-//                    T.query = R.query;
-//                 else
-//                    T.query = Base.query;
-//                 endif;
-//              else
-//                 if (R.path starts-with "/") then
-//                    T.path = remove_dot_segments(R.path);
-//                 else
-//                    T.path = merge(Base.path, R.path);
-//                    T.path = remove_dot_segments(T.path);
-//                 endif;
-//                 T.query = R.query;
-//              endif;
-//              T.authority = Base.authority;
-//           endif;
-//           T.scheme = Base.scheme;
-//        endif;
-//
-//        T.fragment = R.fragment;
-
-        // "not strict"
-        boolean sameScheme = Objects.equals(reference.getScheme(), base.getScheme());
-
-        if ( reference.hasScheme() && ! sameScheme ) {
-            t_scheme = reference.getScheme();
-            t_authority = reference.getAuthority();
-            t_path = remove_dot_segments(reference.getPath());
-            t_query = reference.getQuery();
-        } else {
-            if ( reference.hasAuthority() ) {
-                t_authority = reference.getAuthority();
-                t_path = remove_dot_segments(reference.getPath());
-                t_query = reference.getQuery();
-            } else {
-                if ( reference.getPath().isEmpty() ) {
-                    t_path = base.getPath();
-                    if ( reference.hasQuery() )
-                        t_query = reference.getQuery();
-                    else
-                        t_query = base.getQuery();
-                } else {
-                    if ( reference.getPath().startsWith("/") )
-                        t_path = remove_dot_segments(reference.getPath());
-                    else {
-                        t_path = merge(base, reference.getPath());
-                        t_path = remove_dot_segments(t_path);
-                    }
-                    t_query = reference.getQuery();
-                }
-                t_authority = base.getAuthority();
-            }
-            t_scheme = base.getScheme();
-        }
-        t_fragment = reference.getFragment();
-        return RFC3986.create()
-            .scheme(t_scheme).authority(t_authority).path(t_path).query(t_query).fragment(t_fragment)
-            .build();
-    }
-
-    /** 5.2.3.  Merge Paths */
-    private static String merge(IRI3986 base, String ref) {
-/*
-     o  If the base URI has a defined authority component and an empty
-        path, then return a string consisting of "/" concatenated with the
-        reference's path; otherwise,
-
-     o  return a string consisting of the reference's path component
-        appended to all but the last segment of the base URI's path (i.e.,
-        excluding any characters after the right-most "/" in the base URI
-        path, or excluding the entire base URI path if it does not contain
-        any "/" characters).
-*/
-        if ( base.hasAuthority() && base.getPath().isEmpty() ) {
-            if ( ref.startsWith("/") )
-                return ref;
-            return "/"+ref;
-        }
-        String path = base.getPath();
-        int j = path.lastIndexOf('/');
-        if ( j < 0 )
-            return ref;
-        return path.substring(0, j)+"/"+ref;
-    }
-
-    /** 5.2.4.  Remove Dot Segments */
-    private static String remove_dot_segments(String path) {
-        String s1 = remove_dot_segments$(path);
-        if ( false ) {
-            // Checking code.
-            String s2 = ParseLib.jenaIRIremoveDotSegments(path);
-            if ( ! Objects.equals(s1, s2) )
-                System.err.printf("remove_dot_segments : IRI3986:%s  Jena IRI:%s\n", s1, s2);
-        }
-        return s1;
-    }
-
-    /*
-     * Implement using a single segment stack, null out unwanted elements, then recombine into a string.
-     * (Maybe easier to have a second output segments, and transfer across.
-     */
-    private static String remove_dot_segments$(String path) {
-        if ( path == null || path.isEmpty() )
-            return "";
-        if ( path.equals("/") )
-            return "/";
-        String[] segments = path.split("/");
-//        if ( segments.length == 0 )
-//            // Path is "/" - already done.
-//            return "/";
-
-        int N = segments.length;
-        boolean initialSlash = segments[0].isEmpty();
-        boolean trailingSlash = false;
-        // Trailing slash if it isn't the initial "/" and it ends in "/" or "/." or "/.."
-        if ( N > 1 ) {
-            if ( segments[N-1].equals(".") || segments[N-1].equals("..") )
-                trailingSlash = true;
-            else if ( path.charAt(path.length()-1) == '/' )
-                trailingSlash = true;
-//            else if ( path.equals("..") )
-//                trailingSlash = true;
-        }
-
-        for ( int j = 0 ; j < N ; j++ ) {
-            String s = segments[j];
-            if ( s.equals(".") )
-                // Remove.
-                segments[j] = null;
-            if ( s.equals("..") ) {
-                // Remove the ".."
-                segments[j] = null;
-                // and remove first unset previous
-                if ( j >= 1 ) {
-                    for ( int j2 = j-1 ; j2 >= 0 ; j2-- ) {
-                        if ( segments[j2] != null ) {
-                            segments[j2] = null;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Build string again. Skip nulls.
-        StringJoiner joiner = new StringJoiner("/");
-        if ( initialSlash )
-            joiner.add("");
-        for ( int k = 0 ; k < segments.length ; k++ ) {
-            if ( segments[k] == null )
-                continue;
-            // This turns "//" into "/".
-            // The first segment is empty when parsing "/a/b/c" and we put in "/" already,
-            // so do this for the top element and otherwise leave "//" in place.
-            if ( k==0 && segments[k].isEmpty() )
-                continue;
-            joiner.add(segments[k]);
-        }
-        if ( trailingSlash )
-            joiner.add("");
-        String s = joiner.toString();
-        return s;
-    }
-
-    static IRI3986 build(String scheme, String authority, String path, String query, String fragment) {
+    /** Build a {@linkIRI3986} from components. */
+    public static IRI3986 build(String scheme, String authority, String path, String query, String fragment) {
         String s = rebuild(scheme, authority, path, query, fragment);
-        return IRI3986.create(s);
+        return newAndParse(s);
     }
 
-    /** RFC 3986 : 5.3.  Component Recomposition */
+    /** RFC 3986 : 5.3. Component Recomposition */
     public String rebuild() {
         return rebuild(getScheme(), getAuthority(), getPath(), getQuery(), getFragment());
     }
@@ -1205,7 +961,7 @@ public class IRI3986 implements IRI {
         }
     }
 
-    // --- pArsing
+    // --- Parsing
 
     // scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
     private int scheme(int start) {
@@ -1223,7 +979,6 @@ public class IRI3986 implements IRI {
                     // Bad subsequent character
                     return -1;
             }
-            // alpha
             p++;
         }
         // Did not find ':'
@@ -1267,9 +1022,6 @@ public class IRI3986 implements IRI {
         if ( ch1 == '/' && ch2 == '/' ) {
             p += 2;
             p = authority(p);
-//            char ch3 = charAt(p);
-//            if ( p != length && ch3 != '/' )
-//                error("Bad path after authority: "+displayChar(ch3));
         }
         return p;
     }
@@ -1493,7 +1245,7 @@ public class IRI3986 implements IRI {
             segStart = p+1;
             p++;
 
-          // Version for "isIPChar"
+          // Old: Version for "isIPChar", no length lookahead.
 //            if ( isIPChar(ch, p) ) {
 //                if ( ! allowColon && ch == ':' )
 //                    // segment-nz-nc
@@ -1618,9 +1370,10 @@ public class IRI3986 implements IRI {
 
     // ---- Character classification
 
-    // Is the character at location 'x' percent-encoded? Looks at next two characters if an only if ch is '%'
-    // This function looks ahead 2 characters which will be parsed but likely they are in the L1 or L2 cache
-    // and the alternative is more complex logic (return the new character position in some way).
+    // Is the character at location 'x' percent-encoded? Looks at next two characters
+    // if and only if ch is '%'. This function looks ahead 2 characters which will be
+    // parsed but likely they are in the L1 or L2 cache and the alternative is more
+    // complex logic. (return the read characters and new character position in some way).
     private boolean isPctEncoded(char ch, int x) {
         if ( ch != '%' )
             return false;
@@ -1654,9 +1407,14 @@ public class IRI3986 implements IRI {
         return Chars3986.unreserved(ch) || isPctEncoded(ch, posn) || Chars3986.subDelims(ch) || ch == ':' || ch == '@';
     }
 
-    /** isPChar, returning length matched, or -1 for not an PChar */
+    /**
+     * Length expected in codepoints at location 'posn' for PChar.
+     * The function does not account for surrogate pairs.
+     * Normally returns 1, except when '%' when it's 3.
+     * Return -1 for error.
+     */
     private int isPCharLen(char ch, int posn) {
-        if ( Chars3986.unreserved(ch) /*|| isPctEncoded(ch, posn)*/ || Chars3986.subDelims(ch) || ch == ':' || ch == '@' )
+        if ( Chars3986.unreserved(ch) || Chars3986.subDelims(ch) || ch == ':' || ch == '@' )
             return 1;
         if ( isPctEncoded(ch, posn) )
             return 3;
@@ -1667,8 +1425,14 @@ public class IRI3986 implements IRI {
         return isPChar(ch, posn) || Chars3986.isUcsChar(ch);
     }
 
+    /**
+     * Length expected in codepoints at location 'posn' for IPChar.
+     * The function does not account for combining chars.
+     * Normally returns 1, except when '%' when it's 3.
+     * Return -1 for error.
+     */
     private int isIPCharLen(char ch, int posn) {
-        if ( Chars3986.unreserved(ch) /*|| isPctEncoded(ch, posn)*/ || Chars3986.subDelims(ch) || ch == ':' || ch == '@' || Chars3986.isUcsChar(ch) )
+        if ( Chars3986.unreserved(ch) || Chars3986.subDelims(ch) || ch == ':' || ch == '@' || Chars3986.isUcsChar(ch) )
             return 1;
         if ( isPctEncoded(ch, posn) )
             return 3;

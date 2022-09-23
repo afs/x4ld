@@ -157,5 +157,4 @@ package org.seaborne.rfc3986;
         output.setLength(ix);
     }
     // << Copied from jena-iri
-
 }
