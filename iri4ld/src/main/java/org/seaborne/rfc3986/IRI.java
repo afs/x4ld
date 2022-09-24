@@ -41,31 +41,31 @@ public interface IRI {
     @Override
     public boolean equals(Object obj);
 
-    public default boolean hasScheme() { return getScheme() == null; }
-    public String getScheme();
+    public default boolean hasScheme() { return scheme() == null; }
+    public String scheme();
 
-    public default boolean hasAuthority() { return getAuthority() != null; }
-    public String getAuthority();
+    public default boolean hasAuthority() { return authority() != null; }
+    public String authority();
 
-    public default boolean hasUserInfo() { return getUserInfo() != null; }
-    public String getUserInfo();
+    public default boolean hasUserInfo() { return userInfo() != null; }
+    public String userInfo();
 
-    public default boolean hasHost() { return getHost() != null; }
-    public String getHost();
+    public default boolean hasHost() { return host() != null; }
+    public String host();
 
-    public default boolean hasPort() { return getPort() != null; }
-    public String getPort();
+    public default boolean hasPort() { return port() != null; }
+    public String port();
 
-    public default boolean hasPath() { return getPath() != null; }
-    public String getPath();
+    public default boolean hasPath() { return path() != null; }
+    public String path();
 
-    public String[] getPathSegments();
+    public String[] pathSegments();
 
-    public default boolean hasQuery() { return getQuery() != null; }
-    public String getQuery();
+    public default boolean hasQuery() { return query() != null; }
+    public String query();
 
-    public default boolean hasFragment() { return getFragment() != null; }
-    public String getFragment();
+    public default boolean hasFragment() { return fragment() != null; }
+    public String fragment();
 
     /** <a href="https://tools.ietf.org/html/rfc3986#section-4.3">RFC 3986, Section 4.3</a> */
     public default boolean isAbsolute() {
@@ -93,7 +93,7 @@ public interface IRI {
     private boolean rootlessPath() {
         if ( ! hasPath() )
             return false;
-        String path = getPath();
+        String path = path();
         return firstChar(path) != '/';
     }
 
@@ -113,7 +113,7 @@ public interface IRI {
     private boolean hierarchicalPath() {
         if ( ! hasPath() )
             return false;
-        String path = getPath();
+        String path = path();
         return firstChar(path) == '/';
     }
 

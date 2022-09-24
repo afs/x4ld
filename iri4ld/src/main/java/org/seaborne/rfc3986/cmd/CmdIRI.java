@@ -54,11 +54,11 @@ public class CmdIRI {
                 if ( ! iri.equals(iri1) )
                     System.out.println("      ==> "+iri1) ;
 
-                System.out.printf("%s|%s|  ", "Scheme",     iri.getScheme());
-                System.out.printf("%s|%s|  ", "Authority",  iri.getAuthority());
-                System.out.printf("%s|%s|  ", "Path",       iri.getPath());
-                System.out.printf("%s|%s|  ", "Query",      iri.getQuery());
-                System.out.printf("%s|%s|", "Fragment",   iri.getFragment());
+                System.out.printf("%s|%s|  ", "Scheme",     iri.scheme());
+                System.out.printf("%s|%s|  ", "Authority",  iri.authority());
+                System.out.printf("%s|%s|  ", "Path",       iri.path());
+                System.out.printf("%s|%s|  ", "Query",      iri.query());
+                System.out.printf("%s|%s|", "Fragment",   iri.fragment());
                 System.out.println();
                 try {
                     iri.schemeSpecificRules();

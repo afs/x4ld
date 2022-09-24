@@ -241,7 +241,7 @@ public class IRI3986 implements IRI {
     @Override
     public boolean hasScheme() { return scheme0 != -1 ; }
     @Override
-    public String getScheme() {
+    public String scheme() {
         if ( hasScheme() && scheme == null)
             scheme = part(iriStr, scheme0, scheme1);
         return scheme;
@@ -250,7 +250,7 @@ public class IRI3986 implements IRI {
     @Override
     public boolean hasAuthority() { return authority0 != -1 ; }
     @Override
-    public String getAuthority() {
+    public String authority() {
         if ( hasAuthority() && authority == null)
             authority = part(iriStr, authority0, authority1);
         return authority;
@@ -259,7 +259,7 @@ public class IRI3986 implements IRI {
     @Override
     public boolean hasUserInfo() { return userinfo0 != -1 ; }
     @Override
-    public String getUserInfo() {
+    public String userInfo() {
         if ( hasUserInfo() && userinfo == null)
             userinfo = part(iriStr, userinfo0, userinfo1);
         return userinfo;
@@ -268,7 +268,7 @@ public class IRI3986 implements IRI {
     @Override
     public boolean hasHost() { return host0 != -1 ; }
     @Override
-    public String getHost() {
+    public String host() {
         if ( hasHost() && host == null)
             host = part(iriStr, host0, host1);
         return host;
@@ -277,7 +277,7 @@ public class IRI3986 implements IRI {
     @Override
     public boolean hasPort() { return port0 != -1 ; }
     @Override
-    public String getPort() {
+    public String port() {
         if ( hasPort() && port == null)
             port = part(iriStr, port0, port1);
         return port;
@@ -295,7 +295,7 @@ public class IRI3986 implements IRI {
     }
 
     @Override
-    public String getPath() {
+    public String path() {
         if ( hasPath() && path == null)
             path = part(iriStr, path0, path1);
         if ( path == null )
@@ -304,8 +304,8 @@ public class IRI3986 implements IRI {
     }
 
     @Override
-    public String[] getPathSegments() {
-        String x = getPath();
+    public String[] pathSegments() {
+        String x = path();
         if ( x == null )
             return null;
         return x.split("/");
@@ -314,7 +314,7 @@ public class IRI3986 implements IRI {
     @Override
     public boolean hasQuery() { return query0 != -1 ; }
     @Override
-    public String getQuery() {
+    public String query() {
         if ( hasQuery() && query == null)
             query = part(iriStr, query0, query1);
         return query;
@@ -323,7 +323,7 @@ public class IRI3986 implements IRI {
     @Override
     public boolean hasFragment() { return fragment0 != -1 ; }
     @Override
-    public String getFragment() {
+    public String fragment() {
         if ( hasFragment() && fragment == null)
             fragment = part(iriStr, fragment0, fragment1);
         return fragment;
@@ -440,11 +440,11 @@ public class IRI3986 implements IRI {
      */
     @Override
     public IRI3986 normalize() {
-        String scheme = getScheme();
-        String authority = getAuthority();
-        String path = getPath();
-        String query = getQuery();
-        String fragment = getFragment();
+        String scheme = scheme();
+        String authority = authority();
+        String path = path();
+        String query = query();
+        String fragment = fragment();
 
 //        6.2.2.  Syntax-Based Normalization
 //
@@ -513,9 +513,9 @@ public class IRI3986 implements IRI {
         // None.
 
         // Rebuild.
-        if ( Objects.equals(scheme, getScheme()) && Objects.equals(authority, getAuthority()) &&
-             Objects.equals(path, getPath()) &&
-             Objects.equals(query, getQuery()) && Objects.equals(fragment, getFragment()) ) {
+        if ( Objects.equals(scheme, scheme()) && Objects.equals(authority, authority()) &&
+             Objects.equals(path, path()) &&
+             Objects.equals(query, query()) && Objects.equals(fragment, fragment()) ) {
             // No change and this has had all the elements calculated and substring done.
             return this;
         }
@@ -598,7 +598,7 @@ public class IRI3986 implements IRI {
 
     /** RFC 3986 : 5.3. Component Recomposition */
     public String rebuild() {
-        return rebuild(getScheme(), getAuthority(), getPath(), getQuery(), getFragment());
+        return rebuild(scheme(), authority(), path(), query(), fragment());
     }
 
     // 5.3.  Component Recomposition
@@ -763,11 +763,11 @@ public class IRI3986 implements IRI {
         if ( hasPort() ) {
             switch ( scheme ) {
                 case HTTP:
-                    if ( getPort().equals("80") )
+                    if ( port().equals("80") )
                         schemeWarning(schemeName, "Default port 80 should be omitted");
                     break;
                 case HTTPS:
-                    if ( getPort().equals("443") )
+                    if ( port().equals("443") )
                         schemeWarning(schemeName, "Default port 443 should be omitted");
                     break;
                 default:
@@ -824,7 +824,7 @@ public class IRI3986 implements IRI {
 
         Pattern pattern = strict ? URN_PATTERN_ASSIGNED_NAME_STRICT : URN_PATTERN_ASSIGNED_NAME_LOOSE;
 
-        String iriScheme = getScheme();
+        String iriScheme = scheme();
         if ( ! schemeName.equals(iriScheme) )
             schemeMsg(category, "urn", "scheme name is not lowercase 'urn'");
         // Matched: anchored. (find() is not).
@@ -837,14 +837,14 @@ public class IRI3986 implements IRI {
                 schemeMsg(category, schemeName, "URI does not match the 'assigned-name' rule regular expression (\"urn\" \":\" NID \":\" NSS)");
         }
         if ( hasQuery() ) {
-            String qs = getQuery();
+            String qs = query();
             if ( ! qs.startsWith("+") && ! qs.startsWith("=") )
                 schemeError(schemeName, "improper start to query string.");
             urnCharCheck("query", qs);
         }
 
         if ( hasFragment() )
-            urnCharCheck("fragment", getFragment());
+            urnCharCheck("fragment", fragment());
     }
 
     private void urnCharCheck(String label, String string) {

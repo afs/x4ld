@@ -170,10 +170,10 @@ public class TestParseComponents {
 
     private void testComponents(String string, String scheme, String authority, String path, String query, String fragment) {
         IRI3986 iri = RFC3986.create(string);
-        assertEquals("scheme",      scheme,     iri.getScheme());
-        assertEquals("authority",   authority,  iri.getAuthority());
-        assertEquals("path",        path,       iri.getPath());
-        assertEquals("query",       query,      iri.getQuery());
-        assertEquals("fragment",    fragment,   iri.getFragment());
+        assertEquals("scheme",      scheme,     iri.scheme());
+        assertEquals("authority",   authority,  iri.authority());
+        assertEquals("path",        path,       iri.path());
+        assertEquals("query",       query,      iri.query());
+        assertEquals("fragment",    fragment,   iri.fragment());
     }
 }

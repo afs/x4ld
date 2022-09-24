@@ -88,39 +88,39 @@ class AlgIRI {
 //        T.fragment = R.fragment;
 
         // "not strict"
-        boolean sameScheme = Objects.equals(reference.getScheme(), base.getScheme());
+        boolean sameScheme = Objects.equals(reference.scheme(), base.scheme());
 
         if ( reference.hasScheme() && ! sameScheme ) {
-            t_scheme = reference.getScheme();
-            t_authority = reference.getAuthority();
-            t_path = remove_dot_segments(reference.getPath());
-            t_query = reference.getQuery();
+            t_scheme = reference.scheme();
+            t_authority = reference.authority();
+            t_path = remove_dot_segments(reference.path());
+            t_query = reference.query();
         } else {
             if ( reference.hasAuthority() ) {
-                t_authority = reference.getAuthority();
-                t_path = remove_dot_segments(reference.getPath());
-                t_query = reference.getQuery();
+                t_authority = reference.authority();
+                t_path = remove_dot_segments(reference.path());
+                t_query = reference.query();
             } else {
-                if ( reference.getPath().isEmpty() ) {
-                    t_path = base.getPath();
+                if ( reference.path().isEmpty() ) {
+                    t_path = base.path();
                     if ( reference.hasQuery() )
-                        t_query = reference.getQuery();
+                        t_query = reference.query();
                     else
-                        t_query = base.getQuery();
+                        t_query = base.query();
                 } else {
-                    if ( reference.getPath().startsWith("/") )
-                        t_path = remove_dot_segments(reference.getPath());
+                    if ( reference.path().startsWith("/") )
+                        t_path = remove_dot_segments(reference.path());
                     else {
-                        t_path = merge(base, reference.getPath());
+                        t_path = merge(base, reference.path());
                         t_path = remove_dot_segments(t_path);
                     }
-                    t_query = reference.getQuery();
+                    t_query = reference.query();
                 }
-                t_authority = base.getAuthority();
+                t_authority = base.authority();
             }
-            t_scheme = base.getScheme();
+            t_scheme = base.scheme();
         }
-        t_fragment = reference.getFragment();
+        t_fragment = reference.fragment();
         return RFC3986.create()
             .scheme(t_scheme).authority(t_authority).path(t_path).query(t_query).fragment(t_fragment)
             .build();
@@ -139,12 +139,12 @@ class AlgIRI {
         path, or excluding the entire base URI path if it does not contain
         any "/" characters).
 */
-        if ( base.hasAuthority() && base.getPath().isEmpty() ) {
+        if ( base.hasAuthority() && base.path().isEmpty() ) {
             if ( ref.startsWith("/") )
                 return ref;
             return "/"+ref;
         }
-        String path = base.getPath();
+        String path = base.path();
         int j = path.lastIndexOf('/');
         if ( j < 0 )
             return ref;
@@ -237,17 +237,17 @@ class AlgIRI {
             return null;
         if ( ! iri.hasScheme() || !iri.hasAuthority() )
             return null;
-        if ( ! Objects.equals(iri.getScheme(), base.getScheme()) )
+        if ( ! Objects.equals(iri.scheme(), base.scheme()) )
             return null;
-        if ( ! Objects.equals(iri.getAuthority(), base.getAuthority()) )
+        if ( ! Objects.equals(iri.authority(), base.authority()) )
             return null;
 //        if ( ! Objects.equals(base.getHost(), this.getHost()) )
 //            return null;
 //        if ( ! Objects.equals(base.getPort(), this.getPort()) )
 //            return null;
 
-        String basePath = base.getPath();
-        String targetPath = iri.getPath();
+        String basePath = base.path();
+        String targetPath = iri.path();
 
         String relPath = relativePath(basePath, targetPath, true);
 
@@ -257,7 +257,7 @@ class AlgIRI {
             // At this point, we know it is schema and authority.
             relPath = targetPath;
         }
-        IRI3986 relIRI = IRI3986.build(null, null, relPath, iri.getQuery(), iri.getFragment());
+        IRI3986 relIRI = IRI3986.build(null, null, relPath, iri.query(), iri.fragment());
         return relIRI;
     }
 
