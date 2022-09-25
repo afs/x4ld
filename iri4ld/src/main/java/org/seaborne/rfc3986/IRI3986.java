@@ -240,6 +240,7 @@ public class IRI3986 implements IRI {
 
     @Override
     public boolean hasScheme() { return scheme0 != -1 ; }
+
     @Override
     public String scheme() {
         if ( hasScheme() && scheme == null)
@@ -249,6 +250,7 @@ public class IRI3986 implements IRI {
 
     @Override
     public boolean hasAuthority() { return authority0 != -1 ; }
+
     @Override
     public String authority() {
         if ( hasAuthority() && authority == null)
@@ -258,6 +260,7 @@ public class IRI3986 implements IRI {
 
     @Override
     public boolean hasUserInfo() { return userinfo0 != -1 ; }
+
     @Override
     public String userInfo() {
         if ( hasUserInfo() && userinfo == null)
@@ -267,6 +270,7 @@ public class IRI3986 implements IRI {
 
     @Override
     public boolean hasHost() { return host0 != -1 ; }
+
     @Override
     public String host() {
         if ( hasHost() && host == null)
@@ -276,6 +280,7 @@ public class IRI3986 implements IRI {
 
     @Override
     public boolean hasPort() { return port0 != -1 ; }
+
     @Override
     public String port() {
         if ( hasPort() && port == null)
@@ -283,9 +288,6 @@ public class IRI3986 implements IRI {
         return port;
     }
 
-    // Should this be "true" because getPath returns at least ""?
-    // not path0 != -1 ; }/
-    // Rule path-abempty (or path-empty ) is "".
     @Override
     public boolean hasPath() {
         // Not "path0 != -1"
@@ -313,6 +315,7 @@ public class IRI3986 implements IRI {
 
     @Override
     public boolean hasQuery() { return query0 != -1 ; }
+
     @Override
     public String query() {
         if ( hasQuery() && query == null)
@@ -322,6 +325,7 @@ public class IRI3986 implements IRI {
 
     @Override
     public boolean hasFragment() { return fragment0 != -1 ; }
+
     @Override
     public String fragment() {
         if ( hasFragment() && fragment == null)
@@ -411,7 +415,7 @@ public class IRI3986 implements IRI {
     }
 
     /** Encode RFC 3987 (IRI) as strict 3986 (URI) using %-encoding */
-    public IRI3986 as3986() {
+    public IRI as3986() {
         // The URI is valid so we just need to encode non-ASCII characters.
         for ( int i = 0 ; i < iriStr.length() ; i++ ) {
             char ch = iriStr.charAt(i);
@@ -577,13 +581,13 @@ public class IRI3986 implements IRI {
      * <p>
      * If no relative IRI can be found, return null.
      */
-    public IRI3986 relativize(IRI3986 iri) {
+    public IRI3986 relativize(IRI iri) {
         // "this" is the base.
         return AlgIRI.relativize(this, iri);
     }
 
     /** Resolve an IRI , using this as the base. <a href=https://tools.ietf.org/html/rfc3986#section-5">RFC 3986 section 5</a> */
-    public IRI3986 resolve(IRI3986 other) {
+    public IRI3986 resolve(IRI other) {
         //if ( ! hasScheme()() ) {}
         // Base must have scheme. Be lax.
         /* 5.2.2.  Transform References */

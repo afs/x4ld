@@ -22,6 +22,7 @@ import static org.apache.jena.iri.IRIRelativize.ABSOLUTE;
 import static org.apache.jena.iri.IRIRelativize.CHILD;
 import static org.apache.jena.iri.IRIRelativize.PARENT;
 import static org.apache.jena.iri.IRIRelativize.SAMEDOCUMENT;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Objects;
 
@@ -126,8 +127,10 @@ public class TestRelative2 {
         String jenairiRelative = calcJenaIRI(baseIRI, targetIRI);
 
         if ( ! Objects.equals(relStr, expected) ) {
+
             System.out.printf("Fail: base=%-20s : iri=%-20s => got: %s, expected: %s, alt:%s \n", base, target,
                               enclose(relStr), enclose(expected), enclose(jenairiRelative));
+            assertEquals(relStr, expected);
             return;
         }
 
@@ -138,19 +141,22 @@ public class TestRelative2 {
         //if ( ! jenairiRelative.startsWith("../..") )
         {
             if ( ! Objects.equals(relStr2, jenairiRelative) ) {
+                assertEquals(relStr2, jenairiRelative);
                 System.out.printf("Diff: base=%-20s : iri=%-20s => got: %s, jena-iri: %s\n", base, target, enclose(relStr2), enclose(jenairiRelative));
             }
         }
+
+        IRI3986 iri = base.resolve(rel);
+        assertEquals(iri, target);
     }
 
-    private static int RelativizeFlags = ABSOLUTE | SAMEDOCUMENT | CHILD | PARENT ; //| GRANDPARENT;
+    private static int RelativizeFlags = ABSOLUTE | SAMEDOCUMENT | CHILD | PARENT; //| GRANDPARENT | NETWORK
     /** Calculate the relative URI using using jena-iri. */
-
     private static String calcJenaIRI(String basePath, String path) {
         // jena-iri does not return null. It returns the target IRI if there is no appropriate relative IRI.
         // Calculating using jena-iri. That needs the absolute "http://example" part.
         // IRI.GRANDPARENT : jena-iri includes relativizing with leading "../..".
-        org.apache.jena.iri.IRI iriBase     = IRIFactory.iriImplementation().create(basePath);
+        org.apache.jena.iri.IRI iriBase = IRIFactory.iriImplementation().create(basePath);
         org.apache.jena.iri.IRI jenaIriRelativize = iriBase.relativize(path, RelativizeFlags);
         String jenaIriRelativizeStr = jenaIriRelativize.toString();
         return jenaIriRelativizeStr;

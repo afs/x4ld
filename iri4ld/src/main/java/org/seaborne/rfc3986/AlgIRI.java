@@ -26,14 +26,14 @@ public
 class AlgIRI {
 
     /** Resolve an IRI against a base.*/
-    public static IRI3986 resolve(IRI3986 base, IRI3986 reference) {
+    public static IRI3986 resolve(IRI base, IRI reference) {
         //if ( ! base.isAbsolute() )
         // Lax version
         return transformReferences(reference, base);
     }
 
     /** 5.2.2.  Transform References */
-    static IRI3986 transformReferences(IRI3986 reference, IRI3986 base) {
+    static IRI3986 transformReferences(IRI reference, IRI base) {
         // Note the argument order is reverse from "resolve(base, relative)"
         // to be more like RFC 3986.
         String t_scheme = null;
@@ -127,7 +127,7 @@ class AlgIRI {
     }
 
     /** 5.2.3.  Merge Paths */
-    private static String merge(IRI3986 base, String ref) {
+    private static String merge(IRI base, String ref) {
 /*
      o  If the base URI has a defined authority component and an empty
         path, then return a string consisting of "/" concatenated with the
@@ -231,7 +231,7 @@ class AlgIRI {
      * Resturn null if none generated.
      * The base IRI must not have query string.
      */
-    public static IRI3986 relativize(IRI3986 base, IRI3986 iri) {
+    public static IRI3986 relativize(IRI base, IRI iri) {
         Objects.requireNonNull(iri);
         if ( ! base.hasScheme() || base.hasQuery() )
             return null;
@@ -277,6 +277,7 @@ class AlgIRI {
      * Return null for "no relative path".
      */
     private static String relativePath(String basePath, String targetPath, boolean withParentPath) {
+        // Combine all relativization: avoid rework, choose in order.
         if ( basePath.equals(targetPath) )
             return "";
         if ( false ) {
