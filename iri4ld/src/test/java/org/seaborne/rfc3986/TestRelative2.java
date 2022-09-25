@@ -152,7 +152,7 @@ public class TestRelative2 {
 
     private static int RelativizeFlags = ABSOLUTE | SAMEDOCUMENT | CHILD | PARENT; //| GRANDPARENT | NETWORK
     /** Calculate the relative URI using using jena-iri. */
-    private static String calcJenaIRI(String basePath, String path) {
+    /*package*/ static String calcJenaIRI(String basePath, String path) {
         // jena-iri does not return null. It returns the target IRI if there is no appropriate relative IRI.
         // Calculating using jena-iri. That needs the absolute "http://example" part.
         // IRI.GRANDPARENT : jena-iri includes relativizing with leading "../..".

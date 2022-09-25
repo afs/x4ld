@@ -31,6 +31,7 @@ import org.junit.runners.Suite;
     TestNormalize.class,
     TestRelative.class,
     TestRelative2.class,
+    TestRelative3.class,
     TestBuild.class,
     TestParseIPv4Address.class,
     TestParseIPv6Address.class,
