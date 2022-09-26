@@ -20,6 +20,8 @@ package org.seaborne.rfc3986;
 
 import static org.junit.Assert.*;
 
+import java.util.function.Consumer;
+
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -55,7 +57,11 @@ public class TestRFC3986_Scheme {
     @Test public void parse_http_03()   { badSpecific("http://users@host/file/name.txt"); }
 
     // We reject "file://host/" forms.
-    @Test public void parse_file_02() { badSpecific("file://host/file/name.txt"); }
+
+    // We reject "file://host/" forms.
+    @Test public void parse_file_01()   { badSpecific("file://"); }
+
+    @Test public void parse_file_02()   { badSpecific("file://host/file/name.txt"); }
 
     @Test public void parse_uuid_07()   { badSpecific("urn:uuid:0000"); }
 
@@ -106,11 +112,23 @@ public class TestRFC3986_Scheme {
         badSpecific("uuid:06e775ac-2c38-11b2");
     }
 
+    public static ErrorHandler create(Consumer<String> onError, Consumer<String> onWarning) {
+        return ErrorHandlerBase.create(onError, onWarning);
+    }
+
+    private static Consumer<String> onEvent = s -> { throw new IRIParseException(s); };
+    private static ErrorHandler errHandlerTest = ErrorHandlerBase.create(onEvent, onEvent);
+
     private void badSpecific(String string) {
         RFC3986.check(string);
+        ErrorHandler eh = SystemIRI3986.getErrorHandler();
+        SystemIRI3986.setErrorHandler(errHandlerTest);
         try {
             RFC3986.create(string).schemeSpecificRules();
-            fail("Expected a parse exception: '"+string+"'");
+            fail("Expected a scheme-specific warnign or error: '"+string+"'");
         } catch (IRIParseException ex) {}
+        finally {
+            SystemIRI3986.setErrorHandler(eh);
+        }
     }
 }
