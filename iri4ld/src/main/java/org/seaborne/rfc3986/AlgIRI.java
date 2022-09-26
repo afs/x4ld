@@ -241,6 +241,7 @@ class AlgIRI {
             return null;
         if ( ! Objects.equals(iri.authority(), base.authority()) )
             return null;
+        // Authority covers host and port checks.
 //        if ( ! Objects.equals(base.getHost(), this.getHost()) )
 //            return null;
 //        if ( ! Objects.equals(base.getPort(), this.getPort()) )
@@ -251,10 +252,9 @@ class AlgIRI {
 
         String relPath = relativePath(basePath, targetPath, true);
 
-        // Absolute
-
         if ( relPath == null ) {
-            // At this point, we know it is schema and authority.
+            // At this point, we know it is same schema and authority, which just
+            // leaves the query and fragment to adjust.
             relPath = targetPath;
         }
         IRI3986 relIRI = IRI3986.build(null, null, relPath, iri.query(), iri.fragment());

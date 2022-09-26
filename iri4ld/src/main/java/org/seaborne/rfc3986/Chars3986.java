@@ -216,6 +216,6 @@ public class Chars3986 {
 
     private static void parseError(int posn, String s) {
         // Choice of error handling.
-        ErrorIRI3986.parseError(posn, s);
+        ErrorIRI3986.parseError(null, posn, s);
     }
 }
