@@ -61,9 +61,10 @@ public class SystemIRI3986 {
         }
     }
 
-    /** System default : throw exception on errors, siolent about warnings. */
+    /** System default : throw exception on errors, silent about warnings. */
     private static final ErrorHandler errorHandlerSystemDefault =
             ErrorHandler.create(s -> { throw new IRIParseException(s); }, null);
+
     /**
      * System error handler.
      * The initial setting is one that throws errors, and ignore warnings.

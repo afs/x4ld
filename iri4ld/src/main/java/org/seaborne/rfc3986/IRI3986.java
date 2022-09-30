@@ -191,36 +191,6 @@ public class IRI3986 implements IRI {
         this.length = iriStr.length();
     }
 
-    /** Parse (i.e. check) or create an IRI object. */
-    private IRI3986 parse() {
-        int x = scheme(0);
-        if ( x > 0 ) {
-            // URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
-            // absolute-URI  = scheme ":" hier-part [ "?" query ]
-            scheme0 = 0;
-            scheme1 = x;
-            // and move over ':'
-            x = withScheme(x+1);
-        } else {
-            // relative-ref  = relative-part [ "?" query ] [ "#" fragment ]
-            x = withoutScheme(0);
-        }
-
-        // Did the process consume the whole string?
-        if ( x != length ) {
-            String label;
-            if ( fragment0 >= 0)
-                label = "fragment";
-            else if ( query0 >= 0)
-                label = "query";
-            else
-                label = "path";
-            //System.err.printf("(x3=%d, length=%d)\n", x, length);
-            parseError(iriStr, "Bad character in "+label+" component: "+displayChar(charAt(x)));
-        }
-        return this;
-    }
-
     /** The IRI in string form. This is guaranteed to parse to a ".equals" IRI. */
     @Override
     public final String str() {
@@ -635,7 +605,7 @@ public class IRI3986 implements IRI {
         return result.toString();
     }
 
-    // --- Scheme specific checking.
+    // ==== Scheme specific checking.
 
     private enum MessageCategory { ERROR, WARNING };
 
@@ -644,8 +614,11 @@ public class IRI3986 implements IRI {
      * Return 'this' if there are no violations.
      */
     public IRI3986 schemeSpecificRules() {
+        return schemeSpecificRules(SystemIRI3986.getErrorHandler());
+    }
 
-        checkGeneral();
+    public IRI3986 schemeSpecificRules(ErrorHandler errorHandler) {
+        checkGeneral(errorHandler);
 
         if ( ! hasScheme() )
             // no scheme, no checks.
@@ -665,34 +638,29 @@ public class IRI3986 implements IRI {
         // We could do dispatch twice, once fast path (assumes lower case) with a switch statement.
 
         if ( matches(iriStr, HTTPS) )
-            checkHTTPx(HTTPS);
+            checkHTTPx(errorHandler, HTTPS);
         else if ( matches(iriStr, HTTP) )
-            checkHTTPx(HTTP);
+            checkHTTPx(errorHandler, HTTP);
         else if ( matches(iriStr, URN_UUID) )
-            checkUUID(URN_UUID);
+            checkUUID(errorHandler, URN_UUID);
         else if ( matches(iriStr, URN) )
-            checkURN();
+            checkURN(errorHandler);
         else if ( matches(iriStr, FILE) )
-            checkFILE();
+            checkFILE(errorHandler);
         else if ( matches(iriStr, UUID) )
-            checkUUID(UUID);
+            checkUUID(errorHandler, UUID);
         else if ( matches(iriStr, DID) )
-            checkDID();
+            checkDID(errorHandler);
         else if ( matches(iriStr, EXAMPLE) )
-            checkExample();
+            checkExample(errorHandler);
 
         return this;
     }
 
-    private void checkGeneral() {
+    private void checkGeneral(ErrorHandler errorHandler) {
         // TODO
         // lower case scheme
-        // Use of %abIf two URIs
-
-        // If no normalized ...
-
-        // Other normalizations.
-
+        // uppercase %encoding.
 
         // RFC 3986 section 3.1
         /*
@@ -715,13 +683,13 @@ public class IRI3986 implements IRI {
         */
     }
 
-    private void checkHTTPx(URIScheme scheme) {
+    private void checkHTTPx(ErrorHandler errorHandler, URIScheme scheme) {
         String schemeName = scheme.getName();
         boolean strict = ( Compliance_HTTPx_SCHEME == STRICT );
         // Some things are always error, some always warnings, and some depend on strictness.
         MessageCategory category = strict ? MessageCategory.ERROR : MessageCategory.WARNING;
 
-        checkSchemeName(Compliance_HTTPx_SCHEME, scheme);
+        checkSchemeName(errorHandler, Compliance_HTTPx_SCHEME, scheme);
 
         /*
          * https://tools.ietf.org/html/rfc2616#section-3.2.2
@@ -739,14 +707,14 @@ public class IRI3986 implements IRI {
         // See https://tools.ietf.org/html/rfc7230#section-2.7.1
 
         if ( ! hasAuthority() || (authority0 == authority1) )
-            schemeError(iriStr, schemeName, "http and https URI schemes require //host/");
+            schemeError(errorHandler, iriStr, schemeName, "http and https URI schemes require //host/");
 
         if ( hasHost() && (host0 == host1) )
-            schemeMsg(category, schemeName, "http and https URI schemes do not allow the host to be empty");
+            schemeMsg(errorHandler, category, iriStr, schemeName, "http and https URI schemes do not allow the host to be empty");
 
         // https://tools.ietf.org/html/rfc3986#section-3.2.3
         if ( hasPort() && (port0 == port1) ) //getHost().isEmpty()
-            schemeWarning(iriStr, schemeName, "Port is empty - omit the ':'");
+            schemeWarning(errorHandler, iriStr, schemeName, "Port is empty - omit the ':'");
 
          /*
          * https://tools.ietf.org/html/rfc7230#section-2.7.1
@@ -763,18 +731,21 @@ public class IRI3986 implements IRI {
          *  And in linked data, any URI is a request target.
          */
 
-        if ( hasUserInfo() )
-            schemeMsg(category, schemeName, "userinfo (e.g. user:password) in authority section");
+        if ( hasUserInfo() ) {
+            schemeMsg(errorHandler, category, iriStr, schemeName, "userinfo (e.g. user:password) in authority section");
+            if ( userInfo().contains(":") )
+                schemeWarning(errorHandler, iriStr, schemeName, "userinfo contains password in authority section");
+        }
 
         if ( hasPort() ) {
             switch ( scheme ) {
                 case HTTP:
                     if ( port().equals("80") )
-                        schemeWarning(iriStr, schemeName, "Default port 80 should be omitted");
+                        schemeWarning(errorHandler, iriStr, schemeName, "Default port 80 should be omitted");
                     break;
                 case HTTPS:
                     if ( port().equals("443") )
-                        schemeWarning(iriStr, schemeName, "Default port 443 should be omitted");
+                        schemeWarning(errorHandler, iriStr, schemeName, "Default port 443 should be omitted");
                     break;
                 default:
                     throw new IllegalStateException();
@@ -813,8 +784,9 @@ public class IRI3986 implements IRI {
     private static Pattern URN_PATTERN_BAD_NID_1 = Pattern.compile("^urn:(?:[a-zA-Z0-9])(?::(?:.*))?");
     private static Pattern URN_PATTERN_BAD_NID_2 = Pattern.compile("^urn:X-:");
 
-    /** Check "urn:". Additional check for "urn:uuid:" available in {'link {@link #checkUUID(String)}. */
-    private void checkURN() {
+    /** Check "urn:". Additional check for "urn:uuid:" available in {'link {@link #checkUUID(String)}.
+     * @param errorHandler */
+    private void checkURN(ErrorHandler errorHandler) {
         // If the dispatch didn't include "urn:uuid:"
 //        if ( matches(iriStr, URN_UUID) )
 //            // Special case of URNs.
@@ -826,49 +798,50 @@ public class IRI3986 implements IRI {
         boolean strict = ( Compliance_URN_SCHEME == STRICT );
         MessageCategory category = strict ? MessageCategory.ERROR : MessageCategory.WARNING;
 
-        checkSchemeName(Compliance_URN_SCHEME, URN);
+        checkSchemeName(errorHandler, Compliance_URN_SCHEME, URN);
 
         Pattern pattern = strict ? URN_PATTERN_ASSIGNED_NAME_STRICT : URN_PATTERN_ASSIGNED_NAME_LOOSE;
 
         String iriScheme = scheme();
         if ( ! schemeName.equals(iriScheme) )
-            schemeMsg(category, "urn", "scheme name is not lowercase 'urn'");
+            schemeMsg(errorHandler, category, iriStr, schemeName, "scheme name is not lowercase 'urn'");
         // Matched: anchored. (find() is not).
         boolean matches = pattern.matcher(iriStr).matches();
 
         if ( !matches ) {
             if ( URN_PATTERN_BAD_NID_1.matcher(iriStr).matches() )
-                schemeMsg(category, schemeName, "NID must be at least 2 characters");
+                schemeMsg(errorHandler, category, iriStr, schemeName, "NID must be at least 2 characters");
             else
-                schemeMsg(category, schemeName, "URI does not match the 'assigned-name' rule regular expression (\"urn\" \":\" NID \":\" NSS)");
+                schemeMsg(errorHandler, category, iriStr, schemeName, "URI does not match the 'assigned-name' rule regular expression (\"urn\" \":\" NID \":\" NSS)");
         }
         if ( hasQuery() ) {
             String qs = query();
             if ( ! qs.startsWith("+") && ! qs.startsWith("=") )
-                schemeWarning(iriStr, schemeName, "improper start to query string.");
-            urnCharCheck("query", qs);
+                schemeWarning(errorHandler, iriStr, schemeName, "improper start to query string.");
+            urnCharCheck(errorHandler, "query", qs);
         }
 
         if ( hasFragment() )
-            urnCharCheck("fragment", fragment());
+            urnCharCheck(errorHandler, "fragment", fragment());
     }
 
-    private void urnCharCheck(String label, String string) {
+    private void urnCharCheck(ErrorHandler errorHandler, String label, String string) {
         for ( int i = 0 ; i < string.length(); i++ ) {
             char ch = iriStr.charAt(i);
             if ( ch > 0x7F)
-                schemeWarning(iriStr, "urn", label+" : Non-ASCII character");
+                schemeWarning(errorHandler, iriStr, "urn", label+" : Non-ASCII character");
         }
     }
 
-    /** Check "file:" */
-    private void checkFILE() {
-        checkSchemeName(Compliance_FILE_SCHEME, URIScheme.FILE);
+    /** Check "file:"
+     * @param errorHandler */
+    private void checkFILE(ErrorHandler errorHandler) {
+        checkSchemeName(errorHandler, Compliance_FILE_SCHEME, URIScheme.FILE);
 
         // We do not support file:// because file://path1/path2/ makes the host "path1" (which is then ignored!)
         if ( hasAuthority() ) {
             // file://path1/path2/..., so path becomes the "authority"
-            schemeWarning(iriStr, "file", "file: URLs are of the form file:///path/...");
+            schemeWarning(errorHandler, iriStr, "file", "file: URLs are of the form file:///path/...");
         }
     }
 
@@ -883,9 +856,10 @@ public class IRI3986 implements IRI {
 
     /**
      * Checks for "urn:" and "urn:uuid:"
+     * @param errorHandler
      * @param schemeName (without ":")
      */
-    private void checkUUID(URIScheme scheme) {
+    private void checkUUID(ErrorHandler errorHandler, URIScheme scheme) {
         boolean matches = UUID_PATTERN_LC.matcher(iriStr).matches();
         if ( matches )
             return;
@@ -893,81 +867,126 @@ public class IRI3986 implements IRI {
         String schemeName = scheme.getName();
         String schemePrefix = scheme.getPrefix();
         if ( ! iriStr.startsWith(schemePrefix) )
-            schemeWarning(iriStr, schemeName, "scheme name is not lowercase '"+scheme.getPrefix()+"'");
+            schemeWarning(errorHandler, iriStr, schemeName, "scheme name is not lowercase '"+scheme.getPrefix()+"'");
 
         // Offset in the of the UUID starting point. Skip ':'
         int offset = scheme.getPrefix().length();
         int uuidLen = iriStr.length()-offset;
         String uuidStr = iriStr.substring(offset);
 
+        boolean warningIssued = false;
         // Specific tests, specific messages
-        if ( uuidLen != 36 )
-            schemeWarning(iriStr, schemeName, "Bad UUID string (wrong length): "+uuidStr);
-        if ( hasQuery() )
-            schemeWarning(iriStr, schemeName, "query component not allowed: "+iriStr);
-        if ( hasFragment() )
-            schemeWarning(iriStr, schemeName, "fragment not allowed: "+iriStr);
+        if ( uuidLen != 36 ) {
+            schemeWarning(errorHandler, iriStr, schemeName, "Bad UUID string (wrong length): "+uuidStr);
+            warningIssued = true;
+        }
+        if ( hasQuery() ) {
+            schemeWarning(errorHandler, iriStr, schemeName, "query component not allowed: "+iriStr);
+            warningIssued = true;
+        }
+        if ( hasFragment() ) {
+            schemeWarning(errorHandler, iriStr, schemeName, "fragment not allowed: "+iriStr);
+            warningIssued = true;
+        }
 
         boolean matchesAnyCase = UUID_PATTERN_AnyCase.matcher(iriStr).matches();
         if ( matchesAnyCase )
-            schemeWarning(iriStr, schemeName, "Lowercase recommended for UUID string: "+uuidStr);
-        else
-            // Didn't match UUID_PATTERN_LC or UUID_PATTERN_AnyCase
-            schemeWarning(iriStr, schemeName, "Not a valid UUID string: "+uuidStr);
+            schemeWarning(errorHandler, iriStr, schemeName, "Lowercase recommended for UUID string: "+uuidStr);
+        else {
+            if ( ! warningIssued )
+                // Didn't match UUID_PATTERN_LC or UUID_PATTERN_AnyCase
+                schemeWarning(errorHandler, iriStr, schemeName, "Not a valid UUID string: "+uuidStr);
+        }
     }
 
     /**
+     * @param errorHandler
      * @see ParseDID
      */
-    private void checkDID() {
-        //checkSchemeName(STRICT, DID);
+    private void checkDID(ErrorHandler errorHandler) {
+        //checkSchemeName(errorHandler, STRICT, DID);
         try {
             ParseDID.parse(iriStr, true);
         } catch (RuntimeException ex) {
-            schemeWarning(iriStr, DID.getName(), "Invalid DID: "+ex.getMessage());
+            schemeWarning(errorHandler, iriStr, DID.getName(), "Invalid DID: "+ex.getMessage());
         }
     }
 
     /**
      * URI scheme "example:" from RFC 7595
+     * @param errorHandler
      */
-    private void checkExample() {
-        checkSchemeName(STRICT, EXAMPLE);
+    private void checkExample(ErrorHandler errorHandler) {
+        checkSchemeName(errorHandler, STRICT, EXAMPLE);
     }
 
-    private void checkSchemeName(Compliance compliance, URIScheme scheme) {
+    private void checkSchemeName(ErrorHandler errorHandler, Compliance compliance, URIScheme scheme) {
         if ( compliance == NOT_STRICT )
             return;
+        checkSchemeName(errorHandler, scheme);
+    }
 
+    private void checkSchemeName(ErrorHandler errorHandler, URIScheme scheme) {
         String correctSchemeName = scheme.getName();
 
         if ( ! hasScheme() ) {
-            schemeWarning(iriStr, correctSchemeName, "No scheme name");
+            schemeWarning(errorHandler, iriStr, correctSchemeName, "No scheme name");
             return;
         }
 
         if ( ! URIScheme.matchesExact(iriStr, scheme) ) {
             if ( URIScheme.matches(iriStr, scheme) )
-                schemeWarning(iriStr, correctSchemeName, "Scheme name should be lowercase");
+                schemeWarning(errorHandler, iriStr, correctSchemeName, "Scheme name should be lowercase");
             else
-                schemeWarning(iriStr, correctSchemeName, "Scheme name should be '"+correctSchemeName+"'");
+                schemeWarning(errorHandler, iriStr, correctSchemeName, "Scheme name should be '"+correctSchemeName+"'");
         }
     }
 
-    /** Error if strict, warning is not */
-    private void schemeMsg(MessageCategory category, String schemeName, String msg) {
+    /** Error if strict, warning is not
+     * @param errorHandler */
+    private static void schemeMsg(ErrorHandler errorHandler, MessageCategory category, String iriStr, String schemeName, String msg) {
         Objects.requireNonNull(category);
         switch(category) {
             case WARNING:
-                schemeWarning(iriStr, schemeName, msg);
+                schemeWarning(errorHandler, iriStr, schemeName, msg);
                 break;
             case ERROR:
-                schemeWarning(iriStr, schemeName, msg);
+                schemeWarning(errorHandler, iriStr, schemeName, msg);
                 break;
         }
     }
 
-    // --- Parsing
+    // ==== Parsing
+
+    /** Parse (i.e. check) or create an IRI object. */
+    private IRI3986 parse() {
+        int x = scheme(0);
+        if ( x > 0 ) {
+            // URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+            // absolute-URI  = scheme ":" hier-part [ "?" query ]
+            scheme0 = 0;
+            scheme1 = x;
+            // and move over ':'
+            x = withScheme(x+1);
+        } else {
+            // relative-ref  = relative-part [ "?" query ] [ "#" fragment ]
+            x = withoutScheme(0);
+        }
+
+        // Did the process consume the whole string?
+        if ( x != length ) {
+            String label;
+            if ( fragment0 >= 0)
+                label = "fragment";
+            else if ( query0 >= 0)
+                label = "query";
+            else
+                label = "path";
+            //System.err.printf("(x3=%d, length=%d)\n", x, length);
+            parseError(iriStr, "Bad character in "+label+" component: "+displayChar(charAt(x)));
+        }
+        return this;
+    }
 
     // scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
     private int scheme(int start) {

@@ -18,8 +18,6 @@
 
 package org.seaborne.rfc3986;
 
-import static org.seaborne.rfc3986.SystemIRI3986.getErrorHandler;
-
 /**
  * Internal functions for the IRI3986 parser for errors and warnings.
  * This makes having a common easier.
@@ -35,24 +33,24 @@ import static org.seaborne.rfc3986.SystemIRI3986.getErrorHandler;
         parseError(source, -1, s);
     }
 
-    static void parseWarning(CharSequence source, int posn, String s) {
-        warning(formatMsg(source, posn, s));
+    static void parseWarning(ErrorHandler eh, CharSequence source, int posn, String s) {
+        warning(eh, formatMsg(source, posn, s));
     }
 
-    static void parseWarning(CharSequence source, String s) {
-        parseWarning(source, -1, s);
+    static void parseWarning(ErrorHandler eh, CharSequence source, String s) {
+        parseWarning(eh, source, -1, s);
     }
 
-    static void schemeError(CharSequence source, char[] scheme, String s) {
-        schemeError(source, String.copyValueOf(scheme), s);
+    static void schemeError(ErrorHandler eh, CharSequence source, char[] scheme, String s) {
+        schemeError(eh, source, String.copyValueOf(scheme), s);
     }
 
-    static void schemeError(CharSequence source, String scheme, String s) {
-        error(formatMsg(source, -1, scheme+" URI scheme -- "+s));
+    static void schemeError(ErrorHandler eh, CharSequence source, String scheme, String s) {
+        error(eh, formatMsg(source, -1, scheme+" URI scheme -- "+s));
     }
 
-    static void schemeWarning(CharSequence source, String scheme, String s) {
-        warning(formatMsg(source, -1, scheme+" URI scheme -- "+s));
+    static void schemeWarning(ErrorHandler eh, CharSequence source, String scheme, String s) {
+        warning(eh, formatMsg(source, -1, scheme+" URI scheme -- "+s));
     }
 
     private static String formatMsg(CharSequence source, int posn, String s) {
@@ -73,11 +71,15 @@ import static org.seaborne.rfc3986.SystemIRI3986.getErrorHandler;
         throw new IRIParseException(s);
     }
 
-    private static void error(String s) {
-        getErrorHandler().error(s);
+    private static void error(ErrorHandler eh, String s) {
+        errorHandler(eh).error(s);
     }
 
-    private static void warning(String s) {
-        getErrorHandler().warning(s);
+    private static void warning(ErrorHandler eh, String s) {
+        errorHandler(eh).warning(s);
+    }
+
+    private static ErrorHandler errorHandler(ErrorHandler errorHandler) {
+        return  errorHandler != null ? errorHandler : SystemIRI3986.getErrorHandler();
     }
 }
