@@ -70,7 +70,6 @@ public class ParseDNS {
      *    ireg-name      = *( iunreserved / pct-encoded / sub-delims )
      */
 
-
     // RFC 1034:
     //        Note that while upper and lower case letters are allowed in domain
     //        names, no significance is attached to the case.  That is, two names with
@@ -88,7 +87,6 @@ public class ParseDNS {
     //        SHOULD handle host names of up to 255 characters.
     //        "#.#.#.#"
 
-
     // allowPercentEncoding
 
     private final String string;
@@ -104,14 +102,15 @@ public class ParseDNS {
         DNSParseException(String msg) { super(msg); }
     }
 
-    private void error(String msg) {
-        throw new DNSParseException(msg);
-    }
-
-    public static String parse(String string) {
+    static
+    public String parse(String string) {
         Objects.requireNonNull(string);
         new ParseDNS(string).parse(false);
         return string;
+    }
+
+    private void error(String msg) {
+        throw new DNSParseException(msg);
     }
 
     /** String.charAt except with an EOF character, not an exception. */
@@ -192,63 +191,16 @@ public class ParseDNS {
         return p;
     }
 
-    // ----
-
-//    private static boolean letter_digit(char ch) {
-//        return letter(ch) || digit(ch);
-//    }
-//
-//    private static boolean letter_digit_hyphen(char ch) {
-//        return letter(ch) || digit(ch) || ch == '-';
-//    }
-//
-//    private static boolean letter(char ch) {
-//        return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
-//    }
-//
-//    private boolean letter_digit_hyphen(char ch, int x) {
-//        return letter_digit(ch, x) || ch == '-';
-//    }
-
     // <let-dig>
     private boolean letter_digit(char ch, int x) {
         return i_letter(ch, x) || digit(ch);
     }
 
     private boolean i_letter(char ch, int x) {
-        return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || isUcsChar(ch) || Chars3986.isPctEncoded(ch, string, x);
+        return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || Chars3986.isUcsChar(ch) || Chars3986.isPctEncoded(ch, string, x);
     }
-
-    // DRY: IRI3986
-
-//    ucschar        = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF
-//                   / %x10000-1FFFD / %x20000-2FFFD / %x30000-3FFFD
-//                   / %x40000-4FFFD / %x50000-5FFFD / %x60000-6FFFD
-//                   / %x70000-7FFFD / %x80000-8FFFD / %x90000-9FFFD
-//                   / %xA0000-AFFFD / %xB0000-BFFFD / %xC0000-CFFFD
-//                   / %xD0000-DFFFD / %xE1000-EFFFD
-
-    // Surrogates are "hi-lo" : DC000-DFFF and D800-DFFF
-    // We assume the java string is valid and surrogates are correctly in high-low pairs.
-
-    private static boolean isUcsChar(char ch) {
-        return Chars3986.range(ch, 0xA0, 0xD7FF)  || Chars3986.range(ch, 0xF900, 0xFDCF)  || Chars3986.range(ch, 0xFDF0, 0xFFEF)
-                // Allow surrogates.
-                || Character.isSurrogate(ch);
-            // Java is 16 bits chars.
-//            || range(ch, 0x10000, 0x1FFFD) || range(ch, 0x20000, 0x2FFFD) || range(ch, 0x30000, 0x3FFFD)
-//            || range(ch, 0x40000, 0x4FFFD) || range(ch, 0x50000, 0x5FFFD) || range(ch, 0x60000, 0x6FFFD)
-//            || range(ch, 0x70000, 0x7FFFD) || range(ch, 0x80000, 0x8FFFD) || range(ch, 0x90000, 0x9FFFD)
-//            || range(ch, 0xA0000, 0xAFFFD) || range(ch, 0xB0000, 0xBFFFD) || range(ch, 0xC0000, 0xCFFFD)
-//            || range(ch, 0xD0000, 0xDFFFD) || range(ch, 0xE1000, 0xEFFFD)
-    }
-
-
 
     private static boolean digit(char ch) {
         return (ch >= '0' && ch <= '9');
     }
-
-//    private static void let_dig_hyp() {}
-//    private static void ldh_str() {}
 }

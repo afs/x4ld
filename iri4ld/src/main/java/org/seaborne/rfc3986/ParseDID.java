@@ -113,9 +113,7 @@ public class ParseDID {
         if ( chLast == ':' )
             error(str, "Final method specifc id character is a ':'");
         return p;
-
     }
-
 
     private static boolean methodChar(char ch) {
         return (ch >= 'a' && ch <= 'z');
@@ -143,41 +141,4 @@ public class ParseDID {
             return EOF;
         return str.charAt(x);
     }
-
-
-//    // <letter> [ [ <ldh-str> ] <let-dig> ]
-//    // Modified to allow start digit.
-//    // Ends at "." or end of string.
-//    // so it does not need to backoff for "-" in the last letter.
-//
-//    // End of label happens in two ways - find a "." or end of string.
-//    private int label(int p) {
-//        int end = length;
-//        int start = p;
-//        boolean charIsHyphen = false;
-//        while (p < end) {
-//            char ch = charAt(p);
-//            //System.out.println("Char = "+Character.toString(ch));
-//            if ( ch == '.' ) {
-//                if ( charIsHyphen )
-//                    // From last round.
-//                    throw new DNSParseException("Bad last character of subdomain: '"+Character.toString(ch)+"'");
-//                p++;
-//                break;
-//            }
-//            charIsHyphen = ( ch == HYPHEN );
-//
-//            if ( ! letter_digit(ch) && ! charIsHyphen )
-//                throw new DNSParseException("Bad character: '"+Character.toString(ch)+"'");
-//            if ( p == start && charIsHyphen )
-//                throw new DNSParseException("Bad first character of subdomain: '"+Character.toString(ch)+"'");
-//            p++;
-//        }
-//        if ( p != end && start+1 == p )
-//            throw new DNSParseException("Zero length subdomain");
-//        return p;
-//    }
-//
-//    private static boolean let_dig_hyp(char ch) { return letter_digit_hyphen(ch); }
-
 }

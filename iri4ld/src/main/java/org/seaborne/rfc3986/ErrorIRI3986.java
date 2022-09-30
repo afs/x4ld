@@ -33,13 +33,13 @@ package org.seaborne.rfc3986;
         parseError(source, -1, s);
     }
 
-    static void parseWarning(ErrorHandler eh, CharSequence source, int posn, String s) {
-        warning(eh, formatMsg(source, posn, s));
-    }
-
-    static void parseWarning(ErrorHandler eh, CharSequence source, String s) {
-        parseWarning(eh, source, -1, s);
-    }
+//    static void parseWarning(ErrorHandler eh, CharSequence source, int posn, String s) {
+//        warning(eh, formatMsg(source, posn, s));
+//    }
+//
+//    static void parseWarning(ErrorHandler eh, CharSequence source, String s) {
+//        parseWarning(eh, source, -1, s);
+//    }
 
     static void schemeError(ErrorHandler eh, CharSequence source, char[] scheme, String s) {
         schemeError(eh, source, String.copyValueOf(scheme), s);
