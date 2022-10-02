@@ -21,7 +21,7 @@ package org.seaborne.rfc3986;
 /**
  * IRI builder.
  * <p>
- * See {@link RFC3986#create()}
+ * See {@link RFC3986#newBuilder()}
  */
 public class Builder{
     private String scheme = null;

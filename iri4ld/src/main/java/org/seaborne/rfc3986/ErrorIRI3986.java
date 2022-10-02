@@ -41,19 +41,12 @@ package org.seaborne.rfc3986;
 //        parseWarning(eh, source, -1, s);
 //    }
 
-    static void schemeError(ErrorHandler eh, CharSequence source, char[] scheme, String s) {
-        schemeError(eh, source, String.copyValueOf(scheme), s);
+
+    /*package*/ static String formatMsg(CharSequence source, String s) {
+        return formatMsg(source, -1, s);
     }
 
-    static void schemeError(ErrorHandler eh, CharSequence source, String scheme, String s) {
-        error(eh, formatMsg(source, -1, scheme+" URI scheme -- "+s));
-    }
-
-    static void schemeWarning(ErrorHandler eh, CharSequence source, String scheme, String s) {
-        warning(eh, formatMsg(source, -1, scheme+" URI scheme -- "+s));
-    }
-
-    private static String formatMsg(CharSequence source, int posn, String s) {
+    /*package*/ static String formatMsg(CharSequence source, int posn, String s) {
         StringBuilder sb = new StringBuilder(s.length()+20);
         if ( source != null ) {
             sb.append("<");
@@ -71,11 +64,11 @@ package org.seaborne.rfc3986;
         throw new IRIParseException(s);
     }
 
-    private static void error(ErrorHandler eh, String s) {
+    /*package*/ static void error(ErrorHandler eh, String s) {
         errorHandler(eh).error(s);
     }
 
-    private static void warning(ErrorHandler eh, String s) {
+    /*package*/ static void warning(ErrorHandler eh, String s) {
         errorHandler(eh).warning(s);
     }
 

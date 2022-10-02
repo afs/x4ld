@@ -18,27 +18,38 @@
 
 package org.seaborne.rfc3986;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+public class Violations {
+    Violations(String iriStr, URIScheme schema, Issue violation, String message) {}
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    TestParseComponents.class,
-    TestRFC3986.class,
-    TestRFC3986_Scheme.class,
-    TestRFC3986_Features.class,
-    TestResolve.class,
-    TestNormalize.class,
-    TestRelative.class,
-    TestRelative2.class,
-    TestRelative3.class,
-    TestBuild.class,
-    TestParseIPv4Address.class,
-    TestParseIPv6Address.class,
-    TestParseDNS.class,
-    TestParseDID.class,
+    public enum Issue {
+        ParseError,
+        // General
+        iri_scheme_name_is_not_lowercase,
+        iri_percent_not_uppercase,
+        iri_host_not_lowercase,
 
-    TestSystem3986.class
-} )
-
-public class TS_RFC3986 { }
+        // http/https
+        http_no_host,
+        http_empty_host,
+        http_empty_port,
+        http_not_advised,
+        http_userinfo,
+        http_well_known_port,
+        // urn:uuid and uuid
+        urn_uuid_bad_pattern,
+        uuid_bad_pattern,
+        uuid_has_query,
+        uuid_has_fragment,
+        uuid_not_lowercase,
+        // urn
+        urn_bad_pattern,
+        urn_nid,
+        urn_nss,
+        urn_bad_query,
+        urn_bad_fragment,
+        // file
+        file_bad_form,
+        // did
+        did_bad_syntax
+    }
+}

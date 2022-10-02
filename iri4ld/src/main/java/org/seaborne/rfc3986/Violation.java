@@ -18,27 +18,12 @@
 
 package org.seaborne.rfc3986;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+public class Violation {
+    public final MessageCategory category;
+    public final String message;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    TestParseComponents.class,
-    TestRFC3986.class,
-    TestRFC3986_Scheme.class,
-    TestRFC3986_Features.class,
-    TestResolve.class,
-    TestNormalize.class,
-    TestRelative.class,
-    TestRelative2.class,
-    TestRelative3.class,
-    TestBuild.class,
-    TestParseIPv4Address.class,
-    TestParseIPv6Address.class,
-    TestParseDNS.class,
-    TestParseDID.class,
-
-    TestSystem3986.class
-} )
-
-public class TS_RFC3986 { }
+    Violation(MessageCategory category, String message) {
+        this.category = category;
+        this.message = message;
+    }
+}

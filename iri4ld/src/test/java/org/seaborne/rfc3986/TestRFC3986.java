@@ -51,53 +51,58 @@ public class TestRFC3986 {
 
     // ---- Compare to jena-iri
     @Test public void parse_00() { good("http://host"); }
+    @Test public void parse_01() { good("http://host/"); }
+    @Test public void parse_02() { good("http://host:/"); }
+    @Test public void parse_03() { good("http://host:10/"); }
+    @Test public void parse_04() { good("http://host:80/"); }
+    @Test public void parse_05() { good("https://host:443/"); }
 
-    @Test public void parse_01() { good("http://host:8081/abc/def?qs=ghi#jkl"); }
+    @Test public void parse_11() { good("http://host:8081/abc/def?qs=ghi#jkl"); }
 
-    @Test public void parse_02() { good("http://[::1]:8080/abc/def?qs=ghi#jkl"); }
+    @Test public void parse_12() { good("http://[::1]:8080/abc/def?qs=ghi#jkl"); }
 
     // %XX in host added at RFC 3986.
-    @Test public void parse_03() { goodNoIRICheck("http://ab%AAdef/xyzβ/abc"); }
+    @Test public void parse_13() { goodNoIRICheck("http://ab%AAdef/xyzβ/abc"); }
 
-    @Test public void parse_04() { good("/abcdef"); }
+    @Test public void parse_14() { good("/abcdef"); }
 
-    @Test public void parse_05() { good("/ab%FFdef"); }
+    @Test public void parse_15() { good("/ab%FFdef"); }
 
     // Uppercase preferred.
-    @Test public void parse_06() { goodNoIRICheck("/ab%ffdef"); }
+    @Test public void parse_16() { goodNoIRICheck("/ab%ffdef"); }
 
-    @Test public void parse_07() { good("http://host/abcdef?qs=foo#frag"); }
+    @Test public void parse_17() { good("http://host/abcdef?qs=foo#frag"); }
 
-    @Test public void parse_08() { good(""); }
+    @Test public void parse_18() { good(""); }
 
-    @Test public void parse_09() { good("."); }
+    @Test public void parse_19() { good("."); }
 
-    @Test public void parse_10() { good(".."); }
+    @Test public void parse_20() { good(".."); }
 
-    @Test public void parse_11() { good("//host:8081/abc/def?qs=ghi#jkl"); }
+    @Test public void parse_21() { good("//host:8081/abc/def?qs=ghi#jkl"); }
 
-    @Test public void parse_12() { goodNoIRICheck("a+.-9://h/"); }
+    @Test public void parse_22() { goodNoIRICheck("a+.-9://h/"); }
 
     // No path.
 
-    @Test public void parse_13() { good("http://host"); }
+    @Test public void parse_23() { good("http://host"); }
 
-    @Test public void parse_14() { good("http://host#frag"); }
+    @Test public void parse_24() { good("http://host#frag"); }
 
-    @Test public void parse_15() { good("http://host?query"); }
+    @Test public void parse_25() { good("http://host?query"); }
 
     // : in first segment in path.
-    @Test public void parse_16() { good("http://host/a:b/"); }
+    @Test public void parse_26() { good("http://host/a:b/"); }
 
-    @Test public void parse_17() { good("/a:b/"); }
+    @Test public void parse_27() { good("/a:b/"); }
 
-    @Test public void parse_18() { good("/z/a:b"); }
+    @Test public void parse_28() { good("/z/a:b"); }
 
     // Characters / and ? in trailer
-    @Test public void parse_19() { good("http://host/ab?query=abc?def"); }
-    @Test public void parse_20() { good("http://host/ab#abc?def"); }
-    @Test public void parse_21() { good("http://host/path?q=abc/def#abc/def"); }
-    @Test public void parse_22() { good("http://host/path?q=abc/def#abc?def"); }
+    @Test public void parse_29() { good("http://host/ab?query=abc?def"); }
+    @Test public void parse_30() { good("http://host/ab#abc?def"); }
+    @Test public void parse_31() { good("http://host/path?q=abc/def#abc/def"); }
+    @Test public void parse_32() { good("http://host/path?q=abc/def#abc?def"); }
 
     @Test public void parse_http_04()   { good("nothttp://users@host/file/name.txt"); }
 
@@ -220,23 +225,27 @@ public class TestRFC3986 {
     }
 
     private void good(String string) {
-        RFC3986.check(string);
+        RFC3986.checkSyntax(string);
         IRI3986 iri = RFC3986.create(string);
         if ( true ) {
             IRI iri1 = JenaIRI.iriFactory().create(string);
-            if ( iri1.hasViolation(true) ) {
+            if ( ! iri.hasViolations() && iri1.hasViolation(true) ) {
                 iri1.violations(true).forEachRemaining(v-> System.err.println("IRI = "+string + " :: "+v.getLongMessage()));
                 fail("Violations "+string);
             }
         }
-        iri.schemeSpecificRules();
+        // Check parses by JDK.
         java.net.URI javaURI = java.net.URI.create(string);
         assertEquals(string, iri.rebuild());
         assertEquals(string, iri.str());
+
+        IRI3986 iriByRegex = RFC3986.createByRegex(string);
+        assertTrue("Identical: ", iri.identical(iriByRegex, false));
+        assertTrue(iri.identical(iriByRegex, true));
     }
 
     private void goodNoIRICheck(String string) {
-        RFC3986.check(string);
+        RFC3986.checkSyntax(string);
         IRI3986 iri = RFC3986.create(string);
         java.net.URI javaURI = java.net.URI.create(string);
     }
@@ -244,7 +253,7 @@ public class TestRFC3986 {
     // Expect an IRIParseException
     private void bad(String string) {
         try {
-            RFC3986.check(string);
+            RFC3986.checkSyntax(string);
             fail("Did not fail: "+string);
         } catch (IRIParseException ex) {}
     }

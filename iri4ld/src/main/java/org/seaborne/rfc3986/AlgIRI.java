@@ -121,7 +121,7 @@ class AlgIRI {
             t_scheme = base.scheme();
         }
         t_fragment = reference.fragment();
-        return RFC3986.create()
+        return RFC3986.newBuilder()
             .scheme(t_scheme).authority(t_authority).path(t_path).query(t_query).fragment(t_fragment)
             .build();
     }

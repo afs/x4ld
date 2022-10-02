@@ -66,10 +66,15 @@ public enum URIScheme {
         return iriStr.regionMatches(true, 0, prefix, 0, prefix.length());
     }
 
+    /** Scheme name */
     public String getName() {
         return name;
     }
 
+    /**
+     * Initial part of the URI scheme that identifies this scheme.
+     * In practice this is the schema name in lower case followed by ':'.
+     */
     public String getPrefix() {
         return prefix;
     }

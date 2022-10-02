@@ -74,12 +74,12 @@ public class CmdResolve {
             System.out.printf("%s|%s|  ", "Query",      iri.query());
             System.out.printf("%s|%s|", "Fragment",   iri.fragment());
             System.out.println();
-            try {
-                iri.schemeSpecificRules();
-            } catch (IRIParseException ex) {
-                System.out.println();
-                System.err.println("Scheme specific error:");
-                System.err.println("    "+ex.getMessage());
+            if ( iri.hasViolations() ) {
+                iri.forEachViolation(v->{
+                    System.out.println();
+                    System.err.println("Scheme specific error:");
+                    System.err.println("    "+v.message);
+                });
             }
         } catch (IRIParseException ex) {
             System.err.println(ex.getMessage());

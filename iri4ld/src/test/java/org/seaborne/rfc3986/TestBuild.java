@@ -35,7 +35,7 @@ public class TestBuild {
 
     @Test public void build_03() {
         IRI3986 iri =
-            RFC3986.create()
+            RFC3986.newBuilder()
                 .scheme("http")
                 .authority("AUTH")
                 .host("host")
@@ -46,7 +46,7 @@ public class TestBuild {
 
     @Test public void build_04() {
         IRI3986 iri =
-            RFC3986.create()
+            RFC3986.newBuilder()
                 .scheme("http")
                 .authority("AUTH")
                 .host("host")
@@ -59,7 +59,7 @@ public class TestBuild {
     private void testBuild(String expected, String scheme, String authority, String path, String query, String fragment) {
         // All parts
         IRI3986 iri =
-            RFC3986.create()
+            RFC3986.newBuilder()
                 .scheme(scheme)
                 .authority(authority)
                 .path(path)

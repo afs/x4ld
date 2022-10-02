@@ -49,21 +49,22 @@ import java.util.regex.Pattern;
  * <h4>Check</h4>
  * Check conformance with the RFC 3986 grammar:
  * <pre>
- *     RFC3986.check(string);
+ *     RFC3986.checkSyntax(string);
  * </pre>
  * Check conformance with the RFC 3986 grammar and any applicable scheme specific rules:
  * <pre>
- *     RFC3986.check(string, true);
+ *     IRI3986 iri = RFC3986.create(string);
+ *     iri.hasViolations();
  * </pre>
  * <h4>Extract the components of IRI</h4>
  * <pre>
- *     RFC3986 iri = RFC3986.create(string);
- *     iri.getPath();
+ *     IRI3986 iri = RFC3986.create(string);
+ *     iri.path();
  *     ...
  * </pre>
  * <h4>Resolve</h4>
  * <pre>
- *     IRI3986 base = .RFC3986.create(baseIRIString);
+ *     IRI3986 base = RFC3986.create(baseIRIString);
  *     IRI3986 iri = RFC3986.create(string);
  *     IRI3986 iri2 = RFC3986.resolve(base);
  * </pre>
@@ -72,38 +73,57 @@ import java.util.regex.Pattern;
  *     IRI3986 iri  = RFC3986.create(string);
  *     IRI3986 iri2 = RFC3986.normalize(iri);
  * </pre>
+ * <h4>Relative IRI</h4>
+ * <pre>
+ *     IRI3986 base = RFC3986.create(baseIRIString);
+ *     IRI3986 target = RFC3986.create(string);
+ *     IRI3986 relative = RFC3986(relativize(base, target));
+ *     // then base.resolve(relative) equals target
+ * </pre>
+ *
+ * <h3>RFC Regular Expression</h3>
+ *
+ * An IRI can be created using the regular expression
+ * of RFC 3986. This regular expression identifies the components
+ * without checking for correct use of characters within components.
+ * It may be useful when an IRI does to conform to the details of the
+ * RFC 3986 syntax, for example spaces in the path component.
  */
 
 public class RFC3986 {
     /**
      * Determine if the string conforms to the IRI syntax. If not, it throws an exception.
      * This operation checks the string against the RFC3986/7 grammar; it does not apply
-     * scheme specific rules
+     * scheme specific rules.
      */
-    public static void check(String iristr) {
-        IRI3986.check(iristr);
-    }
-
-    /**
-     * Determine if the string conforms to the IRI syntax. If not, it throws an exception.
-     * This operation optionally also applies some scheme specific rules.
-     */
-    public static void check(String iristr, boolean applySchemeSpecificRules) {
-        IRI3986.check(iristr, applySchemeSpecificRules);
+    public static void checkSyntax(String iristr) {
+        IRI3986.checkSyntax(iristr);
     }
 
     /**
      * Parse the string in accordance with the general IRI grammar.
      * If not, it throws an exception.
      * <p>
-     * This does not include schema-specific validation : see {@link IRI3986#schemeSpecificRules()}.
+     * This reports schema-specific violations : see {@link IRI3986#hasViolations()} and {@link IRI3986#forEachViolation}.
      */
     public static IRI3986 create(String iristr) {
         return IRI3986.create(iristr);
     }
 
+    /**
+     * Create an {@link IRI3986} object; report errors and warnings.
+     * This operation always returns an object; it does not throw an exception, nor return null.
+     * The object may not be a valid IRI.
+     * <p>
+     * Errors and warning may be accessed with {@link IRI3986#hasViolations()} and {@link IRI3986#forEachViolation}.
+     */
+    public static IRI3986 createAny(String iristr) {
+        IRI3986 iri = IRI3986.createAny(iristr);
+        return iri;
+    }
+
     /** Create an IRI builder */
-    public static Builder create() {
+    public static Builder newBuilder() {
         return new Builder();
     }
 
@@ -119,15 +139,46 @@ public class RFC3986 {
      */
     public static IRI3986 relativize(IRI3986 base, IRI3986 iri) { return iri.relativize(base); }
 
-    // Takes from jena-iri - more groups. Breaks apart authority.
+    /**
+     * Create an IRI using the regular expression of RFC 3986.
+     * Throws an exception of the regular expression does not match.
+     * The regular expression assumes a valid RFC3986 IRI and splits
+     * out the components.
+     * This may be useful to extract components of an IRI with bad syntax.
+     * This does not check the character rules of the syntax,
+     * nor check scheme specific rules.
+     * Use the resulting IRI3986 with care.
+     */
+
+    public static IRI3986 createByRegex(String iriStr) { return IRI3986.createByRegex(iriStr); }
+
+    // Taken from jena-iri - more groups. Breaks apart authority.
     /*package*/ static final String altRFC3986regex =
              "(([^:/?#]*):)?" +               // scheme
-             "(//((([^/?#@]*)@)?" +           // user
+             "(//((([^/?#@]*)@)?" +           // user info
              "(\\[[^/?#]*\\]|([^/?#:]*))?" +  // host
              "(:([^/?#]*))?))?" +             // port
              "([^#?]*)?" +                    // path
              "(\\?([^#]*))?" +                // query
              "(#(.*))?";                      // frag
+
+
+//        1  -- http:
+//        2  -- http
+//        3  -- //u:p@host.com:2020
+//        4  -- u:p@host.com:2020
+//        5  -- u:p@
+//        6  -- u:p
+//        7  -- host.com
+//        8  -- host.com
+//        9  -- :2020
+//        10 -- 2020
+//        11 -- /path
+//        12 -- ?query
+//        13 -- query
+//        14 -- #frag
+//        15 -- frag
+
 
     /** RFC 3986 regular expression.
      * This assumes a well-formed URI reference; it will accept other mis-formed strings.
@@ -158,7 +209,13 @@ public class RFC3986 {
      * <li>fragment  = $9
      * </ul>
      */
-    public static final Pattern rfc3986regex = Pattern.compile("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
+    public static final Pattern rfc3986regex = Pattern.compile
+            (//"^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?"
+                "^(([^:/?#]+):)?"+      // scheme
+                "(//([^/?#]*))?"+       // authority
+                "([^?#]*)"+             // path
+                "(\\?([^#]*))?"+        // query
+                "(#(.*))?");            // fragment
 
     /*
    URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]

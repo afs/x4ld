@@ -56,16 +56,19 @@ public class CmdIRI {
 
                 System.out.printf("%s|%s|  ", "Scheme",     iri.scheme());
                 System.out.printf("%s|%s|  ", "Authority",  iri.authority());
+                System.out.printf("%s|%s|  ", "Host",       iri.host());
+                if ( iri.hasPort() )
+                    System.out.printf("%s|%s|  ", "Port",       iri.port());
                 System.out.printf("%s|%s|  ", "Path",       iri.path());
                 System.out.printf("%s|%s|  ", "Query",      iri.query());
                 System.out.printf("%s|%s|", "Fragment",   iri.fragment());
                 System.out.println();
-                try {
-                    iri.schemeSpecificRules();
-                } catch (IRIParseException ex) {
-                    System.out.println();
-                    System.err.println("Scheme specific error:");
-                    System.err.println("    "+ex.getMessage());
+                if ( iri.hasViolations() ) {
+                    iri.forEachViolation(v->{
+                        System.out.println();
+                        System.err.println("Scheme specific error:");
+                        System.err.println("    "+v.message);
+                    });
                 }
             } catch (IRIParseException ex) {
                 System.err.println(ex.getMessage());

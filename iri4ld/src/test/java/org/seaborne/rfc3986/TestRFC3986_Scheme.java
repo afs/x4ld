@@ -56,12 +56,12 @@ public class TestRFC3986_Scheme {
 
     @Test public void parse_http_03()   { badSpecific("http://users@host/file/name.txt"); }
 
-    // We reject "file://host/" forms.
-
-    // We reject "file://host/" forms.
-    @Test public void parse_file_01()   { badSpecific("file://"); }
-
-    @Test public void parse_file_02()   { badSpecific("file://host/file/name.txt"); }
+    @Test public void parse_file_01()   { badSpecific("file:"); }
+    @Test public void parse_file_02()   { badSpecific("file:/"); }
+    @Test public void parse_file_03()   { badSpecific("file://"); }
+    @Test public void parse_file_10()   { badSpecific("file:file/name.txt"); }
+    @Test public void parse_file_11()   { badSpecific("file:/file/name.txt"); }
+    @Test public void parse_file_12()   { badSpecific("file://file/name.txt"); }
 
     @Test public void parse_uuid_07()   { badSpecific("urn:uuid:0000"); }
 
@@ -120,15 +120,8 @@ public class TestRFC3986_Scheme {
     private static ErrorHandler errHandlerTest = ErrorHandlerBase.create(onEvent, onEvent);
 
     private void badSpecific(String string) {
-        RFC3986.check(string);
-        ErrorHandler eh = SystemIRI3986.getErrorHandler();
-        SystemIRI3986.setErrorHandler(errHandlerTest);
-        try {
-            RFC3986.create(string).schemeSpecificRules();
-            fail("Expected a scheme-specific warnign or error: '"+string+"'");
-        } catch (IRIParseException ex) {}
-        finally {
-            SystemIRI3986.setErrorHandler(eh);
-        }
+        IRI3986 iri = IRI3986.createAny(string);
+        assertTrue("Expected a scheme-specific warning or error: '"+string+"'",
+                   iri.hasViolations());
     }
 }
