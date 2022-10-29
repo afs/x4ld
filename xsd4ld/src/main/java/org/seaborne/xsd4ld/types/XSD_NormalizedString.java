@@ -29,4 +29,3 @@ public class XSD_NormalizedString extends BaseString {
         return test_valid_NL_LF_TAB(lex);
     }
 }
-

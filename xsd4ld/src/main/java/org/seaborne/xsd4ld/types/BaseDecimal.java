@@ -27,4 +27,3 @@ abstract class BaseDecimal extends XSDDatatype {
         super(shortName, baseType, ValueClass.DECIMAL, regex);
     }
 }
-

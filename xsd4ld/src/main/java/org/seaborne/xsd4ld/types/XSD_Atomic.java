@@ -33,4 +33,3 @@ public class XSD_Atomic extends XSDDatatype {
         return lex;
     }
 }
-

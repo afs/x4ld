@@ -22,17 +22,16 @@ import org.seaborne.xsd4ld.XSDDatatype;
 
 abstract class BaseString extends XSDDatatype {
 
-    public BaseString(String shortName, String baseType) { 
+    public BaseString(String shortName, String baseType) {
         super(shortName, baseType, ValueClass.STRING, null);
     }
 
-
     // Extra validate.
     // XSD_AbstractInteger?
-    
+
     @Override
     protected String valueOrException(String lex) {
-        if ( isValid(lex) ) 
+        if ( isValid(lex) )
             return lex;
         return null;
     }
@@ -41,7 +40,7 @@ abstract class BaseString extends XSDDatatype {
     public boolean isValid(String lex) {
         return valid_NL_LF_TAB(lex);
     }
-    
+
     protected boolean valid_NL_LF_TAB(String lex) {
         return true;
     }
@@ -49,7 +48,7 @@ abstract class BaseString extends XSDDatatype {
     protected static final char NL = '\n';    // #xD
     protected static final char LF = '\r';    // #xA
     protected static final char TAB = '\u0009';
-    
+
     protected static boolean test_valid_NL_LF_TAB(String lex) {
         for ( int i = 0; i < lex.length(); i++ ) {
             char ch = lex.charAt(i);
@@ -58,11 +57,9 @@ abstract class BaseString extends XSDDatatype {
         }
         return true;
     }
-    
+
 //    @Override
 //  public abstract int hashCode( );
 //  @Override
 //  public abstract boolean equals(Object other);
 }
-
-

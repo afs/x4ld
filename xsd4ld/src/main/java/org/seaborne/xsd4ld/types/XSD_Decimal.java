@@ -36,7 +36,6 @@ public class XSD_Decimal extends BaseDecimal {
         // Java allows "1e0" as a BigDecimal.
         if ( lex.indexOf('e') != -1 || lex.indexOf('E') != -1 )
             return null;
-        return decimal; 
+        return decimal;
     }
 }
-

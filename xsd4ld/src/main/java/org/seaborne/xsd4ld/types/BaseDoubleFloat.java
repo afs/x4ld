@@ -41,7 +41,4 @@ abstract class BaseDoubleFloat extends XSDDatatype {
             return "-Infinity";
         return lex;
     }
-    
-
 }
-

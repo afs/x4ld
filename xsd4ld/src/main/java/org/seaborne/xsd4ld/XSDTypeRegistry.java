@@ -217,4 +217,3 @@ public class XSDTypeRegistry {
         return p.pattern();
     }
 }
-

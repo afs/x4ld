@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 import org.seaborne.xsd4ld.XSDConst;
 import org.seaborne.xsd4ld.XSDTypeRegistry;
 
-/** Precision Decimal : 
+/** Precision Decimal :
  *  <a href="http://www.w3.org/TR/xsd-precisionDecimal/">http://www.w3.org/TR/xsd-precisionDecimal/</a>
  */
 public class XSD_PrecisionDecimal extends BaseDecimal {
@@ -33,12 +33,11 @@ public class XSD_PrecisionDecimal extends BaseDecimal {
     }
 
     static Pattern exceptions = Pattern.compile("(\\+|-)?INF|NaN");
-    
+
     @Override
     protected Object valueOrException(String lex) {
-        if ( exceptions.matcher(lex).matches() ) 
+        if ( exceptions.matcher(lex).matches() )
             return Double.parseDouble(BaseDoubleFloat.fix(lex));
         return new BigDecimal(lex);
     }
 }
-

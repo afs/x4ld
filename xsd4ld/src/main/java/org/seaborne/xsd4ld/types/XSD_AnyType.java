@@ -32,4 +32,3 @@ public class XSD_AnyType extends XSDDatatype {
         return lex;
     }
 }
-

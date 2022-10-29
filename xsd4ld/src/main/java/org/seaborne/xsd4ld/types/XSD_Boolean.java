@@ -25,4 +25,3 @@ public class XSD_Boolean extends BaseBoolean {
         super(XSDConst.xsd_boolean, XSDConst.xsd_atomic, XSDTypeRegistry.getRegex(XSDConst.xsd_boolean));
     }
 }
-

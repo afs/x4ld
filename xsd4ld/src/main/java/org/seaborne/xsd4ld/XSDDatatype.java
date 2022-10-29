@@ -133,5 +133,3 @@ public abstract class XSDDatatype {
 //    @Override
 //    public abstract boolean equals(Object other);
 }
-
-

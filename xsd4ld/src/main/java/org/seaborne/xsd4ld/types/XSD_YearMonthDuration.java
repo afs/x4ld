@@ -38,4 +38,3 @@ public class XSD_YearMonthDuration extends BaseDuration {
         return obj;
     }
 }
-

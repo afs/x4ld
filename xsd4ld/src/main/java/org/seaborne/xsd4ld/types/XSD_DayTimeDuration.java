@@ -58,4 +58,3 @@ public class XSD_DayTimeDuration extends BaseDuration {
         return obj;
     }
 }
-

@@ -106,4 +106,3 @@ public class XSDConst {
     public static final BigInteger  BYTE_MAX   = i(127);
     public static final BigInteger  BYTE_UMAX  = i(255);
 }
-

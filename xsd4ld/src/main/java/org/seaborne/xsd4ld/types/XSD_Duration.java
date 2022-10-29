@@ -26,4 +26,3 @@ public class XSD_Duration extends BaseDuration {
     }
 
 }
-

@@ -32,10 +32,7 @@ public class BaseBoolean extends XSDDatatype {
         switch(lex) {
             case "true":  case "1":  return Boolean.TRUE;
             case "false": case "0":  return Boolean.FALSE;
-            default: return null; 
+            default: return null;
         }
     }
-
-
 }
-

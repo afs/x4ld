@@ -31,4 +31,3 @@ public class XSD_Float extends BaseDoubleFloat {
         return Double.parseDouble(fix(lex));
     }
 }
-

@@ -33,7 +33,7 @@ public class XSD_Token extends BaseString {
     public XSD_Token() {
         super(XSDConst.xsd_token, XSDConst.xsd_normalizedString);
     }
-    
+
     @Override
     public boolean valid_NL_LF_TAB(String lex) {
         if ( ! test_valid_NL_LF_TAB(lex) )
@@ -47,4 +47,3 @@ public class XSD_Token extends BaseString {
         return true;
     }
 }
-

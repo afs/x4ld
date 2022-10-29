@@ -28,4 +28,3 @@ abstract class BaseBinary extends XSDDatatype {
         super(shortName, derivedFrom, ValueClass.BINARY, regex);
     }
 }
-

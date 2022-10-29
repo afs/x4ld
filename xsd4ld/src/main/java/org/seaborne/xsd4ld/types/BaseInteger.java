@@ -28,7 +28,7 @@ abstract class BaseInteger extends XSDDatatype {
     private final BigInteger minValue;
     private final BigInteger maxValue;
 
-    protected BaseInteger(String shortName, String baseType, 
+    protected BaseInteger(String shortName, String baseType,
                           BigInteger minValue, BigInteger maxValue) {
         super(shortName, baseType, ValueClass.INTEGER, XSDTypeRegistry.getRegex(XSDConst.xsd_integer));
         this.minValue = minValue;
@@ -43,11 +43,10 @@ abstract class BaseInteger extends XSDDatatype {
                 return null;
             if ( maxValue != null && maxValue.compareTo(integer) < 0 )
                 return null;
-            return integer; 
+            return integer;
         }
         catch (NumberFormatException ex) {
             return null;
         }
     }
 }
-

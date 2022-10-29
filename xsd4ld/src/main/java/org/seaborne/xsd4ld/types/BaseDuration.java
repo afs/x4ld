@@ -46,4 +46,3 @@ abstract class BaseDuration extends XSDDatatype {
         return lex.contains("T");
     }
 }
-
