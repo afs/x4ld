@@ -109,6 +109,10 @@ public class TestRFC3986_Scheme {
     }
 
     @Test public void parse_uuid_bad_03() {
+        badSpecific("uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9?query#frag");
+    }
+
+    @Test public void parse_uuid_bad_04() {
         badSpecific("uuid:06e775ac-2c38-11b2");
     }
 

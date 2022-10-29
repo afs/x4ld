@@ -62,6 +62,7 @@ public class TestResolve {
 
     @Test
     public void resolve_abs_02() {
+        // Assumes normalization.
         testResolve("http://example/path?query#frag", "http://host/dir1/../dir2/", "http://host/dir2/");
     }
 

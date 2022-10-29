@@ -19,11 +19,18 @@
 package org.seaborne.rfc3986;
 
 public class Violation {
+    public final String iriStr;
     public final MessageCategory category;
     public final String message;
 
-    Violation(MessageCategory category, String message) {
+    Violation(String iriStr, MessageCategory category, String message) {
+        this.iriStr = iriStr;
         this.category = category;
         this.message = message;
+    }
+
+    @Override
+    public String toString() {
+        return iriStr+" : "+category+" "+message;
     }
 }

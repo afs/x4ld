@@ -198,17 +198,17 @@ public class IRI3986 implements IRI {
      * This operations does check the resulting IRI conforms to
      * URI scheme specific rules.
      */
-    private static IRI3986 newAndCheck(String iristr) {
+    private static IRI3986 newAndCheck(String iriStr) {
         // This function assumes the string is valid.
         // The parser does not try to continue after it finds an error in the RFC3986
         // syntax so the component at the point of error and later components are not recorded.
-        IRI3986 iri = new IRI3986(iristr);
+        IRI3986 iri = new IRI3986(iriStr);
         try {
             iri.parse();
             iri.schemeSpecificRulesInternal();
         } catch (IRIParseException ex) {
             String msg = ex.getMessage();
-            iri.addReport(new Violation(MessageCategory.INVALID, ex.getMessage()));
+            iri.addReport(new Violation(iriStr, MessageCategory.INVALID, ex.getMessage()));
         }
         return iri;
     }
@@ -628,14 +628,18 @@ public class IRI3986 implements IRI {
     }
 
     /**
-     * Resolve an IRI , using this as the base.
+     * Resolve an IRI, using this as the base.
      * <a href=https://tools.ietf.org/html/rfc3986#section-5">RFC 3986 section 5</a>
      */
-    public IRI3986 resolve(IRI other) {
+    public IRI3986 resolve(IRI3986 other) {
+        if ( other.isAbsolute() )
+            return other;
         //if ( ! hasScheme()() ) {}
         // Base must have scheme. Be lax.
         /* 5.2.2.  Transform References */
-        return AlgIRI.resolve(this, other);
+        IRI3986 iri = AlgIRI.resolve(this, other);
+        iri.schemeSpecificRulesInternal();
+        return iri;
     }
 
     /** Build a {@linkIRI3986} from components. */
@@ -1413,16 +1417,16 @@ public class IRI3986 implements IRI {
                 int port = Integer.parseInt(port());
                 switch(scheme) {
                     case HTTP:
-                        if ( port().equals("80") )
+                        if ( port == 80 )
                             schemeWarning(iriStr, schemeName, "Default port 80 should be omitted");
-                        if ( port < 1024 && port != 80 )
-                            schemeWarning(iriStr, schemeName, "HTTP Port under 1024 is should be 80");
+                        else if ( port < 1024 && port != 80 )
+                            schemeWarning(iriStr, schemeName, "HTTP Port under 1024 should only be 80");
                         break;
                     case HTTPS:
-                        if ( port().equals("443") )
+                        if ( port == 443 )
                             schemeWarning(iriStr, schemeName, "Default port 443 should be omitted");
-                        if ( port < 1024 && port != 443 )
-                            schemeWarning(iriStr, schemeName, "HTTPS port under 1024 should be 443");
+                        else if ( port < 1024 && port != 443 )
+                            schemeWarning(iriStr, schemeName, "HTTPS port under 1024 should only be 443");
                         break;
                     default:
                         throw new IllegalStateException();
@@ -1449,21 +1453,6 @@ public class IRI3986 implements IRI {
             schemeMsg(category, iriStr, schemeName, "userinfo (e.g. user:password) in authority section");
             if ( userInfo().contains(":") )
                 schemeWarning(iriStr, schemeName, "userinfo contains password in authority section");
-        }
-
-        if ( hasPort() ) {
-            switch ( scheme ) {
-                case HTTP:
-                    if ( port().equals("80") )
-                        schemeWarning(iriStr, schemeName, "Default port 80 should be omitted");
-                    break;
-                case HTTPS:
-                    if ( port().equals("443") )
-                        schemeWarning(iriStr, schemeName, "Default port 443 should be omitted");
-                    break;
-                default:
-                    throw new IllegalStateException();
-            }
         }
     }
 
@@ -1594,23 +1583,26 @@ public class IRI3986 implements IRI {
         if ( ! iriStr.startsWith(schemePrefix) )
             schemeWarning(iriStr, schemeName, "scheme name is not lowercase '"+scheme.getPrefix()+"'");
 
-        // Offset in the of the UUID starting point. Skip ':'
+        // Offset in the UUID starting point. Skip ':'
         int offset = scheme.getPrefix().length();
         int uuidLen = iriStr.length()-offset;
         String uuidStr = iriStr.substring(offset);
 
         boolean warningIssued = false;
         // Specific tests, specific messages
-        if ( uuidLen != 36 ) {
-            schemeWarning(iriStr, schemeName, "Bad UUID string (wrong length): "+uuidStr);
-            warningIssued = true;
-        }
+
         if ( hasQuery() ) {
             schemeWarning(iriStr, schemeName, "query component not allowed: "+iriStr);
             warningIssued = true;
         }
         if ( hasFragment() ) {
             schemeWarning(iriStr, schemeName, "fragment not allowed: "+iriStr);
+            warningIssued = true;
+        }
+
+        if ( !warningIssued && uuidLen != 36 ) {
+            // Don't output if query or fragment
+            schemeWarning(iriStr, schemeName, "Bad UUID string (wrong length): "+uuidStr);
             warningIssued = true;
         }
 
@@ -1695,12 +1687,12 @@ public class IRI3986 implements IRI {
 
     private void schemeError(CharSequence source, String scheme, String s) {
         String msg = formatSchemeMsg(source, scheme, s);
-        addReport(new Violation(MessageCategory.WARNING, msg));
+        addReport(new Violation(String.valueOf(source), MessageCategory.WARNING, msg));
     }
 
     private void schemeWarning(CharSequence source, String scheme, String s) {
         String msg = formatSchemeMsg(source, scheme, s);
-        addReport(new Violation(MessageCategory.WARNING, msg));
+        addReport(new Violation(String.valueOf(source), MessageCategory.WARNING, msg));
     }
 
     private void addReport(Violation report) {
