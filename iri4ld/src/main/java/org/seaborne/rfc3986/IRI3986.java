@@ -509,6 +509,18 @@ public class IRI3986 implements IRI {
 //        dot-segments.
 //
 //     6.2.2.1.  Case Normalization
+//
+//        For all URIs, the hexadecimal digits within a percent-encoding
+//        triplet (e.g., "%3a" versus "%3A") are case-insensitive and therefore
+//        should be normalized to use uppercase letters for the digits A-F.
+//
+//        When a URI uses components of the generic syntax, the component
+//        syntax equivalence rules always apply; namely, that the scheme and
+//        host are case-insensitive and therefore should be normalized to
+//        lowercase.  For example, the URI <HTTP://www.EXAMPLE.com/> is
+//        equivalent to <http://www.example.com/>.  The other generic syntax
+//        components are assumed to be case-sensitive unless specifically
+//        defined otherwise by the scheme (see Section 6.2.3).
 
         scheme = toLowerCase(scheme);
         authority = toLowerCase(authority);
@@ -523,8 +535,8 @@ public class IRI3986 implements IRI {
 //        be normalized by decoding any percent-encoded octet that corresponds
 //        to an unreserved character, as described in Section 2.3.
 
-        // percent to upper case.
-        // percent encoding - to unreserved
+        // percent encoding - to upper case.
+        // percent encoding - remove unnecessary encoding.
         // Occurs in authority, path, query and fragment.
         authority = normalizePercent(authority);
         path =      normalizePercent(path);
@@ -569,6 +581,10 @@ public class IRI3986 implements IRI {
         return newAndCheck(s);
     }
 
+    /**
+     * Convert unnecessary %-encoding into the real character.
+     * Convert %-encoding to upper case
+     */
     private String normalizePercent(String str) {
         if ( str == null )
             return str;
@@ -599,7 +615,7 @@ public class IRI3986 implements IRI {
         return sb.toString();
     }
 
-    /** Uppercase - ASCI only (used for percent encoding) */
+    /** Uppercase - ASCII only (used for percent encoding) */
     private char toUpperASCII(char ch) {
         if (ch >= 'a' && ch <= 'z')
             ch = (char)(ch + ('A'-'a'));
@@ -1258,6 +1274,7 @@ public class IRI3986 implements IRI {
             parseError(iriStr, idx+1, "Incomplete %-encoded character");
             return false;
         }
+        // Any case.
         if ( Chars3986.isHexDigit(ch1) && Chars3986.isHexDigit(ch2) )
             return true;
         parseError(iriStr, idx+1, "Bad %-encoded character ["+displayChar(ch1)+" "+displayChar(ch2)+"]");
