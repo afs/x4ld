@@ -32,7 +32,7 @@ public class TestParseIPv6Address {
     // IPv6 "unspecified address"
     @Test public void addr_ipv6_05() { good6("[::]"); }
     // IPv6 loopback address.
-    @Test public void addr_ipv6_06() {     good6("[::1]"); }
+    @Test public void addr_ipv6_06() { good6("[::1]"); }
 
     @Test public void addr_ipv6_07() { good6("[98::15.16.17.18]"); }
     @Test public void addr_ipv6_08() { good6("[98::2.16.17.1]"); }
@@ -59,23 +59,44 @@ public class TestParseIPv6Address {
     @Test public void addr_ipv6_bad_22() { bad6("1234::5678]"); }
     @Test public void addr_ipv6_bad_23() { bad6("[1234::5678][1234:5678]"); }
 
+    // IPv6 address with zone id
+    // https://www.rfc-editor.org/rfc/rfc6874.html
+    /*
+     * IP-literal = "[" ( IPv6address / IPv6addrz / IPvFuture ) "]"
+     *
+     * ZoneID = 1*( unreserved / pct-encoded )
+     *
+     * IPv6addrz = IPv6address "%25" ZoneID
+     */
+
+    @Test public void addr_ipv6_zone_1() { good6("[fe80::a%25en1]"); }
+    @Test public void addr_ipv6_zone_2() { good6("[fe80::2%253]"); }
+    @Test public void addr_ipv6_zone_3() { good6("[0001:0002:0003:0004:0005:0006:0007:0008%25zone]"); }
+
+    @Test public void addr_ipv6_zone_bad_1() { bad6("[%25link]"); }
+    @Test public void addr_ipv6_zone_bad_2() { bad6("[fe80::%25link:]"); }
+    @Test public void addr_ipv6_zone_bad_3() { bad6("[fe80::%2]"); }
+    @Test public void addr_ipv6_zone_bad_4() { bad6("[fe80::%30abc]"); }
+    @Test public void addr_ipv6_zone_bad_5() { bad6("[fe80::%20abc]"); }
+
     @Test public void addr_ipvFuture_1() { good6("[v7.ZZZZZZ]"); }
     @Test public void addr_ipvFuture_2() { good6("[vF.1:]"); }
 
-    @Test public void addr_bad_ipvFuture_1() { bad6("[vH.1]"); }
-    @Test public void addr_bad_ipvFuture_2() { bad6("[v.1]"); }
-    @Test public void addr_bad_ipvFuture_3() { bad6("[v71]"); }
-    @Test public void addr_bad_ipvFuture_4() { bad6("[v7.1]2]"); }
-    @Test public void addr_bad_ipvFuture_5() { bad6("[v7.1@2]"); }
+    @Test public void addr_ipvFuture_bad_1() { bad6("[vH.1]"); }
+    @Test public void addr_ipvFuture_bad_2() { bad6("[v.1]"); }
+    @Test public void addr_ipvFuture_bad_3() { bad6("[v71]"); }
+    @Test public void addr_ipvFuture_bad_4() { bad6("[v7.1]2]"); }
+    @Test public void addr_ipvFuture_bad_5() { bad6("[v7.1@2]"); }
 
-    @Test public void addr_ipv4_1() { bad6("[::1234.56.78.99]"); }
-    @Test public void addr_ipv4_2() { good6("[::1234:123.156.178.199]"); }
-    @Test public void addr_ipv4_bad_1() { good6("[::1234:123.156.178.199]"); }
+    @Test public void addr_ipv4_1()     { good6("[::1234:123.156.178.199]"); }
+    @Test public void addr_ipv4_2()     { good6("[::1234:123.156.178.199]"); }
+
     @Test public void addr_ipv4_bad_2() { bad6("[::567.78.99.1]"); }
     @Test public void addr_ipv4_bad_3() { bad6("[::1234:1.256.78.99]"); }
     @Test public void addr_ipv4_bad_4() { bad6("[::1234:1.99.78.999]"); }
     @Test public void addr_ipv4_bad_5() { bad6("[::1234:1.99.78.1111]"); }
     @Test public void addr_ipv4_bad_6() { bad6("[::1234:.123.123.123]"); }
+    @Test public void addr_ipv4_bad_7() { bad6("[::1234.56.78.99]"); }
 
     private void good6(String string) {
         ParseIPv6Address.checkIPv6(string);

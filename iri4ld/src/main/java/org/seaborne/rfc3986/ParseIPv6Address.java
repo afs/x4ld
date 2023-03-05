@@ -63,6 +63,13 @@ public class ParseIPv6Address {
     // h16           = 1*4HEXDIG
     // ls32          = ( h16 ":" h16 ) / IPv4address
 
+    // RFC 6874 adds:
+    // IP-literal = "[" ( IPv6address / IPv6addrz / IPvFuture ) "]"
+    //
+    // ZoneID = 1*( unreserved / pct-encoded )
+    //
+    // IPv6addrz = IPv6address "%25" ZoneID
+
     /** Check an IPv6 address (including any delimiting []) */
     public static void checkIPv6(CharSequence string) {
         checkIPv6(string, 0, string.length());
@@ -85,7 +92,46 @@ public class ParseIPv6Address {
             // IPvFuture  = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
             return parseIPFuture(string, start+2, end-1);
         }
-        return parseIPv6Sub(string, start+1, end-1);
+        int idx =  parseIPv6Sub(string, start+1, end-1);
+        // Optional :: %25zone
+        idx = parseIPv6OptionalZone(string, idx, end-1);
+
+        // Did parsing end at the last character before the ']'?
+        if ( idx != end-1 )
+            ErrorIRI3986.parseError(string, "Bad end of IPv6X address");
+        return idx;
+    }
+
+    /** Parse option zoneId after IPv6 address. RFC 6874 */
+    // TODO Is this legal after IPv4 address?
+    private static int parseIPv6OptionalZone(CharSequence string, int idx, int end) {
+        if ( idx >= end )
+            return idx;
+        char chPercent = string.charAt(idx);
+        if ( chPercent == '%' ) {
+            // Check '2', '5'
+            if ( idx+3 >= end )
+                ErrorIRI3986.parseError(string, "Bad IPv6 zone id");
+            char ch1 = string.charAt(idx+1);
+            char ch2 = string.charAt(idx+2);
+            if ( ch1 != '2' || ch2 != '5' )
+                ErrorIRI3986.parseError(string, "Bad IPv6 zone id (must be '%25...'");
+            idx = idx + 3;
+            // ZoneID = 1*( unreserved / pct-encoded )
+            int zIdx = idx;
+            for ( ; zIdx < end ; zIdx++ ) {
+                char ch =  string.charAt(zIdx);
+                if ( Chars3986.unreserved(ch) )
+                    continue;
+                if ( Chars3986.isPctEncoded(ch, string, zIdx) )
+                    continue;
+                ErrorIRI3986.parseError(string, "Bad character in IPv6 zone id");
+            }
+            if ( zIdx - idx < 1 )
+                ErrorIRI3986.parseError(string, "No IPv6 zone id after '%25'");
+            idx = zIdx;
+        }
+        return idx;
     }
 
     private static int parseIPFuture(CharSequence string, int start, int end) {
@@ -189,8 +235,8 @@ public class ParseIPv6Address {
             }
             int x = ipv4(string, p, end);
             p = x ;
-            if ( p != end )
-                ErrorIRI3986.parseError(string, "Bad end of IPv4 address");
+//            if ( p != end )
+//                ErrorIRI3986.parseError(string, "Bad end of IPv4 address");
         } else {
             // ":" Validity rule.
             if ( h16c2 == -1 ) {
@@ -209,10 +255,9 @@ public class ParseIPv6Address {
             }
             int x = ipv6_hex4(string, p, end);
             p = x;
-            if ( p != end )
-                ErrorIRI3986.parseError(string, "Bad end of IPv6 address");
+//            if ( p != end )
+//                ErrorIRI3986.parseError(string, "Bad end of IPv6 address");
         }
-
         return p;
     }
 
