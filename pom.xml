@@ -127,13 +127,8 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.0.0-M9</version>
-          <!-- 
-               Bug: SUREFIRE-1588
-               https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=911925
-          -->
+          <version>3.0.0</version>
           <configuration>
-            <useSystemClassLoader>false</useSystemClassLoader>
             <includes>
               <include>**/TS_*.java</include>
             </includes>
