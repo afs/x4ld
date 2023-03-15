@@ -20,7 +20,6 @@ package org.seaborne.rfc3986;
 
 public interface IRI {
     // Operations like relativize and resolve left to external functions.
-    //
 
     /** The IRI in string form. This is guaranteed to parse to an equals IRI. */
     public String str();

@@ -78,7 +78,7 @@ public class CmdResolve {
                 iri.forEachViolation(v->{
                     System.out.println();
                     System.err.println("Scheme specific error:");
-                    System.err.println("    "+v.message);
+                    System.err.println("    "+v.message());
                 });
             }
         } catch (IRIParseException ex) {

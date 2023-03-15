@@ -18,38 +18,40 @@
 
 package org.seaborne.rfc3986;
 
-public class Violations {
-    Violations(String iriStr, URIScheme schema, Issue violation, String message) {}
-
-    public enum Issue {
-        ParseError,
-        // General
-        iri_scheme_name_is_not_lowercase,
-        iri_percent_not_uppercase,
-        iri_host_not_lowercase,
-
-        // http/https
-        http_no_host,
-        http_empty_host,
-        http_empty_port,
-        http_not_advised,
-        http_userinfo,
-        http_well_known_port,
-        // urn:uuid and uuid
-        urn_uuid_bad_pattern,
-        uuid_bad_pattern,
-        uuid_has_query,
-        uuid_has_fragment,
-        uuid_not_lowercase,
-        // urn
-        urn_bad_pattern,
-        urn_nid,
-        urn_nss,
-        urn_bad_query,
-        urn_bad_fragment,
-        // file
-        file_bad_form,
-        // did
-        did_bad_syntax
-    }
+public enum Issue {
+    ParseError,
+    // General
+    iri_percent_not_uppercase,
+    iri_host_not_lowercase,
+    // Scheme
+    iri_scheme_name_is_not_lowercase,
+    iri_scheme_expected,
+    iri_scheme_unexpected,
+    // http/https
+    http_userinfo,
+    http_password,
+    http_no_host,
+    http_empty_host,
+    http_empty_port,
+    http_port_not_advised,
+    http_omit_well_known_port,
+    // urn:uuid and uuid
+    urn_uuid_bad_pattern,
+    uuid_bad_pattern,
+    uuid_has_query,
+    uuid_has_fragment,
+    uuid_not_lowercase,
+    // urn
+    urn_non_ascii_character,
+    urn_bad_pattern,
+    urn_nid,
+    urn_nss,
+    urn_bad_query,
+    urn_bad_fragment,
+    // file
+    file_bad_form,
+    file_relative_path,
+    // did
+    did_bad_syntax,
 }
+

@@ -62,8 +62,15 @@ public class TestResolve {
 
     @Test
     public void resolve_abs_02() {
-        // Assumes normalization.
-        testResolve("http://example/path?query#frag", "http://host/dir1/../dir2/", "http://host/dir2/");
+        // Assumes normalization of rel (arg2).
+        // jena-iri does this on resolve.
+        // iri3986 does not by default. (should it?)
+
+        //testResolve("http://example/path?query#frag", "http://host/dir1/../dir2/", "http://host/dir2/");
+        testResolveExtended("http://example/path?query#frag", "http://host/dir1/../dir2/", "http://host/dir2/");
+
+        // Neutral test.
+        //testResolve("http://example/path?query#frag", "http://host/dir1/dir2/", "http://host/dir1/dir2/");
     }
 
     @Test
@@ -339,9 +346,9 @@ public class TestResolve {
 
     private void testResolve(String base, String rel, String expected) {
         IRI3986 baseiri = IRI3986.create(base);
-        IRI3986 iri = IRI3986.create(rel);
-        IRI3986 iri2 = baseiri.resolve(iri);
-        String s1 = iri2.toString();
+        IRI3986 reliri = IRI3986.create(rel);
+        IRI3986 iri2 = baseiri.resolve(reliri);
+        String s1 = iri2.str();
         assertEquals(expected, s1);
         // Check the expected with jena-iri.
         IRI baseJenaIRI = JenaIRI.iriFactory().create(base);
@@ -350,4 +357,21 @@ public class TestResolve {
         String s2 = resolvedJenaIRI.toString();
         assertEquals(expected, s2);
     }
+
+    private void testResolveExtended(String base, String rel, String expected) {
+        IRI3986 baseiri = IRI3986.create(base);
+        IRI3986 reliri = IRI3986.create(rel);
+        // Normalize after resolving even if no change on resolving.
+        IRI3986 iri2 = baseiri.resolve(reliri).normalize();
+        String s1 = iri2.str();
+        assertEquals(expected, s1);
+
+        // Check the expected with jena-iri.
+        IRI baseJenaIRI = JenaIRI.iriFactory().create(base);
+        IRI resolvedJenaIRI = baseJenaIRI.resolve(rel);
+
+        String s2 = resolvedJenaIRI.toString();
+        assertEquals(expected, s2);
+    }
+
 }

@@ -23,10 +23,6 @@ import static org.seaborne.rfc3986.Chars3986.EOF;
 import static org.seaborne.rfc3986.Chars3986.displayChar;
 import static org.seaborne.rfc3986.ErrorIRI3986.formatMsg;
 import static org.seaborne.rfc3986.ErrorIRI3986.parseError;
-import static org.seaborne.rfc3986.SystemIRI3986.Compliance_FILE_SCHEME;
-import static org.seaborne.rfc3986.SystemIRI3986.Compliance_HTTPx_SCHEME;
-import static org.seaborne.rfc3986.SystemIRI3986.Compliance_URN_SCHEME;
-import static org.seaborne.rfc3986.SystemIRI3986.Compliance.STRICT;
 import static org.seaborne.rfc3986.URIScheme.*;
 
 import java.text.Normalizer;
@@ -35,26 +31,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.seaborne.rfc3986.SystemIRI3986.Compliance;
-
 /**
- * Implementation of RFC 3986 (URI), RFC 3987 (IRI). As is common, these are referred to
- * as "3986" regardless, just as {@code java.net.URI} covers IRIs.
- *
- * This provides a fast checking operation which does not copy the various parts of the
- * IRI and which creates a single object. The cost of extracting and allocating strings
- * happen when the getter for the component is called.
- *
- * {@code java.net.URI}
- * parses and allocates and follows RFC 2396 with modifications (several of which are in
- * RFC 3986).
- *
- * See {@link RFC3986} for operations involving {@code IRI3986}.
- *
- * This package implements the algorithms specified in RFC 3986 operations for:
+ * Implementation of RFC 3986 (URI), RFC 3987 (IRI). As is common, these are referred
+ * to as "3986" regardless, just as {@code java.net.URI} covers IRIs. This provides a
+ * fast checking operation which does not copy the various parts of the IRI and which
+ * creates a single object. The cost of extracting and allocating strings happen when
+ * the getter for the component is called. {@code java.net.URI} parses and allocates
+ * and follows RFC 2396 with modifications (several of which are in RFC 3986). See
+ * {@link RFC3986} for operations involving {@code IRI3986}. This package implements
+ * the algorithms specified in RFC 3986 operations for:
  * <ul>
  * <li>Checking a string matches the IRI grammar.
  * <li>Extracting components of an IRI
@@ -62,41 +51,50 @@ import org.seaborne.rfc3986.SystemIRI3986.Compliance;
  * <li>Resolving an IRI against a base IRI.
  * <li>Rebuilding an IRI from components.
  * </ul>
- *
  * Additions:
  * <ul>
  * <li>Scheme specific rules for Linked Data usage of HTTP IRIs and URNs.
  * </ul>
- * HTTP IRIs forbids the "user@" part which is strongly discouraged in IRIs and requires a host name if the "//" is present.<br/>
- * Some additional check for RFC 8141 for URNs are included such as being of the form {@code urn:NID:NSS}.
- *
- * Restrictions and limitations:
+ * HTTP IRIs forbids the "user@" part which is strongly discouraged in IRIs and
+ * requires a host name if the "//" is present.<br/>
+ * Some additional check for RFC 8141 for URNs are included such as being of the form
+ * {@code urn:NID:NSS}. Restrictions and limitations:
  * <ul>
- * <li>No normal form C checking when checking (currently) See {@link Normalizer#isNormalized(CharSequence, java.text.Normalizer.Form)}.
+ * <li>No normal form C checking when checking (currently) See
+ * {@link Normalizer#isNormalized(CharSequence, java.text.Normalizer.Form)}.
  * </ul>
- *
  * Usage:<br/>
  * Check conformance with the RFC 3986 grammar:
+ *
  * <pre>
  * RFC3986.check(string);
  * </pre>
- * Check conformance with the RFC 3986 grammar and any applicable scheme specific rules:
+ *
+ * Check conformance with the RFC 3986 grammar and any applicable scheme specific
+ * rules:
+ *
  * <pre>
  * RFC3986.check(string, true);
  * </pre>
+ *
  * Validate and extract the components of IRI:
+ *
  * <pre>
  *     IRI3986 iri = RFC3986.create(string);
  *     iri.getPath();
  *     ...
  * </pre>
+ *
  * Resolve:
+ *
  * <pre>
  *     IRI3986 base = ...
  *     RFC3986 iri = RFC3986.create(string);
  *     IRI3986 iri2 = iri.resolve(base);
  * </pre>
+ *
  * Normalize:
+ *
  * <pre>
  *     RFC3986 base = ...
  *     IRI3986 iri = RFC3986.create(string);
@@ -104,22 +102,28 @@ import org.seaborne.rfc3986.SystemIRI3986.Compliance;
  * </pre>
  */
 public class IRI3986 implements IRI {
-    // RFC 3986, RFC 3987 grammars and the definition of ABNF names (RFC 5234) at the end of the file.
+    // RFC 3986, RFC 3987 grammars and the definition of ABNF names (RFC 5234) at the
+    // end of the file.
     /**
-     * Determine if the string conforms to the IRI syntax. If not, throw an exception.
-     * This operation checks the string against the RFC3986/7 grammar; it does not apply
-     * scheme specific rules
+     * Determine if the string conforms to the IRI syntax. If not, throw an
+     * exception. This operation checks the string against the RFC3986/7 grammar; it
+     * does not apply scheme specific rules
      */
-    /*package*/ static void checkSyntax(String iristr) {
+    /* package */ static void checkSyntax(String iristr) {
         newAndParseEx(iristr);
     }
 
     /**
-     * Create an {@code IRI3986} object or throw an exception if there is a syntax error.
+     * Create an {@code IRI3986} object or throw an exception if there is a syntax
+     * error.
      * <p>
-     * This operation does also check conformance to the rules of the IRI schemes for
+     * This operation also checks conformance to the rules of the IRI schemes for
      * some IRI schemes (http/https, urn:uuid, urn, file, did). These violations are
      * accessed with {@link #hasViolations()} and {@link #forEachViolation}.
+     * <p>
+     * See {@link Violations} for the mapping from issue to a warning or an error.
+     * <p>
+     * See {@link Issue} for the scheme specific issues covered.
      */
     public static IRI3986 create(String iristr) {
         IRI3986 iri = newAndParseAndCheck(iristr);
@@ -127,12 +131,14 @@ public class IRI3986 implements IRI {
     }
 
     /**
-     * Create an {@code IRI3986} object; report errors and warnings.
-     * This operation always returns an object; it does not throw an exception, nor return null.
+     * Create an {@code IRI3986} object; report errors and warnings. This operation
+     * always returns an object; it does not throw an exception, nor return null.
      * <p>
-     * Errors and warning may be accessed with {@link #hasViolations()} and {@link #forEachViolation}.
+     * Errors and warning may be accessed with {@link #hasViolations()} and
+     * {@link #forEachViolation}.
      * <p>
-     * This operations checks the resulting IRI conforms to URI scheme specific rules.
+     * This operation checks the resulting IRI conforms to URI scheme specific rules
+     * only if the synatx as an IRi is valid.
      */
     public static IRI3986 createAny(String iristr) {
         IRI3986 iri = newAndCheck(iristr);
@@ -142,29 +148,96 @@ public class IRI3986 implements IRI {
     /**
      * Send any violations to an {@link ErrorHandler}.
      * <p>
-     * The error handler may throw an exception to give
-     * an operation that is "good IRI or exception".
+     * The error handler may throw an exception to give an operation that is "good
+     * IRI or exception".
      */
     public void toHandler(ErrorHandler errorHandler) {
-        forEachViolation(report->{
-            switch(report.category) {
+        Function<Issue, Severity> severityFunction = issue -> Violations.getSeverity(issue);
+        toHandler(severityFunction, errorHandler);
+    }
+
+    /**
+     * Determine the severity of each violation and send to an {@link ErrorHandler}.
+     * The severity is determined from the severity function, which should not return
+     * null.
+     * <p>
+     * The error handler may throw an exception to give an operation that is "good
+     * IRI or exception".
+     */
+    public void toHandler(Function<Issue, Severity> severityFunction, ErrorHandler errorHandler) {
+        forEachViolation((Violation report) -> {
+            Severity severity = severityFunction.apply(report.issue());
+            if ( severity == null )
+                severity = Severity.INVALID;
+            switch (severity) {
+                case WARNING :
+                    errorHandler.warning(report.message());
+                    break;
                 case ERROR :
                 case INVALID :
-                    errorHandler.error(report.message);
-                    break;
-                case WARNING :
-                    errorHandler.warning(report.message);
+                    errorHandler.error(report.message());
                     break;
             }
         });
     }
 
     /**
-     * Create an IRI3986, parsing the string to set all the members.
-     * If bad, by the syntax defined by RFC 3986, throw an exception.
+     * Does this IRI have any scheme specific issues?
      * <p>
-     * This operation does not check the resulting IRI conforms to
-     * URI scheme specific rules - see {@link #newAndCheck(String)}.
+     * The normal way to create IRIs, {@link #create} throws an
+     * {@link IRIParseException}. Parse errors in IRI string are
+     * {@link IRIParseException}s (unless {@link #createAny} is used). In addition to
+     * parsing, IRIs are checked for some of the scheme-specific issues in the
+     * standards. See enum {@link Issue}.
+     * <ul>
+     * <li>{@code http:} IRi must not have an empty port (":" present but no port
+     * number)</li>
+     * <li>URN with name space (NID) "uuid" must have a namsespace specific part
+     * matchign the UUID string pattern.
+     * <li>URNs Must have at least two characters on the NID.
+     * <li>{@code file:} IRIs must start "///".
+     * </ul>
+     * These are recorded in the IRI object; they do not automatically cause
+     * exceptions. See {@link Violations} for mapping issues to warnings and errors.
+     */
+    public boolean hasViolations() {
+        return reports != null && !reports.isEmpty();
+    }
+
+    /**
+     * Cal a consumer function for any violations recorded for this IRI.
+     * <p>
+     * The normal way to create IRIs, {@link #create}, throws an
+     * {@link IRIParseException} if the IRI string does not match teh grammar of RFC
+     * 3986/3987 and other RFCs. In addition to parsing, IRIs are checked for
+     * scheme-specific issues in the standards. See enum {@link Issue} for the issues
+     * covered.
+     * <p>
+     * Issues are recorded as {@link Violations}.
+     * <ul>
+     * <li>{@code http:} IRI must not have an empty port (":" present but no port
+     * number)</li>
+     * <li>URNs Must have at least two characters on the NID.</li>
+     * <li>{@code file:} IRIs must start "///".</li>
+     * </ul>
+     * These are recorded in the IRI object; they do not automatically cause
+     * exceptions. See {@link Violations} for mapping issues to warnings and errors.
+     * <p>
+     * See {@link #createAny} for an operation to create a IRI that records parse
+     * exceptions are does not throw exception.
+     */
+    public void forEachViolation(Consumer<Violation> action) {
+        if ( reports == null )
+            return;
+        reports.forEach(action);
+    }
+
+    /**
+     * Create an IRI3986, parsing the string to set all the members. If bad, by the
+     * syntax defined by RFC 3986, throw an exception.
+     * <p>
+     * This operation does not check the resulting IRI conforms to URI scheme
+     * specific rules - see {@link #newAndCheck(String)}.
      */
     private static IRI3986 newAndParseEx(String iristr) {
         IRI3986 iri = new IRI3986(iristr);
@@ -190,25 +263,25 @@ public class IRI3986 implements IRI {
     }
 
     /**
-     * Create an IRI3986, parsing the string to set all the members.
-     * If bad, by the syntax defined by RFC 3986, record this information;
-     * the state of the IRI3986 object only reflects the information parsed
-     * up until the error.
+     * Create an IRI3986, parsing the string to set all the members. If bad, by the
+     * syntax defined by RFC 3986, record this information; the state of the IRI3986
+     * object only reflects the information parsed up until the error.
      * <p>
-     * This operations does check the resulting IRI conforms to
-     * URI scheme specific rules.
+     * This operations does check the resulting IRI conforms to URI scheme specific
+     * rules.
      */
     private static IRI3986 newAndCheck(String iriStr) {
         // This function assumes the string is valid.
-        // The parser does not try to continue after it finds an error in the RFC3986
-        // syntax so the component at the point of error and later components are not recorded.
+        // The parser does not try to continue after it finds an error
+        // in the RFC3986 syntax so the component at the point of error
+        // and later components are not recorded.
         IRI3986 iri = new IRI3986(iriStr);
         try {
             iri.parse();
             iri.schemeSpecificRulesInternal();
         } catch (IRIParseException ex) {
             String msg = ex.getMessage();
-            iri.addReport(new Violation(iriStr, MessageCategory.INVALID, ex.getMessage()));
+            addReport(iri, iriStr, null, Issue.ParseError, ex.getMessage());
         }
         return iri;
     }
@@ -276,51 +349,61 @@ public class IRI3986 implements IRI {
     }
 
     @Override
-    public boolean hasScheme() { return scheme0 != -1 ; }
+    public boolean hasScheme() {
+        return scheme0 != -1;
+    }
 
     @Override
     public String scheme() {
-        if ( hasScheme() && scheme == null)
+        if ( hasScheme() && scheme == null )
             scheme = part(iriStr, scheme0, scheme1);
         return scheme;
     }
 
     @Override
-    public boolean hasAuthority() { return authority0 != -1 ; }
+    public boolean hasAuthority() {
+        return authority0 != -1;
+    }
 
     @Override
     public String authority() {
-        if ( hasAuthority() && authority == null)
+        if ( hasAuthority() && authority == null )
             authority = part(iriStr, authority0, authority1);
         return authority;
     }
 
     @Override
-    public boolean hasUserInfo() { return userinfo0 != -1 ; }
+    public boolean hasUserInfo() {
+        return userinfo0 != -1;
+    }
 
     @Override
     public String userInfo() {
-        if ( hasUserInfo() && userinfo == null)
+        if ( hasUserInfo() && userinfo == null )
             userinfo = part(iriStr, userinfo0, userinfo1);
         return userinfo;
     }
 
     @Override
-    public boolean hasHost() { return host0 != -1 ; }
+    public boolean hasHost() {
+        return host0 != -1;
+    }
 
     @Override
     public String host() {
-        if ( hasHost() && host == null)
+        if ( hasHost() && host == null )
             host = part(iriStr, host0, host1);
         return host;
     }
 
     @Override
-    public boolean hasPort() { return port0 != -1 ; }
+    public boolean hasPort() {
+        return port0 != -1;
+    }
 
     @Override
     public String port() {
-        if ( hasPort() && port == null)
+        if ( hasPort() && port == null )
             port = part(iriStr, port0, port1);
         return port;
     }
@@ -335,7 +418,7 @@ public class IRI3986 implements IRI {
 
     @Override
     public String path() {
-        if ( hasPath() && path == null)
+        if ( hasPath() && path == null )
             path = part(iriStr, path0, path1);
         if ( path == null )
             return "";
@@ -351,57 +434,68 @@ public class IRI3986 implements IRI {
     }
 
     @Override
-    public boolean hasQuery() { return query0 != -1 ; }
+    public boolean hasQuery() {
+        return query0 != -1;
+    }
 
     @Override
     public String query() {
-        if ( hasQuery() && query == null)
+        if ( hasQuery() && query == null )
             query = part(iriStr, query0, query1);
         return query;
     }
 
     @Override
-    public boolean hasFragment() { return fragment0 != -1 ; }
+    public boolean hasFragment() {
+        return fragment0 != -1;
+    }
 
     @Override
     public String fragment() {
-        if ( hasFragment() && fragment == null)
+        if ( hasFragment() && fragment == null )
             fragment = part(iriStr, fragment0, fragment1);
         return fragment;
     }
 
-    /** <a href="https://tools.ietf.org/html/rfc3986#section-4.3">RFC 3986, Section 4.3</a> */
+    /**
+     * <a href="https://tools.ietf.org/html/rfc3986#section-4.3">RFC 3986, Section
+     * 4.3</a>
+     */
     @Override
     public boolean isAbsolute() {
         // With scheme, without fragment
-        return hasScheme() && ! hasFragment();
+        return hasScheme() && !hasFragment();
     }
 
-    /** <a href="https://tools.ietf.org/html/rfc3986#section-4.2">RFC 3986, Section 4.2</a> */
+    /**
+     * <a href="https://tools.ietf.org/html/rfc3986#section-4.2">RFC 3986, Section
+     * 4.2</a>
+     */
     @Override
     public boolean isRelative() {
         // No scheme.
         // This is not "! isAbsolute()"
 
-        //        relative-part = "//" authority path-abempty
-        //                / path-absolute
-        //                / path-noscheme
-        //                / path-empty
+        // relative-part = "//" authority path-abempty
+        // / path-absolute
+        // / path-noscheme
+        // / path-empty
         // whereas:
-        //        hier-part     = "//" authority path-abempty
-        //                / path-absolute
-        //                / path-rootless
-        //                / path-empty
+        // hier-part = "//" authority path-abempty
+        // / path-absolute
+        // / path-rootless
+        // / path-empty
         //
-        // Difference between "path-noscheme" and "path-rootless" is that "path-noscheme" does not allow a colon in the first segment.
+        // Difference between "path-noscheme" and "path-rootless" is that
+        // "path-noscheme" does not allow a colon in the first segment.
         // But we parsed it via the URI rule.
-        return ! hasScheme();
+        return !hasScheme();
     }
 
     /**
-     * <a href="https://tools.ietf.org/html/rfc3986#section-3">RFC 3986, Section 3</a>.
-     * IRI has a scheme, no authority (no //) and is path-rootless (does not start with /)
-     * e.g. URN's.
+     * <a href="https://tools.ietf.org/html/rfc3986#section-3">RFC 3986, Section
+     * 3</a>. IRI has a scheme, no authority (no //) and is path-rootless (does not
+     * start with /) e.g. URN's.
      */
     @Override
     public boolean isRootless() {
@@ -409,7 +503,8 @@ public class IRI3986 implements IRI {
     }
 
     /**
-     * <a href="https://tools.ietf.org/html/rfc3986#section-1.2.3">RFC 3986, Section 1.2.3 : Hierarchical Identifiers</a>.
+     * <a href="https://tools.ietf.org/html/rfc3986#section-1.2.3">RFC 3986, Section
+     * 1.2.3 : Hierarchical Identifiers</a>.
      */
     @Override
     public boolean isHierarchical() {
@@ -426,9 +521,8 @@ public class IRI3986 implements IRI {
 
     /**
      * Don't make the parts during parsing but wait until needed, if at all.
-     * Assigning to a object member is atomic and even if two part/assignment overlap,
-     * they are the same value-equals string.
-     *
+     * Assigning to a object member is atomic and even if two part/assignment
+     * overlap, they are the same value-equals string.
      */
     private static String part(String str, int start, int finish) {
         if ( start >= 0 ) {
@@ -442,8 +536,9 @@ public class IRI3986 implements IRI {
     }
 
     /**
-     * Return the first char in segment x0..x1 or EOF if the segment is not defined or of zero length.
-     * x0 = start index, x1 index after segment. x1 = x0 means no segment, x1 = x0+1 is zero length.
+     * Return the first char in segment x0..x1 or EOF if the segment is not defined
+     * or of zero length. x0 = start index, x1 index after segment. x1 = x0 means no
+     * segment, x1 = x0+1 is zero length.
      */
     private char firstChar(int x0, int x1) {
         if ( x0 < 0 )
@@ -460,7 +555,7 @@ public class IRI3986 implements IRI {
         // The URI is valid so we just need to encode non-ASCII characters.
         for ( int i = 0 ; i < iriStr.length() ; i++ ) {
             char ch = iriStr.charAt(i);
-            if ( ch > 0x7F)
+            if ( ch > 0x7F )
                 return encode();
         }
         return this;
@@ -468,10 +563,10 @@ public class IRI3986 implements IRI {
 
     // The encoding work.
     private IRI3986 encode() {
-        StringBuilder sb = new StringBuilder(iriStr.length()+20);
+        StringBuilder sb = new StringBuilder(iriStr.length() + 20);
         for ( int i = 0 ; i < iriStr.length() ; i++ ) {
             char ch = iriStr.charAt(i);
-            if ( ch <= 0x7F)
+            if ( ch <= 0x7F )
                 sb.append(ch);
             else
                 ParseLib.encodeAsHex(sb, '%', ch);
@@ -481,7 +576,8 @@ public class IRI3986 implements IRI {
     }
 
     /**
-     * <a href="https://tools.ietf.org/html/rfc3986#section-6.2.2">RFC 3986, Section 6.2.2 : Syntax-Based Normalization.</a>.
+     * <a href="https://tools.ietf.org/html/rfc3986#section-6.2.2">RFC 3986, Section
+     * 6.2.2 : Syntax-Based Normalization.</a>.
      */
     @Override
     public IRI3986 normalize() {
@@ -491,89 +587,89 @@ public class IRI3986 implements IRI {
         String query = query();
         String fragment = fragment();
 
-//        6.2.2.  Syntax-Based Normalization
+// 6.2.2. Syntax-Based Normalization
 //
-//        Implementations may use logic based on the definitions provided by
-//        this specification to reduce the probability of false negatives.
-//        This processing is moderately higher in cost than character-for-
-//        character string comparison.  For example, an application using this
-//        approach could reasonably consider the following two URIs equivalent:
+// Implementations may use logic based on the definitions provided by
+// this specification to reduce the probability of false negatives.
+// This processing is moderately higher in cost than character-for-
+// character string comparison. For example, an application using this
+// approach could reasonably consider the following two URIs equivalent:
 //
-//           example://a/b/c/%7Bfoo%7D
-//           eXAMPLE://a/./b/../b/%63/%7bfoo%7d
+// example://a/b/c/%7Bfoo%7D
+// eXAMPLE://a/./b/../b/%63/%7bfoo%7d
 //
-//        Web user agents, such as browsers, typically apply this type of URI
-//        normalization when determining whether a cached response is
-//        available.  Syntax-based normalization includes such techniques as
-//        case normalization, percent-encoding normalization, and removal of
-//        dot-segments.
+// Web user agents, such as browsers, typically apply this type of URI
+// normalization when determining whether a cached response is
+// available. Syntax-based normalization includes such techniques as
+// case normalization, percent-encoding normalization, and removal of
+// dot-segments.
 //
-//     6.2.2.1.  Case Normalization
+// 6.2.2.1. Case Normalization
 //
-//        For all URIs, the hexadecimal digits within a percent-encoding
-//        triplet (e.g., "%3a" versus "%3A") are case-insensitive and therefore
-//        should be normalized to use uppercase letters for the digits A-F.
+// For all URIs, the hexadecimal digits within a percent-encoding
+// triplet (e.g., "%3a" versus "%3A") are case-insensitive and therefore
+// should be normalized to use uppercase letters for the digits A-F.
 //
-//        When a URI uses components of the generic syntax, the component
-//        syntax equivalence rules always apply; namely, that the scheme and
-//        host are case-insensitive and therefore should be normalized to
-//        lowercase.  For example, the URI <HTTP://www.EXAMPLE.com/> is
-//        equivalent to <http://www.example.com/>.  The other generic syntax
-//        components are assumed to be case-sensitive unless specifically
-//        defined otherwise by the scheme (see Section 6.2.3).
+// When a URI uses components of the generic syntax, the component
+// syntax equivalence rules always apply; namely, that the scheme and
+// host are case-insensitive and therefore should be normalized to
+// lowercase. For example, the URI <HTTP://www.EXAMPLE.com/> is
+// equivalent to <http://www.example.com/>. The other generic syntax
+// components are assumed to be case-sensitive unless specifically
+// defined otherwise by the scheme (see Section 6.2.3).
 
         scheme = toLowerCase(scheme);
         authority = toLowerCase(authority);
 
-//     6.2.2.2.  Percent-Encoding Normalization
+// 6.2.2.2. Percent-Encoding Normalization
 //
-//        The percent-encoding mechanism (Section 2.1) is a frequent source of
-//        variance among otherwise identical URIs.  In addition to the case
-//        normalization issue noted above, some URI producers percent-encode
-//        octets that do not require percent-encoding, resulting in URIs that
-//        are equivalent to their non-encoded counterparts.  These URIs should
-//        be normalized by decoding any percent-encoded octet that corresponds
-//        to an unreserved character, as described in Section 2.3.
+// The percent-encoding mechanism (Section 2.1) is a frequent source of
+// variance among otherwise identical URIs. In addition to the case
+// normalization issue noted above, some URI producers percent-encode
+// octets that do not require percent-encoding, resulting in URIs that
+// are equivalent to their non-encoded counterparts. These URIs should
+// be normalized by decoding any percent-encoded octet that corresponds
+// to an unreserved character, as described in Section 2.3.
 
         // percent encoding - to upper case.
         // percent encoding - remove unnecessary encoding.
         // Occurs in authority, path, query and fragment.
         authority = normalizePercent(authority);
-        path =      normalizePercent(path);
-        query =     normalizePercent(query);
-        fragment =  normalizePercent(fragment);
+        path = normalizePercent(path);
+        query = normalizePercent(query);
+        fragment = normalizePercent(fragment);
 
-//     6.2.2.3.  Path Segment Normalization
+// 6.2.2.3. Path Segment Normalization
 
         if ( path != null )
             path = AlgIRI.remove_dot_segments(path);
         if ( path == null || path.isEmpty() )
             path = "/";
 
-//     6.2.3.  Scheme-Based Normalization
+// 6.2.3. Scheme-Based Normalization
 
         // HTTP and :80.
         // HTTPS and :443
 
         if ( authority != null && authority.endsWith(":") )
-            authority = authority.substring(0, authority.length()-1);
+            authority = authority.substring(0, authority.length() - 1);
 
         if ( Objects.equals("http", scheme) ) {
             if ( authority != null && authority.endsWith(":80") )
-                authority = authority.substring(0, authority.length()-3);
+                authority = authority.substring(0, authority.length() - 3);
         } else if ( Objects.equals("https", scheme) ) {
             if ( authority != null && authority.endsWith(":443") )
-                authority = authority.substring(0, authority.length()-4);
+                authority = authority.substring(0, authority.length() - 4);
         }
 
-//     6.2.4.  Protocol-Based Normalization
-        // None.
+// 6.2.4. Protocol-Based Normalization
+// None.
 
         // Rebuild.
-        if ( Objects.equals(scheme, scheme()) && Objects.equals(authority, authority()) &&
-             Objects.equals(path, path()) &&
-             Objects.equals(query, query()) && Objects.equals(fragment, fragment()) ) {
-            // No change and this has had all the elements calculated and substring done.
+        if ( Objects.equals(scheme, scheme()) && Objects.equals(authority, authority()) && Objects.equals(path, path())
+             && Objects.equals(query, query()) && Objects.equals(fragment, fragment()) ) {
+            // No change and this has had all the elements calculated and substring
+            // done.
             return this;
         }
 
@@ -582,8 +678,8 @@ public class IRI3986 implements IRI {
     }
 
     /**
-     * Convert unnecessary %-encoding into the real character.
-     * Convert %-encoding to upper case
+     * Convert unnecessary %-encoding into the real character. Convert %-encoding to
+     * upper case
      */
     private String normalizePercent(String str) {
         if ( str == null )
@@ -595,14 +691,14 @@ public class IRI3986 implements IRI {
         StringBuilder sb = new StringBuilder(len);
         for ( int i = 0 ; i < len ; i++ ) {
             char ch = str.charAt(i);
-            if ( ! Chars3986.isPctEncoded(ch, str, i) ) {
+            if ( !Chars3986.isPctEncoded(ch, str, i) ) {
                 sb.append(ch);
                 continue;
             }
-            char ch1 = toUpperASCII(str.charAt(i+1));
-            char ch2 = toUpperASCII(str.charAt(i+2));
+            char ch1 = toUpperASCII(str.charAt(i + 1));
+            char ch2 = toUpperASCII(str.charAt(i + 2));
             i += 2;
-            char x = (char)(Chars3986.hexValue(ch1)*16 + Chars3986.hexValue(ch2));
+            char x = (char)(Chars3986.hexValue(ch1) * 16 + Chars3986.hexValue(ch2));
 
             if ( Chars3986.unreserved(x) ) {
                 sb.append(x);
@@ -617,8 +713,8 @@ public class IRI3986 implements IRI {
 
     /** Uppercase - ASCII only (used for percent encoding) */
     private char toUpperASCII(char ch) {
-        if (ch >= 'a' && ch <= 'z')
-            ch = (char)(ch + ('A'-'a'));
+        if ( ch >= 'a' && ch <= 'z' )
+            ch = (char)(ch + ('A' - 'a'));
         return ch;
     }
 
@@ -644,15 +740,17 @@ public class IRI3986 implements IRI {
     }
 
     /**
-     * Resolve an IRI, using this as the base.
-     * <a href=https://tools.ietf.org/html/rfc3986#section-5">RFC 3986 section 5</a>
+     * Resolve an IRI, using this as the base. <a
+     * href=https://tools.ietf.org/html/rfc3986#section-5">RFC 3986 section 5</a>
      */
     public IRI3986 resolve(IRI3986 other) {
-        if ( other.isAbsolute() )
+        // Not isAbsolute here - absolute URIs do not allow a fragment.
+        // "!isRelative" is not the same as "isAbsolute"
+        if ( !other.isRelative() )
             return other;
-        //if ( ! hasScheme()() ) {}
+        // if ( ! hasScheme()() ) {}
         // Base must have scheme. Be lax.
-        /* 5.2.2.  Transform References */
+        /* 5.2.2. Transform References */
         IRI3986 iri = AlgIRI.resolve(this, other);
         iri.schemeSpecificRulesInternal();
         return iri;
@@ -669,7 +767,7 @@ public class IRI3986 implements IRI {
         return rebuild(scheme(), authority(), path(), query(), fragment());
     }
 
-    // 5.3.  Component Recomposition
+    // 5.3. Component Recomposition
     private static String rebuild(String scheme, String authority, String path, String query, String fragment) {
         StringBuilder result = new StringBuilder();
         if ( scheme != null ) {
@@ -721,7 +819,7 @@ public class IRI3986 implements IRI {
     }
 
     /** Detail comparison - includes internal fields but not reports. */
-    /*package*/ boolean identical(IRI3986 other, boolean includeComponentStrings) {
+    /* package */ boolean identical(IRI3986 other, boolean includeComponentStrings) {
         if ( this == other )
             return true;
         if ( other == null )
@@ -764,21 +862,20 @@ public class IRI3986 implements IRI {
                                                             "(\\[[^/?#]*\\]|([^/?#:]*))?" +  // host
                                                             "(:([^/?#]*)?)?");             // port
 
-    /** Create an IRI using the regular expression of RFC 3986.
-     * Throws an exception of the regular expression does not match.
-     * The regular expression assumes a valid RFC3986 IRI and splits
-     * out the components.
-     * This may be useful to extract components of an IRI with bad syntax.
-     * This does not check the character rules of the syntax,
-     * nor check scheme specific rules.
-     * Use the resulting IRI3986 with care.
+    /**
+     * Create an IRI using the regular expression of RFC 3986. Throws an exception of
+     * the regular expression does not match. The regular expression assumes a valid
+     * RFC3986 IRI and splits out the components. This may be useful to extract
+     * components of an IRI with bad syntax. This does not check the character rules
+     * of the syntax, nor check scheme specific rules. Use the resulting IRI3986 with
+     * care.
      */
 
     static IRI3986 createByRegex(String iriStr) {
         Objects.requireNonNull(iriStr);
         Pattern pattern = RFC3986.rfc3986regex;
         Matcher m = pattern.matcher(iriStr);
-        if ( ! m.matches() )
+        if ( !m.matches() )
             throw new IRIParseException("iriStr does not match the regular expression for IRIs");
         final int length = iriStr.length();
 
@@ -787,7 +884,6 @@ public class IRI3986 implements IRI {
         final int pathGroup = 5;
         final int queryGroup = 7;
         final int fragmentGroup = 9;
-
 
         // Offsets of parsed components, together with cached value.
         // The value is not calculated until first used, so that pure checking
@@ -801,7 +897,7 @@ public class IRI3986 implements IRI {
 
         iri.authority0 = m.start(authorityGroup);
         iri.authority1 = m.end(authorityGroup);
-        iri.authority =  m.group(authorityGroup);
+        iri.authority = m.group(authorityGroup);
 
         // Unset values.
         iri.userinfo0 = -1;
@@ -841,7 +937,7 @@ public class IRI3986 implements IRI {
             final int portGroup = 6;
             int offset = iri.authority0;
 
-            Matcher m2 = authorityRegex.matcher(iri.authority) ;
+            Matcher m2 = authorityRegex.matcher(iri.authority);
             if ( m2.matches() ) {
                 // Move indexes by start of authority if set.
                 iri.userinfo = m2.group(userinfoGroup);
@@ -861,9 +957,8 @@ public class IRI3986 implements IRI {
         return iri;
     }
 
-
     private static int offset(int offset, int index) {
-        return index < 0 ? index : offset+index;
+        return index < 0 ? index : offset + index;
     }
 
     // ==== Parsing
@@ -872,28 +967,28 @@ public class IRI3986 implements IRI {
     private IRI3986 parse() {
         int x = scheme(0);
         if ( x > 0 ) {
-            // URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
-            // absolute-URI  = scheme ":" hier-part [ "?" query ]
+            // URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+            // absolute-URI = scheme ":" hier-part [ "?" query ]
             scheme0 = 0;
             scheme1 = x;
             // and move over ':'
-            x = withScheme(x+1);
+            x = withScheme(x + 1);
         } else {
-            // relative-ref  = relative-part [ "?" query ] [ "#" fragment ]
+            // relative-ref = relative-part [ "?" query ] [ "#" fragment ]
             x = withoutScheme(0);
         }
 
         // Did the process consume the whole string?
         if ( x != length ) {
             String label;
-            if ( fragment0 >= 0)
+            if ( fragment0 >= 0 )
                 label = "fragment";
-            else if ( query0 >= 0)
+            else if ( query0 >= 0 )
                 label = "query";
             else
                 label = "path";
-            //System.err.printf("(x3=%d, length=%d)\n", x, length);
-            parseError(iriStr, "Bad character in "+label+" component: "+displayChar(charAt(x)));
+            // System.err.printf("(x3=%d, length=%d)\n", x, length);
+            parseError(iriStr, "Bad character in " + label + " component: " + displayChar(charAt(x)));
         }
         return this;
     }
@@ -906,11 +1001,11 @@ public class IRI3986 implements IRI {
             char c = charAt(p);
             if ( c == ':' )
                 return p;
-            if ( ! Chars3986.isAlpha(c) ) {
+            if ( !Chars3986.isAlpha(c) ) {
                 if ( p == start )
                     // Bad first character
                     return -1;
-                if ( ! ( Chars3986.isDigit(c) || c == '+' || c == '-' || c == '.' ) )
+                if ( !(Chars3986.isDigit(c) || c == '+' || c == '-' || c == '.') )
                     // Bad subsequent character
                     return -1;
             }
@@ -920,26 +1015,27 @@ public class IRI3986 implements IRI {
         return 0;
     }
 
-    private int withScheme(int start){
-        // URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
-        // absolute-URI  = scheme ":" hier-part [ "?" query ]
-        // hier-part     = "//" authority path-abempty
-        //               / path-absolute
-        //               / path-rootless
-        //               / path-empty
+    private int withScheme(int start) {
+        // URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+        // absolute-URI = scheme ":" hier-part [ "?" query ]
+        // hier-part = "//" authority path-abempty
+        // / path-absolute
+        // / path-rootless
+        // / path-empty
 
         int p = maybeAuthority(start);
         return pathQueryFragment(p, true);
     }
 
     private int withoutScheme(int start) {
-        // relative-ref  = relative-part [ "?" query ] [ "#" fragment ]
+        // relative-ref = relative-part [ "?" query ] [ "#" fragment ]
         // relative-part = "//" authority path-abempty
-        //               / path-absolute
-        //               / path-noscheme
-        //               / path-empty
+        // / path-absolute
+        // / path-noscheme
+        // / path-empty
         //
-        // Check not starting with ':' then path-noscheme is the same as path-rootless.
+        // Check not starting with ':' then path-noscheme is the same as
+        // path-rootless.
         char ch = charAt(start);
         if ( ch == ':' )
             parseError(iriStr, "A URI without a scheme can't start with a ':'");
@@ -953,7 +1049,7 @@ public class IRI3986 implements IRI {
         // "//" authority
         int p = start;
         char ch1 = charAt(p);
-        char ch2 = charAt(p+1);
+        char ch2 = charAt(p + 1);
         if ( ch1 == '/' && ch2 == '/' ) {
             p += 2;
             p = authority(p);
@@ -961,31 +1057,25 @@ public class IRI3986 implements IRI {
         return p;
     }
 
-    /*
-     * authority     = [ userinfo "@" ] host [ ":" port ]
-     * userinfo      = *( unreserved / pct-encoded / sub-delims / ":" )
-     * host          = IP-literal / IPv4address / reg-name
-     * port          = *DIGIT
+    /* authority = [ userinfo "@" ] host [ ":" port ] userinfo = *( unreserved /
+     * pct-encoded / sub-delims / ":" ) host = IP-literal / IPv4address / reg-name
+     * port = *DIGIT
      *
-     * IP-literal    = "[" ( IPv6address / IPvFuture  ) "]"
-     * IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
-     * IPv6address   = hex and ":", and "." for IPv4 in IPv6.
-     * IPv4address   = dec-octet "." dec-octet "." dec-octet "." dec-octet
+     * IP-literal = "[" ( IPv6address / IPvFuture ) "]" IPvFuture = "v" 1*HEXDIG "."
+     * 1*( unreserved / sub-delims / ":" ) IPv6address = hex and ":", and "." for
+     * IPv4 in IPv6. IPv4address = dec-octet "." dec-octet "." dec-octet "."
+     * dec-octet
      *
-     * reg-name      = *( unreserved / pct-encoded / sub-delims )
+     * reg-name = *( unreserved / pct-encoded / sub-delims )
      *
-     * So the section is only
-     * unreserved / pct-encoded / sub-delims / ":" / "@" / "[" / "]".
-     *   isPChar includes ":" / "@"
-     *   unreserved has "."
+     * So the section is only unreserved / pct-encoded / sub-delims / ":" / "@" / "["
+     * / "]". isPChar includes ":" / "@" unreserved has "."
      *
-     * iauthority     = [ iuserinfo "@" ] ihost [ ":" port ]
-     * iuserinfo      = *( iunreserved / pct-encoded / sub-delims / ":" )
-     * ihost          = IP-literal / IPv4address / ireg-name
+     * iauthority = [ iuserinfo "@" ] ihost [ ":" port ] iuserinfo = *( iunreserved /
+     * pct-encoded / sub-delims / ":" ) ihost = IP-literal / IPv4address / ireg-name
      *
-     * There are further restrictions on DNS names.
-     * RFC 5890, RFC 5891, RFC 5892, RFC 5893
-     */
+     * There are further restrictions on DNS names. RFC 5890, RFC 5891, RFC 5892, RFC
+     * 5893 */
     private int authority(int start) {
         int end = length;
         int p = start;
@@ -998,23 +1088,23 @@ public class IRI3986 implements IRI {
 
         // Scan for whole authority then do some checking.
         // We need to know e.g. whether there is a userinfo section to check colons.
-        while( p < end ) {
+        while (p < end) {
             char ch = charAt(p);
             if ( ch == ':' ) {
                 countColon++;
                 lastColon = p;
             } else if ( ch == '/' ) {
                 // Normal exit
-                if ( startIPv6 >= 0 && endIPv6 == -1)
-                    parseError(iriStr, p+1, "Bad IPv6 address - No closing ']'");
+                if ( startIPv6 >= 0 && endIPv6 == -1 )
+                    parseError(iriStr, p + 1, "Bad IPv6 address - No closing ']'");
                 break;
             } else if ( ch == '@' ) {
                 if ( endUserInfo != -1 )
-                    parseError(iriStr, p+1, "Bad authority segment - multiple '@'");
+                    parseError(iriStr, p + 1, "Bad authority segment - multiple '@'");
                 // Found userinfo end; reset counts and trackers.
                 // Check for IPv6 []
                 if ( startIPv6 != -1 || endIPv6 != -1 )
-                    parseError(iriStr, p+1, "Bad authority segment - contains '[' or ']'");
+                    parseError(iriStr, p + 1, "Bad authority segment - contains '[' or ']'");
                 endUserInfo = p;
                 // Reset port colon tracking.
                 countColon = 0;
@@ -1022,21 +1112,23 @@ public class IRI3986 implements IRI {
             } else if ( ch == '[' ) {
                 // Still to check whether user authority
                 if ( startIPv6 >= 0 )
-                    parseError(iriStr, p+1, "Bad IPv6 address - multiple '['");
+                    parseError(iriStr, p + 1, "Bad IPv6 address - multiple '['");
                 startIPv6 = p;
             } else if ( ch == ']' ) {
                 // Still to check whether user authority
                 if ( startIPv6 == -1 )
-                    parseError(iriStr, p+1, "Bad IPv6 address - No '[' to match ']'");
+                    parseError(iriStr, p + 1, "Bad IPv6 address - No '[' to match ']'");
                 if ( endIPv6 >= 0 )
-                    parseError(iriStr, p+1, "Bad IPv6 address - multiple ']'");
+                    parseError(iriStr, p + 1, "Bad IPv6 address - multiple ']'");
                 endIPv6 = p;
                 // Reset port colon tracking.
                 countColon = 0;
                 lastColon = -1;
-            } else if ( ! isIPChar(ch, p) ) {
-                // All the characters in an (i)authority section, regardless of correct use.
-                // While percent-encoded is possible, the extra logic to avoid parsing
+            } else if ( !isIPChar(ch, p) ) {
+                // All the characters in an (i)authority section, regardless of
+                // correct use.
+                // While percent-encoded is possible, the extra logic to avoid
+                // parsing
                 // the hex digits again is not worth it especially aas they are very
                 // likely cache hits.
                 break;
@@ -1049,7 +1141,7 @@ public class IRI3986 implements IRI {
                 parseError(iriStr, startIPv6, "Bad IPv6 address - missing ']'");
             char ch1 = iriStr.charAt(startIPv6);
             char ch2 = iriStr.charAt(endIPv6);
-            ParseIPv6Address.checkIPv6(iriStr, startIPv6, endIPv6+1);
+            ParseIPv6Address.checkIPv6(iriStr, startIPv6, endIPv6 + 1);
         }
 
         // May not be valid but if tests fail there is an exception.
@@ -1060,7 +1152,7 @@ public class IRI3986 implements IRI {
         if ( endUserInfo != -1 ) {
             userinfo0 = start;
             userinfo1 = endUserInfo;
-            host0 = endUserInfo+1;
+            host0 = endUserInfo + 1;
             if ( lastColon != -1 && lastColon < endUserInfo )
                 // Not port, part of userinfo - ignore.
                 lastColon = -1;
@@ -1074,13 +1166,13 @@ public class IRI3986 implements IRI {
 
         if ( lastColon != -1 ) {
             host1 = lastColon;
-            port0 = lastColon+1;
+            port0 = lastColon + 1;
             port1 = endAuthority;
             int x = port0;
             // check digits in port.
-            while( x < port1 ) {
+            while (x < port1) {
                 char ch = charAt(x);
-                if ( ! Chars3986.isDigit(ch) )
+                if ( !Chars3986.isDigit(ch) )
                     break;
                 x++;
             }
@@ -1091,7 +1183,7 @@ public class IRI3986 implements IRI {
 
         // TODO
         // IPv4 address or DNS name between host0 and host1.
-        //ParseIPv4Address.checkIPv4(iriStr, host0, host1);
+        // ParseIPv4Address.checkIPv4(iriStr, host0, host1);
 
         return endAuthority;
     }
@@ -1100,13 +1192,13 @@ public class IRI3986 implements IRI {
 
     private int pathQueryFragment(int start, boolean withScheme) {
         // hier-part [ "?" query ] [ "#" fragment ]
-        // relative-ref  = relative-part [ "?" query ] [ "#" fragment ]
+        // relative-ref = relative-part [ "?" query ] [ "#" fragment ]
 
         // hier-part => path-abempty
         // relative-part = path-abempty
-        //               / path-absolute
-        //               / path-noscheme
-        //               / path-empty
+        // / path-absolute
+        // / path-noscheme
+        // / path-empty
         // then [ "?" query ] [ "#" fragment ]
 
         int x1 = path(start, withScheme);
@@ -1126,19 +1218,19 @@ public class IRI3986 implements IRI {
     // ---- Path
     // If not withScheme, then segment-nz-nc applies.
     private int path(int start, boolean withScheme) {
-        // path          = path-abempty   ; begins with "/" or is empty
-        //               / path-absolute  ; begins with "/" but not "//"
-        //               / path-noscheme  ; begins with a non-colon segment
-        //               / path-rootless  ; begins with a segment
-        //               / path-empty     ; zero characters
+        // path = path-abempty ; begins with "/" or is empty
+        // / path-absolute ; begins with "/" but not "//"
+        // / path-noscheme ; begins with a non-colon segment
+        // / path-rootless ; begins with a segment
+        // / path-empty ; zero characters
 
         // path-abempty, path-absolute, path-rootless, path-empty
         //
-        // path-abempty  = *( "/" segment )
+        // path-abempty = *( "/" segment )
         // path-absolute = "/" [ segment-nz *( "/" segment ) ]
         // path-noscheme = segment-nz-nc *( "/" segment )
         // path-rootless = segment-nz *( "/" segment )
-        // path-empty    = 0<pchar>
+        // path-empty = 0<pchar>
 
         if ( start == length )
             return start;
@@ -1146,15 +1238,15 @@ public class IRI3986 implements IRI {
         int p = start;
         boolean allowColon = withScheme;
 
-        while (p < length ) {
-            // skip segment-nz    = 1*pchar
+        while (p < length) {
+            // skip segment-nz = 1*pchar
             char ch = charAt(p);
 
             int charLen = isIPCharLen(ch, p);
             if ( charLen == 1 ) {
-                if ( ! allowColon && ch == ':' ) {
+                if ( !allowColon && ch == ':' ) {
                     // segment-nz-nc
-                    parseError(iriStr, p+1, "':' in initial segment of a scheme-less IRI");
+                    parseError(iriStr, p + 1, "':' in initial segment of a scheme-less IRI");
                 }
                 p++;
                 continue;
@@ -1167,23 +1259,23 @@ public class IRI3986 implements IRI {
 
             // End segment.
             // Maybe new one.
-            if ( ch != '/') {
+            if ( ch != '/' ) {
                 if ( ch == ' ' )
-                    parseError(iriStr, p+1, "Space found in IRI");
+                    parseError(iriStr, p + 1, "Space found in IRI");
                 // ? or # else error
                 if ( ch == '?' || ch == '#' )
                     break;
                 // Not IPChar
-                parseError(iriStr, p+1, format("Bad character in IRI path: %s (U+%04X)", Character.toString((int)ch), (int)ch));
+                parseError(iriStr, p + 1, format("Bad character in IRI path: %s (U+%04X)", Character.toString((int)ch), (int)ch));
             }
             allowColon = true;
-            segStart = p+1;
+            segStart = p + 1;
             p++;
         }
 
         if ( p > start ) {
             path0 = start;
-            path1 = Math.min(p,length);
+            path1 = Math.min(p, length);
         }
         return p;
     }
@@ -1191,12 +1283,12 @@ public class IRI3986 implements IRI {
     // ---- Query & Fragment
 
     private int query(int start) {
-        // query      = *( pchar / "/" / "?" )
-        // iquery     = *( ipchar / iprivate / "/" / "?" )
+        // query = *( pchar / "/" / "?" )
+        // iquery = *( ipchar / iprivate / "/" / "?" )
         int x = trailer('?', start, true);
 
         if ( x >= 0 && x != start ) {
-            query0 = start+1;
+            query0 = start + 1;
             query1 = x;
         }
         if ( x < 0 )
@@ -1205,11 +1297,11 @@ public class IRI3986 implements IRI {
     }
 
     private int fragment(int start) {
-        // fragment      = *( pchar / "/" / "?" )
-        // ifragment     = *( ipchar / "/" / "?" )
+        // fragment = *( pchar / "/" / "?" )
+        // ifragment = *( ipchar / "/" / "?" )
         int x = trailer('#', start, false);
         if ( x >= 0 && x != start ) {
-            fragment0 = start+1;
+            fragment0 = start + 1;
             fragment1 = x;
         }
         if ( x < 0 )
@@ -1222,8 +1314,8 @@ public class IRI3986 implements IRI {
             return -1;
         if ( charAt(start) != startChar )
             return -1;
-        int p = start+1;
-        while(p < length ) {
+        int p = start + 1;
+        while (p < length) {
             char ch = charAt(p);
             int charLen = isIPCharLen(ch, p);
             if ( charLen == 1 || charLen == 3 ) {
@@ -1260,46 +1352,46 @@ public class IRI3986 implements IRI {
     // Is the character at location 'x' percent-encoded? Looks at next two characters
     // if and only if ch is '%'. This function looks ahead 2 characters which will be
     // parsed but likely they are in the L1 or L2 cache and the alternative is more
-    // complex logic. (return the read characters and new character position in some way).
+    // complex logic. (return the read characters and new character position in some
+    // way).
     private boolean isPctEncoded(char ch, int idx) {
         if ( ch != '%' )
             return false;
-        char ch1 = charAt(idx+1);
-        char ch2 = charAt(idx+2);
+        char ch1 = charAt(idx + 1);
+        char ch2 = charAt(idx + 2);
         return percentCheck(idx, ch1, ch2);
     }
 
     private boolean percentCheck(int idx, char ch1, char ch2) {
         if ( ch1 == EOF || ch2 == EOF ) {
-            parseError(iriStr, idx+1, "Incomplete %-encoded character");
+            parseError(iriStr, idx + 1, "Incomplete %-encoded character");
             return false;
         }
         // Any case.
         if ( Chars3986.isHexDigit(ch1) && Chars3986.isHexDigit(ch2) )
             return true;
-        parseError(iriStr, idx+1, "Bad %-encoded character ["+displayChar(ch1)+" "+displayChar(ch2)+"]");
+        parseError(iriStr, idx + 1, "Bad %-encoded character [" + displayChar(ch1) + " " + displayChar(ch2) + "]");
         return false;
     }
 
-    //  pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
-    //  pct-encoded   = "%" HEXDIG HEXDIG
+    // pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
+    // pct-encoded = "%" HEXDIG HEXDIG
     //
-    //  unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
-    //  iunreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
-    //  reserved      = gen-delims / sub-delims
-    //  gen-delims    = ":" / "/" / "?" / "#" / "[" / "]" / "@"
-    //  sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
-    //                / "*" / "+" / "," / ";" / "="
+    // unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+    // iunreserved = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
+    // reserved = gen-delims / sub-delims
+    // gen-delims = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+    // sub-delims = "!" / "$" / "&" / "'" / "(" / ")"
+    // / "*" / "+" / "," / ";" / "="
 
     private boolean isPChar(char ch, int posn) {
         return Chars3986.unreserved(ch) || isPctEncoded(ch, posn) || Chars3986.subDelims(ch) || ch == ':' || ch == '@';
     }
 
     /**
-     * Length expected in codepoints at location 'posn' for PChar.
-     * The function does not account for surrogate pairs.
-     * Normally returns 1, except when '%' when it's 3.
-     * Return -1 for error.
+     * Length expected in codepoints at location 'posn' for PChar. The function does
+     * not account for surrogate pairs. Normally returns 1, except when '%' when it's
+     * 3. Return -1 for error.
      */
     private int isPCharLen(char ch, int posn) {
         if ( Chars3986.unreserved(ch) || Chars3986.subDelims(ch) || ch == ':' || ch == '@' )
@@ -1314,10 +1406,9 @@ public class IRI3986 implements IRI {
     }
 
     /**
-     * Length expected in codepoints at location 'posn' for IPChar.
-     * The function does not account for combining chars.
-     * Normally returns 1, except when '%' when it's 3.
-     * Return -1 for error.
+     * Length expected in codepoints at location 'posn' for IPChar. The function does
+     * not account for combining chars. Normally returns 1, except when '%' when it's
+     * 3. Return -1 for error.
      */
     private int isIPCharLen(char ch, int posn) {
         if ( Chars3986.unreserved(ch) || Chars3986.subDelims(ch) || ch == ':' || ch == '@' || Chars3986.isUcsChar(ch) )
@@ -1332,26 +1423,27 @@ public class IRI3986 implements IRI {
     private IRI3986 schemeSpecificRulesInternal() {
         checkGeneral();
 
-        if ( ! hasScheme() )
+        if ( !hasScheme() )
             // no scheme, no checks.
             return this;
 
         // Scheme is not necessarily lowercase.
-        // We could do dispatch twice, once fast path (assumes lower case) with a switch statement.
+        // We could do dispatch twice, once fast path (assumes lower case) with a
+        // switch statement.
         // Check accumulate errors and warnings.
 
         if ( matches(iriStr, HTTPS) )
-            checkHTTPx(HTTPS);
+            checkHTTPS();
         else if ( matches(iriStr, HTTP) )
-            checkHTTPx(HTTP);
+            checkHTTP();
         else if ( matches(iriStr, URN_UUID) )
-            checkUUID(URN_UUID);
+            checkURN_UUID();
         else if ( matches(iriStr, URN) )
             checkURN();
         else if ( matches(iriStr, FILE) )
             checkFILE();
         else if ( matches(iriStr, UUID) )
-            checkUUID(UUID);
+            checkUUID();
         else if ( matches(iriStr, DID) )
             checkDID();
         else if ( matches(iriStr, EXAMPLE) )
@@ -1363,217 +1455,189 @@ public class IRI3986 implements IRI {
     private void checkGeneral() {
         // Compliance level per scheme
         // Maybe check general last but push first
-        // TODO
+        //
         // General RFC 3986 warnings.
         // * userinfo
-        //        // Error in http? Check.
-        //        if ( hasUserInfo() ) // getAuthority().contains("@") )
-        //           warning("URI", "userinfo (e.g. user:password) in authority section");
+        // // Error in http? Check.
+        // if ( hasUserInfo() ) // getAuthority().contains("@") )
+        // warning("URI", "userinfo (e.g. user:password) in authority section");
 
         // * empty port.
-        //      if ( hasPort() && (port0 == port1) ) //getPort().isEmpty()
-        //      warning("http", "port is empty");
+        // if ( hasPort() && (port0 == port1) ) //getPort().isEmpty()
+        // warning("http", "port is empty");
 
         // lower case scheme
         // uppercase %encoding.
 
         // RFC 3986 section 3.1
-        /*
-         * Although schemes are case-insensitive, the canonical form is lowercase and documents that
-         * specify schemes must do so with lowercase letters.  An implementation
-         * should accept uppercase letters as equivalent to lowercase in scheme
-         * names (e.g., allow "HTTP" as well as "http") for the sake of
+        /* Although schemes are case-insensitive, the canonical form is lowercase and
+         * documents that specify schemes must do so with lowercase letters. An
+         * implementation should accept uppercase letters as equivalent to lowercase
+         * in scheme names (e.g., allow "HTTP" as well as "http") for the sake of
          * robustness but should only produce lowercase scheme names for
-         * consistency.
-         */
+         * consistency. */
 
         // RFC 3986 section 2.1
-        /*
-         * If two URIs
-         * differ only in the case of hexadecimal digits used in percent-encoded
-         * octets, they are equivalent.  For consistency, URI producers and
-         * normalizers should use uppercase hexadecimal digits for all percent-
-         * encodings.
-        */
+        /* If two URIs differ only in the case of hexadecimal digits used in
+         * percent-encoded octets, they are equivalent. For consistency, URI
+         * producers and normalizers should use uppercase hexadecimal digits for all
+         * percent- encodings. */
+    }
+
+    private void checkHTTP() {
+        checkSchemeName(URIScheme.HTTP);
+        checkHTTPx(URIScheme.HTTP);
+    }
+
+    private void checkHTTPS() {
+        checkSchemeName(URIScheme.HTTPS);
+        checkHTTPx(URIScheme.HTTPS);
     }
 
     private void checkHTTPx(URIScheme scheme) {
-        String schemeName = scheme.getName();
-        boolean strict = ( Compliance_HTTPx_SCHEME == STRICT );
-        // Some things are always error, some always warnings, and some depend on strictness.
-        MessageCategory category = strict ? MessageCategory.ERROR : MessageCategory.WARNING;
+        /* https://tools.ietf.org/html/rfc2616#section-3.2.2 http_URL = "http:" "//"
+         * host [ ":" port ] [ abs_path [ "?" query ]] */
 
-        checkSchemeName(Compliance_HTTPx_SCHEME, scheme);
+        /* https://tools.ietf.org/html/rfc7230#section-2.7.1 A sender MUST NOT
+         * generate an "http" URI with an empty host identifier. A recipient that
+         * processes such a URI reference MUST reject it as invalid. */
 
-        /*
-         * https://tools.ietf.org/html/rfc2616#section-3.2.2
-         *
-         *   http_URL = "http:" "//" host [ ":" port ] [ abs_path [ "?" query ]]
-         */
+        if ( !hasHost() )
+            schemeReport(this, Issue.http_no_host, scheme, "http and https URI schemes require //host/");
 
-        /*
-         * https://tools.ietf.org/html/rfc7230#section-2.7.1
-         *
-         *   A sender MUST NOT generate an "http" URI with an empty host
-         *   identifier.  A recipient that processes such a URI reference MUST
-         *   reject it as invalid.
-         */
-        // See https://tools.ietf.org/html/rfc7230#section-2.7.1
-
-        if ( ! hasHost() )
-            schemeError(iriStr, schemeName, "http and https URI schemes require //host/");
-
-        if ( /*hasHost() &&*/ (host0 == host1) )
-            schemeMsg(category, iriStr, schemeName, "http and https URI schemes do not allow the host to be empty");
+        if ( /* hasHost() && */ (host0 == host1) )
+            schemeReport(this, Issue.http_empty_host, scheme, "http and https URI schemes do not allow the host to be empty");
 
         // https://tools.ietf.org/html/rfc3986#section-3.2.3
         if ( hasPort() ) {
-            if ( port0 == port1) {
-                schemeWarning(iriStr, schemeName, "Port is empty - omit the ':'");
+            if ( port0 == port1 ) {
+                schemeReport(this, Issue.http_empty_port, scheme, "Port is empty - omit the ':'");
             } else {
                 int port = Integer.parseInt(port());
-                switch(scheme) {
-                    case HTTP:
+                switch (scheme) {
+                    case HTTP :
                         if ( port == 80 )
-                            schemeWarning(iriStr, schemeName, "Default port 80 should be omitted");
+                            schemeReport(this, Issue.http_omit_well_known_port, scheme, "Default port 80 should be omitted");
                         else if ( port < 1024 && port != 80 )
-                            schemeWarning(iriStr, schemeName, "HTTP Port under 1024 should only be 80");
+                            schemeReport(this, Issue.http_port_not_advised, scheme, "HTTP Port under 1024 should only be 80");
                         break;
-                    case HTTPS:
+                    case HTTPS :
                         if ( port == 443 )
-                            schemeWarning(iriStr, schemeName, "Default port 443 should be omitted");
+                            schemeReport(this, Issue.http_omit_well_known_port, scheme, "Default port 443 should be omitted");
                         else if ( port < 1024 && port != 443 )
-                            schemeWarning(iriStr, schemeName, "HTTPS port under 1024 should only be 443");
+                            schemeReport(this, Issue.http_port_not_advised, scheme, "HTTPS port under 1024 should only be 443");
                         break;
-                    default:
+                    default :
                         throw new IllegalStateException();
                 }
             }
         }
 
-         /*
-         * https://tools.ietf.org/html/rfc7230#section-2.7.1
+        /* https://tools.ietf.org/html/rfc7230#section-2.7.1
          *
-         *   A sender MUST NOT
-         *   generate the userinfo subcomponent (and its "@" delimiter) when an
-         *   "http" URI reference is generated within a message as a request
-         *   target or header field value.  Before making use of an "http" URI
-         *   reference received from an untrusted source, a recipient SHOULD parse
-         *   for userinfo and treat its presence as an error; it is likely being
-         *   used to obscure the authority for the sake of phishing attacks.
+         * A sender MUST NOT generate the userinfo subcomponent (and its "@"
+         * delimiter) when an "http" URI reference is generated within a message as a
+         * request target or header field value. Before making use of an "http" URI
+         * reference received from an untrusted source, a recipient SHOULD parse for
+         * userinfo and treat its presence as an error; it is likely being used to
+         * obscure the authority for the sake of phishing attacks.
          *
-         * ----
-         *  And in linked data, any URI is a request target.
-         */
+         * ---- And in linked data, any URI is a request target. */
 
         if ( hasUserInfo() ) {
-            schemeMsg(category, iriStr, schemeName, "userinfo (e.g. user:password) in authority section");
+            schemeReport(this, Issue.http_userinfo, scheme, "userinfo (e.g. user:password) in authority section");
             if ( userInfo().contains(":") )
-                schemeWarning(iriStr, schemeName, "userinfo contains password in authority section");
+                schemeReport(this, Issue.http_password, scheme, "userinfo contains password in authority section");
         }
     }
 
     // URN specific.
-    //   "urn", ASCII, min 2 char NID min two char NSS (urn:NID:NSS)
-    //   Query string starts ?+ or ?=
+    // "urn", ASCII, min 2 char NID min two char NSS (urn:NID:NSS)
+    // Query string starts ?+ or ?=
 
-    /*
-        namestring    = assigned-name
-            [ rq-components ]
-            [ "#" f-component ]
-        assigned-name = "urn" ":" NID ":" NSS
-        NID           = (alphanum) 0*30(ldh) (alphanum)
-        ldh           = alphanum / "-"
-        NSS           = pchar *(pchar / "/")
-        rq-components = [ "?+" r-component ]
-                        [ "?=" q-component ]
-        r-component   = pchar *( pchar / "/" / "?" )
-        q-component   = pchar *( pchar / "/" / "?" )
-        f-component   = fragment
-     */
+    /* namestring = assigned-name [ rq-components ] [ "#" f-component ] assigned-name
+     * = "urn" ":" NID ":" NSS NID = (alphanum) 0*30(ldh) (alphanum) ldh = alphanum /
+     * "-" NSS = pchar *(pchar / "/") rq-components = [ "?+" r-component ] [ "?="
+     * q-component ] r-component = pchar *( pchar / "/" / "?" ) q-component = pchar
+     * *( pchar / "/" / "?" ) f-component = fragment */
     // Without specifically testing for rq-components and "#" f-component
     // Strict - requires 2 char NID and one char NSS.
     private static Pattern URN_PATTERN_ASSIGNED_NAME_STRICT = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,30}[a-zA-Z0-9]:.+");
 
     // More generous.
     // NID, can be one char and can be "X-" (RFC 2141)
-    // NSS, and it's colon can be absent. base names can be <urn:nid:> but not <urn:nid>
+    // NSS, and it's colon can be absent. base names can be <urn:nid:> but not
+    // <urn:nid>
     private static Pattern URN_PATTERN_ASSIGNED_NAME_LOOSE = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,31}:(?:.*)");
     // Common bad cases : "urn:x:" and "urn:X-ABC:"
     private static Pattern URN_PATTERN_BAD_NID_1 = Pattern.compile("^urn:(?:[a-zA-Z0-9])(?::(?:.*))?");
     private static Pattern URN_PATTERN_BAD_NID_2 = Pattern.compile("^urn:X-:");
 
-    /** Check "urn:". Additional check for "urn:uuid:" available in {'link {@link #checkUUID(String)}.
-     * @param errorHandler */
+    /**
+     * Check "urn:". Additional check for "urn:uuid:" available in
+     * {@link #checkURN_UUID(String)}.
+     */
     private void checkURN() {
-        // If the dispatch didn't include "urn:uuid:"
-//        if ( matches(iriStr, URN_UUID) )
-//            // Special case of URNs.
-//            checkUUID(Scheme_URN_UUID);
-//            return;
-//        }
-
         String schemeName = "urn";
-        boolean strict = ( Compliance_URN_SCHEME == STRICT );
-        MessageCategory category = strict ? MessageCategory.ERROR : MessageCategory.WARNING;
 
-        checkSchemeName(Compliance_URN_SCHEME, URN);
+        checkSchemeName(URIScheme.URN);
 
-        Pattern pattern = strict ? URN_PATTERN_ASSIGNED_NAME_STRICT : URN_PATTERN_ASSIGNED_NAME_LOOSE;
-
-        String iriScheme = scheme();
-        if ( ! schemeName.equals(iriScheme) )
-            schemeMsg(category, iriStr, schemeName, "scheme name is not lowercase 'urn'");
-        // Matched: anchored. (find() is not).
+        // Does not check query string or fragment.
+        Pattern pattern = URN_PATTERN_ASSIGNED_NAME_STRICT;
         boolean matches = pattern.matcher(iriStr).matches();
 
         if ( !matches ) {
             if ( URN_PATTERN_BAD_NID_1.matcher(iriStr).matches() )
-                schemeMsg(category, iriStr, schemeName, "NID must be at least 2 characters");
+                schemeReport(this, Issue.urn_nid, URIScheme.URN, "NID must be at least 2 characters");
             else
-                schemeMsg(category, iriStr, schemeName, "URI does not match the 'assigned-name' rule regular expression (\"urn\" \":\" NID \":\" NSS)");
+                schemeReport(this, Issue.urn_bad_pattern, URIScheme.URN,
+                             "URI does not match the 'assigned-name' rule regular expression (\"urn\" \":\" NID \":\" NSS)");
         }
         if ( hasQuery() ) {
             String qs = query();
-            if ( ! qs.startsWith("+") && ! qs.startsWith("=") )
-                schemeWarning(iriStr, schemeName, "improper start to query string.");
-            urnCharCheck("query", qs);
+            if ( !qs.startsWith("+") && !qs.startsWith("=") )
+                schemeReport(this, Issue.urn_bad_query, URIScheme.URN,
+                             "Improper start to q-component of URN (must be '?+...' or '?=...').");
+            urnCharCheck("query", "q-component", qs);
         }
 
         if ( hasFragment() )
-            urnCharCheck("fragment", fragment());
+            urnCharCheck("fragment", "f-component", fragment());
     }
 
-    private void urnCharCheck(String label, String string) {
-        for ( int i = 0 ; i < string.length(); i++ ) {
-            char ch = iriStr.charAt(i);
-            if ( ch > 0x7F)
-                schemeWarning(iriStr, "urn", label+" : Non-ASCII character");
+    private void urnCharCheck(String uriName, String urnName, String string) {
+        for ( int i = 0 ; i < string.length() ; i++ ) {
+            char ch = string.charAt(i);
+            if ( ch > 0x7F )
+                schemeReport(this, Issue.urn_non_ascii_character, URIScheme.URN,
+                             uriName + " : Non-ASCII character in " + urnName + " of URN");
         }
     }
 
     /**
      * Check "file:"
-     * @param errorHandler
      */
     private void checkFILE() {
-        checkSchemeName(Compliance_FILE_SCHEME, URIScheme.FILE);
+        checkSchemeName(URIScheme.FILE);
 
         // Must have authority and it must be empty. i.e. file:///
-        if ( ! hasAuthority() )
-            schemeWarning(iriStr, "file", "file: URLs are of the form file:///path/...");
-
-        // We do not support file:// because file://path1/path2/ makes the host "path1" (which is then ignored!)
-        if ( hasAuthority() && authority0 != authority1 ) {
-            // file://path1/path2/..., so path becomes the "authority"
-            schemeWarning(iriStr, "file", "file: URLs are of the form file:///path/..., not file://path");
+        if ( !hasAuthority() ) {
+            if ( path().startsWith("/") )
+                schemeReport(this, Issue.file_bad_form, URIScheme.FILE, "file: URLs are of the form file:///path/...");
+            else
+                schemeReport(this, Issue.file_relative_path, URIScheme.FILE,
+                             "file: URLs are of the form file:///path/..., not file:filename");
         }
 
-        if ( ! path().startsWith("/") )
-            schemeWarning(iriStr, "file", "file: URLs are of the form file:///path/..., not file:filename");
+        // We do not support file:// because file://path1/path2/ makes the host
+        // "path1" (which is then ignored!)
+        if ( hasAuthority() && authority0 != authority1 ) {
+            // file://path1/path2/..., so path becomes the "authority"
+            schemeReport(this, Issue.file_bad_form, URIScheme.FILE, "file: URLs are of the form file:///path/..., not file://path");
+        }
 
         if ( this.length < 8 )
-            schemeWarning(iriStr, "file", "file: URLs are of the form file:///path/...");
+            schemeReport(this, Issue.file_relative_path, URIScheme.FILE, "file: URLs are of the form file:///path/...");
     }
 
     /**
@@ -1583,54 +1647,63 @@ public class IRI3986 implements IRI {
     private static Pattern UUID_PATTERN_UC = Pattern.compile("^(?:urn:uuid|uuid):[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$");
 
     private static Pattern UUID_PATTERN_AnyCase = Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                                                             Pattern.CASE_INSENSITIVE);
+                                                                  Pattern.CASE_INSENSITIVE);
+
+    private void checkURN_UUID() {
+        checkSchemeName(URIScheme.URN_UUID);
+        boolean matches = UUID_PATTERN_LC.matcher(iriStr).matches();
+        if ( matches )
+            // Fast path - no string manipulation
+            return;
+        checkUUID(URIScheme.URN_UUID, iriStr);
+    }
 
     /**
      * Checks for "urn:" and "urn:uuid:"
+     *
      * @param errorHandler
      * @param schemeName (without ":")
      */
-    private void checkUUID(URIScheme scheme) {
+    private void checkUUID() {
+        checkSchemeName(URIScheme.URN_UUID);
         boolean matches = UUID_PATTERN_LC.matcher(iriStr).matches();
         if ( matches )
+            // Fast path - no string manipulation
             return;
+        checkUUID(URIScheme.UUID, iriStr);
+    }
 
-        String schemeName = scheme.getName();
-        String schemePrefix = scheme.getPrefix();
-        if ( ! iriStr.startsWith(schemePrefix) )
-            schemeWarning(iriStr, schemeName, "scheme name is not lowercase '"+scheme.getPrefix()+"'");
-
-        // Offset in the UUID starting point. Skip ':'
+    private void checkUUID(URIScheme scheme, String iriStr) {
+        // It did not pass the fast-path regular expression.
         int offset = scheme.getPrefix().length();
-        int uuidLen = iriStr.length()-offset;
         String uuidStr = iriStr.substring(offset);
-
+        int uuidLen = iriStr.length() - offset;
         boolean warningIssued = false;
-        // Specific tests, specific messages
 
+        // Specific tests, specific messages
         if ( hasQuery() ) {
-            schemeWarning(iriStr, schemeName, "query component not allowed: "+iriStr);
+            schemeReport(this, Issue.uuid_has_query, scheme, "query component not allowed: " + iriStr);
             warningIssued = true;
         }
         if ( hasFragment() ) {
-            schemeWarning(iriStr, schemeName, "fragment not allowed: "+iriStr);
+            schemeReport(this, Issue.uuid_has_fragment, scheme, "fragment not allowed: " + iriStr);
             warningIssued = true;
         }
 
         if ( !warningIssued && uuidLen != 36 ) {
             // Don't output if query or fragment
-            schemeWarning(iriStr, schemeName, "Bad UUID string (wrong length): "+uuidStr);
+            schemeReport(this, Issue.uuid_bad_pattern, scheme, "Bad UUID string (wrong length): " + uuidStr);
             warningIssued = true;
         }
 
         boolean matchesAnyCase = UUID_PATTERN_AnyCase.matcher(iriStr).matches();
-        if ( matchesAnyCase )
-            schemeWarning(iriStr, schemeName, "Lowercase recommended for UUID string: "+uuidStr);
-        else {
-            if ( ! warningIssued )
-                // Didn't match UUID_PATTERN_LC or UUID_PATTERN_AnyCase
-                schemeWarning(iriStr, schemeName, "Not a valid UUID string: "+uuidStr);
+        if ( matchesAnyCase ) {
+            schemeReport(this, Issue.uuid_not_lowercase, scheme, "Lowercase recommended for UUID string: " + uuidStr);
+            warningIssued = true;
         }
+        if ( !warningIssued )
+            // Didn't match UUID_PATTERN_LC or UUID_PATTERN_AnyCase
+            schemeReport(this, Issue.uuid_bad_pattern, scheme, "Not a valid UUID string: " + uuidStr);
     }
 
     /**
@@ -1638,58 +1711,48 @@ public class IRI3986 implements IRI {
      * @see ParseDID
      */
     private void checkDID() {
-        //checkSchemeName(STRICT, DID);
+        checkSchemeName(DID);
         try {
             ParseDID.parse(iriStr, true);
         } catch (RuntimeException ex) {
-            schemeWarning(iriStr, DID.getName(), "Invalid DID: "+ex.getMessage());
+            schemeReport(this, Issue.did_bad_syntax, URIScheme.DID, "Invalid DID: " + ex.getMessage());
         }
     }
 
     /**
      * URI scheme "example:" from RFC 7595
+     *
      * @param errorHandler
      */
     private void checkExample() {
-        checkSchemeName(STRICT, EXAMPLE);
-    }
-
-    private void checkSchemeName(Compliance compliance, URIScheme scheme) {
-        // Always check.
-        checkSchemeName(scheme);
+        checkSchemeName(EXAMPLE);
     }
 
     private void checkSchemeName(URIScheme scheme) {
         String correctSchemeName = scheme.getName();
 
-        if ( ! hasScheme() ) {
-            schemeWarning(iriStr, correctSchemeName, "No scheme name");
+        if ( !hasScheme() ) {
+            schemeReport(this, Issue.iri_scheme_expected, scheme, "No scheme name");
             return;
         }
 
-        if ( ! URIScheme.matchesExact(iriStr, scheme) ) {
+        if ( !URIScheme.matchesExact(iriStr, scheme) ) {
             if ( URIScheme.matches(iriStr, scheme) )
-                schemeWarning(iriStr, correctSchemeName, "Scheme name should be lowercase");
+                schemeReport(this, Issue.iri_scheme_name_is_not_lowercase, scheme, "Scheme name should be lowercase");
             else
-                schemeWarning(iriStr, correctSchemeName, "Scheme name should be '"+correctSchemeName+"'");
+                schemeReport(this, Issue.iri_scheme_unexpected, scheme, "Scheme name should be '" + correctSchemeName + "'");
         }
     }
 
     // Variable level.
-    private void schemeMsg(MessageCategory category, String iriStr, String schemeName, String msg) {
-        Objects.requireNonNull(category);
-        switch(category) {
-            case INVALID:
-                // Should not happen. This is a parse error.
-                ErrorIRI3986.parseError(iriStr, msg);
-                break;
-            case WARNING:
-                schemeWarning(iriStr, schemeName, msg);
-                break;
-            case ERROR:
-                schemeError(iriStr, schemeName, msg);
-                break;
+    private void schemeReport(IRI3986 iri, Issue issue, URIScheme scheme, String msg) {
+        Objects.requireNonNull(issue);
+        if ( issue == Issue.ParseError ) {
+            // Should not happen.
+            ErrorIRI3986.parseError(iri.str(), msg);
+            return;
         }
+        addReport(iri, iri.str(), scheme, issue, msg);
     }
 
     private static String formatSchemeMsg(CharSequence source, String scheme, String s) {
@@ -1698,202 +1761,167 @@ public class IRI3986 implements IRI {
         return x;
     }
 
-    private void schemeError(CharSequence source, char[] scheme, String s) {
-        schemeError(source, String.copyValueOf(scheme), s);
+// private void x_schemeError(CharSequence source, char[] scheme, String s) {
+// x_schemeError(source, String.copyValueOf(scheme), s);
+// }
+//
+// private void x_schemeError(CharSequence source, String scheme, String s) {
+// String msg = formatSchemeMsg(source, scheme, s);
+// URIScheme uriScheme = URIScheme.get(scheme);
+// addReport(this, String.valueOf(source), uriScheme, null, msg);
+// }
+//
+// private void x_schemeWarning(CharSequence source, String scheme, String s) {
+// String msg = formatSchemeMsg(source, scheme, s);
+// addReport(this, String.valueOf(source), null, null, msg);
+// }
+
+// private void schemeError(CharSequence source, char[] scheme, Issue issue, String
+// s) {
+// schemeError(source, String.copyValueOf(scheme), issue, s);
+// }
+//
+// private void schemeError(CharSequence source, String scheme, Issue issue, String
+// s) {
+// String msg = formatSchemeMsg(source, scheme, s);
+// URIScheme uriScheme = URIScheme.get(scheme);
+// addReport(new Violation(String.valueOf(source), MessageCategory.WARNING,
+// uriScheme, issue, msg));
+// }
+//
+// private void schemeWarning(CharSequence source, String scheme, Issue issue, String
+// s) {
+// String msg = formatSchemeMsg(source, scheme, s);
+// addReport(new Violation(String.valueOf(source), MessageCategory.WARNING, null,
+// issue, msg));
+// }
+
+    private static void addReport(IRI3986 iri, String iriStr, URIScheme uriScheme, Issue issue, String message) {
+        Violation v = new Violation(iriStr, uriScheme, issue, message);
+        addReport(iri, v);
     }
 
-    private void schemeError(CharSequence source, String scheme, String s) {
-        String msg = formatSchemeMsg(source, scheme, s);
-        addReport(new Violation(String.valueOf(source), MessageCategory.WARNING, msg));
-    }
-
-    private void schemeWarning(CharSequence source, String scheme, String s) {
-        String msg = formatSchemeMsg(source, scheme, s);
-        addReport(new Violation(String.valueOf(source), MessageCategory.WARNING, msg));
-    }
-
-    private void addReport(Violation report) {
-        if ( reports == null )
-            reports = new ArrayList<Violation>(4);
-        reports.add(report);
-    }
-
-    public boolean hasViolations() {
-        return reports != null && !reports.isEmpty();
-    }
-
-    public void forEachViolation(Consumer<Violation> action) {
-        if ( reports == null )
-            return;
-        reports.forEach(action);
+    private static void addReport(IRI3986 iri, Violation report) {
+        if ( iri.reports == null )
+            iri.reports = new ArrayList<Violation>(4);
+        iri.reports.add(report);
     }
 }
 
 /* RFC 3986
-
-   URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
-
-   hier-part     = "//" authority path-abempty
-                 / path-absolute
-                 / path-rootless
-                 / path-empty
-
-   URI-reference = URI / relative-ref
-
-   absolute-URI  = scheme ":" hier-part [ "?" query ]
-
-   relative-ref  = relative-part [ "?" query ] [ "#" fragment ]
-
-   relative-part = "//" authority path-abempty
-                 / path-absolute
-                 / path-noscheme
-                 / path-empty
-
-   scheme        = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
-
-   authority     = [ userinfo "@" ] host [ ":" port ]
-   userinfo      = *( unreserved / pct-encoded / sub-delims / ":" )
-   host          = IP-literal / IPv4address / reg-name
-   port          = *DIGIT
-
-   IP-literal    = "[" ( IPv6address / IPvFuture  ) "]"
-
-   IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
-
-   IPv6address   =                            6( h16 ":" ) ls32
-                 /                       "::" 5( h16 ":" ) ls32
-                 / [               h16 ] "::" 4( h16 ":" ) ls32
-                 / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
-                 / [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
-                 / [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
-                 / [ *4( h16 ":" ) h16 ] "::"              ls32
-                 / [ *5( h16 ":" ) h16 ] "::"              h16
-                 / [ *6( h16 ":" ) h16 ] "::"
-
-   h16           = 1*4HEXDIG
-   ls32          = ( h16 ":" h16 ) / IPv4address
-   IPv4address   = dec-octet "." dec-octet "." dec-octet "." dec-octet
-
-   dec-octet     = DIGIT                ; 0-9
-                 / %x31-39 DIGIT        ; 10-99
-                 / "1" 2DIGIT           ; 100-199
-                 / "2" %x30-34 DIGIT    ; 200-249
-                 / "25" %x30-35         ; 250-255
-
-   reg-name      = *( unreserved / pct-encoded / sub-delims )
-
-   path          = path-abempty   ; begins with "/" or is empty
-                 / path-absolute  ; begins with "/" but not "//"
-                 / path-noscheme  ; begins with a non-colon segment
-                 / path-rootless  ; begins with a segment
-                 / path-empty     ; zero characters
-
-   path-abempty  = *( "/" segment )
-   path-absolute = "/" [ segment-nz *( "/" segment ) ]
-   path-noscheme = segment-nz-nc *( "/" segment )
-   path-rootless = segment-nz *( "/" segment )
-   path-empty    = 0<pchar>
-
-   segment       = *pchar
-   segment-nz    = 1*pchar
-   segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
-                ; non-zero-length segment without any colon ":"
-
-   pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
-
-   query         = *( pchar / "/" / "?" )
-
-   fragment      = *( pchar / "/" / "?" )
-
-   pct-encoded   = "%" HEXDIG HEXDIG
-
-   unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
-   reserved      = gen-delims / sub-delims
-   gen-delims    = ":" / "/" / "?" / "#" / "[" / "]" / "@"
-   sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
-                 / "*" / "+" / "," / ";" / "="
-                 / "*" / "+" / "," / ";" / "="
-
-  RFC 3897 : IRIs
-----
-    NB "unreserved" used in
-    IPvFuture      = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
-----
-
-   ipchar         = iunreserved / pct-encoded / sub-delims / ":" / "@"
-
-   iquery         = *( ipchar / iprivate / "/" / "?" )
-
-   iunreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
-
-   ucschar        = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF
-                  / %x10000-1FFFD / %x20000-2FFFD / %x30000-3FFFD
-                  / %x40000-4FFFD / %x50000-5FFFD / %x60000-6FFFD
-                  / %x70000-7FFFD / %x80000-8FFFD / %x90000-9FFFD
-                  / %xA0000-AFFFD / %xB0000-BFFFD / %xC0000-CFFFD
-                  / %xD0000-DFFFD / %xE1000-EFFFD
-
-   iprivate       = %xE000-F8FF / %xF0000-FFFFD / %x100000-10FFFD
-
-
-            ALPHA          =  %x41-5A / %x61-7A  ; A-Z / a-z
-            DIGIT          =  %x30-39            ; 0-9
-
-
- */
+ *
+ * URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+ *
+ * hier-part = "//" authority path-abempty / path-absolute / path-rootless /
+ * path-empty
+ *
+ * URI-reference = URI / relative-ref
+ *
+ * absolute-URI = scheme ":" hier-part [ "?" query ]
+ *
+ * relative-ref = relative-part [ "?" query ] [ "#" fragment ]
+ *
+ * relative-part = "//" authority path-abempty / path-absolute / path-noscheme /
+ * path-empty
+ *
+ * scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+ *
+ * authority = [ userinfo "@" ] host [ ":" port ] userinfo = *( unreserved /
+ * pct-encoded / sub-delims / ":" ) host = IP-literal / IPv4address / reg-name port =
+ * *DIGIT
+ *
+ * IP-literal = "[" ( IPv6address / IPvFuture ) "]"
+ *
+ * IPvFuture = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
+ *
+ * IPv6address = 6( h16 ":" ) ls32 / "::" 5( h16 ":" ) ls32 / [ h16 ] "::" 4( h16 ":"
+ * ) ls32 / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32 / [ *2( h16 ":" ) h16 ] "::"
+ * 2( h16 ":" ) ls32 / [ *3( h16 ":" ) h16 ] "::" h16 ":" ls32 / [ *4( h16 ":" ) h16
+ * ] "::" ls32 / [ *5( h16 ":" ) h16 ] "::" h16 / [ *6( h16 ":" ) h16 ] "::"
+ *
+ * h16 = 1*4HEXDIG ls32 = ( h16 ":" h16 ) / IPv4address IPv4address = dec-octet "."
+ * dec-octet "." dec-octet "." dec-octet
+ *
+ * dec-octet = DIGIT ; 0-9 / %x31-39 DIGIT ; 10-99 / "1" 2DIGIT ; 100-199 / "2"
+ * %x30-34 DIGIT ; 200-249 / "25" %x30-35 ; 250-255
+ *
+ * reg-name = *( unreserved / pct-encoded / sub-delims )
+ *
+ * path = path-abempty ; begins with "/" or is empty / path-absolute ; begins with
+ * "/" but not "//" / path-noscheme ; begins with a non-colon segment / path-rootless
+ * ; begins with a segment / path-empty ; zero characters
+ *
+ * path-abempty = *( "/" segment ) path-absolute = "/" [ segment-nz *( "/" segment )
+ * ] path-noscheme = segment-nz-nc *( "/" segment ) path-rootless = segment-nz *( "/"
+ * segment ) path-empty = 0<pchar>
+ *
+ * segment = *pchar segment-nz = 1*pchar segment-nz-nc = 1*( unreserved / pct-encoded
+ * / sub-delims / "@" ) ; non-zero-length segment without any colon ":"
+ *
+ * pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
+ *
+ * query = *( pchar / "/" / "?" )
+ *
+ * fragment = *( pchar / "/" / "?" )
+ *
+ * pct-encoded = "%" HEXDIG HEXDIG
+ *
+ * unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~" reserved = gen-delims /
+ * sub-delims gen-delims = ":" / "/" / "?" / "#" / "[" / "]" / "@" sub-delims = "!" /
+ * "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "=" / "*" / "+" / "," / ";"
+ * / "="
+ *
+ * RFC 3897 : IRIs ---- NB "unreserved" used in IPvFuture = "v" 1*HEXDIG "." 1*(
+ * unreserved / sub-delims / ":" ) ----
+ *
+ * ipchar = iunreserved / pct-encoded / sub-delims / ":" / "@"
+ *
+ * iquery = *( ipchar / iprivate / "/" / "?" )
+ *
+ * iunreserved = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
+ *
+ * ucschar = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF / %x10000-1FFFD / %x20000-2FFFD /
+ * %x30000-3FFFD / %x40000-4FFFD / %x50000-5FFFD / %x60000-6FFFD / %x70000-7FFFD /
+ * %x80000-8FFFD / %x90000-9FFFD / %xA0000-AFFFD / %xB0000-BFFFD / %xC0000-CFFFD /
+ * %xD0000-DFFFD / %xE1000-EFFFD
+ *
+ * iprivate = %xE000-F8FF / %xF0000-FFFFD / %x100000-10FFFD
+ *
+ *
+ * ALPHA = %x41-5A / %x61-7A ; A-Z / a-z DIGIT = %x30-39 ; 0-9 */
 /* ABNF core rules: (ABNF is RFC 5234)
-
-         ALPHA          =  %x41-5A / %x61-7A  ; A-Z / a-z
-
-         BIT            =  "0" / "1"
-
-         CHAR           =  %x01-7F
-                               ; any 7-bit US-ASCII character,
-                               ;  excluding NUL
-
-         CR             =  %x0D
-                               ; carriage return
-
-         CRLF           =  CR LF
-                               ; Internet standard newline
-
-         CTL            =  %x00-1F / %x7F
-                               ; controls
-
-         DIGIT          =  %x30-39
-                               ; 0-9
-
-         DQUOTE         =  %x22
-                               ; " (Double Quote)
-
-         HEXDIG         =  DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
-
-         HTAB           =  %x09
-                               ; horizontal tab
-
-         LF             =  %x0A
-                               ; linefeed
-
-         LWSP           =  *(WSP / CRLF WSP)
-                               ; Use of this linear-white-space rule
-                               ;  permits lines containing only white
-                               ;  space that are no longer legal in
-                               ;  mail headers and have caused
-                               ;  interoperability problems in other
-                               ;  contexts.
-                               ; Do not use when defining mail
-                               ;  headers and use with caution in
-                               ;  other contexts.
-
-         OCTET          =  %x00-FF
-                               ; 8 bits of data
-
-         SP             =  %x20
-
-         VCHAR          =  %x21-7E
-                               ; visible (printing) characters
-
-         WSP            =  SP / HTAB
-                               ; white space
-
- */
+ *
+ * ALPHA = %x41-5A / %x61-7A ; A-Z / a-z
+ *
+ * BIT = "0" / "1"
+ *
+ * CHAR = %x01-7F ; any 7-bit US-ASCII character, ; excluding NUL
+ *
+ * CR = %x0D ; carriage return
+ *
+ * CRLF = CR LF ; Internet standard newline
+ *
+ * CTL = %x00-1F / %x7F ; controls
+ *
+ * DIGIT = %x30-39 ; 0-9
+ *
+ * DQUOTE = %x22 ; " (Double Quote)
+ *
+ * HEXDIG = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
+ *
+ * HTAB = %x09 ; horizontal tab
+ *
+ * LF = %x0A ; linefeed
+ *
+ * LWSP = *(WSP / CRLF WSP) ; Use of this linear-white-space rule ; permits lines
+ * containing only white ; space that are no longer legal in ; mail headers and have
+ * caused ; interoperability problems in other ; contexts. ; Do not use when defining
+ * mail ; headers and use with caution in ; other contexts.
+ *
+ * OCTET = %x00-FF ; 8 bits of data
+ *
+ * SP = %x20
+ *
+ * VCHAR = %x21-7E ; visible (printing) characters
+ *
+ * WSP = SP / HTAB ; white space */

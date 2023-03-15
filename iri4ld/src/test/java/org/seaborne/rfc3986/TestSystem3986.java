@@ -27,14 +27,16 @@ import org.junit.Test;
 /** Test of machinery */
 public class TestSystem3986 {
 
-    private static class MarkerException extends RuntimeException {}
+    private static class MarkerException extends RuntimeException {
+        MarkerException(String msg) { super(msg); }
+    }
 
     @Test(expected = MarkerException.class)
     public void violations_01() {
         // Warning as exception
         IRI3986 iri = IRI3986.createAny("HTTP://host/path");
         assertTrue(iri.hasViolations());
-        Consumer<String> x = (msg)-> { throw new MarkerException(); };
+        Consumer<String> x = (msg)-> { throw new MarkerException(msg); };
         ErrorHandler eh = ErrorHandler.create(x, x);
         iri.toHandler(eh);
     }
@@ -44,7 +46,7 @@ public class TestSystem3986 {
         // Warning as information
         IRI3986 iri = IRI3986.createAny("HTTP://host/path");
         assertTrue(iri.hasViolations());
-        Consumer<String> x = (msg)-> { throw new MarkerException(); };
+        Consumer<String> x = (msg)-> { throw new MarkerException(msg); };
         ErrorHandler eh = ErrorHandler.create(x, null);
         iri.toHandler(eh);
     }

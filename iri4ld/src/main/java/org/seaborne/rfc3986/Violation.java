@@ -18,19 +18,34 @@
 
 package org.seaborne.rfc3986;
 
-public class Violation {
-    public final String iriStr;
-    public final MessageCategory category;
-    public final String message;
-
-    Violation(String iriStr, MessageCategory category, String message) {
-        this.iriStr = iriStr;
-        this.category = category;
-        this.message = message;
-    }
-
+public record Violation (String iriStr, URIScheme scheme, Issue issue, String message) {
     @Override
     public String toString() {
-        return iriStr+" : "+category+" "+message;
+        return iriStr + " : " + scheme.getPrefix() + " " + message;
     }
 }
+
+// In case we go back to Java11...
+//class Violation {
+//    private final String iriStr;
+//    private final URIScheme scheme;
+//    private final Issue issue;
+//    private final String message;
+//
+//    Violation2(String iriStr, URIScheme scheme, Issue violation, String message) {
+//        this.iriStr = iriStr;
+//        this.scheme = scheme;
+//        this.violation = null;
+//        this.message = message;
+//    }
+//
+//    @Override
+//    public String toString() {
+//        return iriStr + " : " + message;
+//    }
+//
+//    public String getIriStr()     { return iriStr; }
+//    public URIScheme getScheme()  { return scheme; }
+//    public Issue getIssue()       { return violation; }
+//    public String getMessage()    { return message; }
+//}
