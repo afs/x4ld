@@ -18,8 +18,6 @@
 
 package org.seaborne.rfc3986;
 
-import java.util.Locale;
-
 /**
  * URI scheme
  * <ul>
@@ -48,10 +46,13 @@ public enum URIScheme {
     public static URIScheme get(String name) {
         if ( name == null )
             return null;
-        String nameLC = name.toLowerCase(Locale.ROOT);
-        if ( nameLC.endsWith(":") )
-            nameLC = nameLC.substring(0, nameLC.length()-1);
-        return URIScheme.valueOf(URIScheme.class, nameLC);
+        if ( name.endsWith(":") )
+            name = name.substring(0, name.length()-1);
+        for ( URIScheme scheme : URIScheme.values() ) {
+            if ( scheme.getName().equalsIgnoreCase(name) )
+                return scheme;
+        }
+        return null;
     }
 
     private URIScheme(String name) {

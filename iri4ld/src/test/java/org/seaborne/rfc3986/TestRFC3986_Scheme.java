@@ -18,16 +18,13 @@
 
 package org.seaborne.rfc3986;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.util.function.Consumer;
 
-import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.seaborne.rfc3986.SystemIRI3986.Compliance;
 
 /**
  * Scheme specific tests
@@ -37,13 +34,6 @@ import org.seaborne.rfc3986.SystemIRI3986.Compliance;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestRFC3986_Scheme {
-    @Before public void setup() {
-        SystemIRI3986.strictMode("all", Compliance.STRICT);
-    }
-
-    @AfterClass public static void reset() {
-        SystemIRI3986.strictMode("all", Compliance.STRICT);
-    }
 
     // HTTP scheme specific rules.
     @Test public void parse_http_01()   { badSpecific("http:///file/name.txt"); }

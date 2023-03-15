@@ -23,13 +23,9 @@ import static org.junit.Assert.*;
 import java.util.Locale;
 
 import org.apache.jena.iri.IRI;
-import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.seaborne.rfc3986.SystemIRI3986.Compliance;
-
 
 /**
  * General parsing of URIs, not scheme specific rules.
@@ -38,16 +34,8 @@ import org.seaborne.rfc3986.SystemIRI3986.Compliance;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestRFC3986 {
+    // Detailed testing IPv4 parsing is in {@link TestParseIPv4Address}
     // Detailed testing IPv6 parsing is in {@link TestParseIPv6Address}
-    // Assumes full authority parsing and not scheme-specific checks.
-
-    @Before public void setup() {
-        SystemIRI3986.strictMode("all", Compliance.STRICT);
-    }
-
-    @AfterClass public static void reset() {
-        SystemIRI3986.strictMode("all", Compliance.STRICT);
-    }
 
     // ---- Compare to jena-iri
     @Test public void parse_00() { good("http://host"); }

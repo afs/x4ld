@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -152,8 +151,7 @@ public class IRI3986 implements IRI {
      * IRI or exception".
      */
     public void toHandler(ErrorHandler errorHandler) {
-        Function<Issue, Severity> severityFunction = issue -> Violations.getSeverity(issue);
-        toHandler(severityFunction, errorHandler);
+        toHandler(Violations.severities(), errorHandler);
     }
 
     /**
@@ -164,11 +162,9 @@ public class IRI3986 implements IRI {
      * The error handler may throw an exception to give an operation that is "good
      * IRI or exception".
      */
-    public void toHandler(Function<Issue, Severity> severityFunction, ErrorHandler errorHandler) {
+    public void toHandler(SeverityMap severityMap, ErrorHandler errorHandler) {
         forEachViolation((Violation report) -> {
-            Severity severity = severityFunction.apply(report.issue());
-            if ( severity == null )
-                severity = Severity.INVALID;
+            Severity severity = severityMap.getOrDefault(report.issue(), Severity.INVALID);
             switch (severity) {
                 case WARNING :
                     errorHandler.warning(report.message());

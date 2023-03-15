@@ -21,45 +21,45 @@ package org.seaborne.rfc3986;
 /** Setup and configuration of the IRI3986 parser package. */
 public class SystemIRI3986 {
 
-    public enum Compliance { STRICT, NOT_STRICT }
-
-    /* package*/ static Compliance Compliance_HTTPx_SCHEME      = Compliance.STRICT;
-    /* package*/ static Compliance Compliance_URN_SCHEME        = Compliance.STRICT;
-    /* package*/ static Compliance Compliance_FILE_SCHEME       = Compliance.STRICT;
-
-    public static void strictMode(String scheme, Compliance compliance) {
-        if ( "all".equals(scheme) ) {
-            Compliance_HTTPx_SCHEME      = compliance;
-            Compliance_URN_SCHEME        = compliance;
-            Compliance_FILE_SCHEME       = compliance;
-            return;
-        }
-
-        switch (scheme) {
-            case "http" :
-                Compliance_HTTPx_SCHEME = compliance;
-                break;
-            case "urn" :
-                Compliance_URN_SCHEME = compliance;
-                break;
-            case "file" :
-                Compliance_FILE_SCHEME = compliance;
-                break;
-        }
-    }
-
-    public static Compliance getStrictMode(String scheme) {
-        switch (scheme) {
-            case "http" :
-                return SystemIRI3986.Compliance_HTTPx_SCHEME;
-            case "urn" :
-                return SystemIRI3986.Compliance_URN_SCHEME;
-            case "file" :
-                return SystemIRI3986.Compliance_FILE_SCHEME;
-            default:
-                return SystemIRI3986.Compliance.NOT_STRICT;
-        }
-    }
+//    public enum Compliance { STRICT, NOT_STRICT }
+//
+//    /* package*/ static Compliance Compliance_HTTPx_SCHEME      = Compliance.STRICT;
+//    /* package*/ static Compliance Compliance_URN_SCHEME        = Compliance.STRICT;
+//    /* package*/ static Compliance Compliance_FILE_SCHEME       = Compliance.STRICT;
+//
+//    public static void strictMode(String scheme, Compliance compliance) {
+//        if ( "all".equals(scheme) ) {
+//            Compliance_HTTPx_SCHEME      = compliance;
+//            Compliance_URN_SCHEME        = compliance;
+//            Compliance_FILE_SCHEME       = compliance;
+//            return;
+//        }
+//
+//        switch (scheme) {
+//            case "http" :
+//                Compliance_HTTPx_SCHEME = compliance;
+//                break;
+//            case "urn" :
+//                Compliance_URN_SCHEME = compliance;
+//                break;
+//            case "file" :
+//                Compliance_FILE_SCHEME = compliance;
+//                break;
+//        }
+//    }
+//
+//    public static Compliance getStrictMode(String scheme) {
+//        switch (scheme) {
+//            case "http" :
+//                return SystemIRI3986.Compliance_HTTPx_SCHEME;
+//            case "urn" :
+//                return SystemIRI3986.Compliance_URN_SCHEME;
+//            case "file" :
+//                return SystemIRI3986.Compliance_FILE_SCHEME;
+//            default:
+//                return SystemIRI3986.Compliance.NOT_STRICT;
+//        }
+//    }
 
     /** System default : throw exception on errors, silent about warnings. */
     private static final ErrorHandler errorHandlerSystemDefault =
