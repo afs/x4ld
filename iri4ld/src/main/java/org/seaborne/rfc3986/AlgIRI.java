@@ -22,8 +22,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /** Algorithms for IRIs */
-public
-class AlgIRI {
+public class AlgIRI {
 
     /** Resolve an IRI against a base.*/
     public static IRI3986 resolve(IRI base, IRI reference) {
@@ -33,7 +32,7 @@ class AlgIRI {
     }
 
     /** 5.2.2.  Transform References */
-    static IRI3986 transformReferences(IRI reference, IRI base) {
+    private static IRI3986 transformReferences(IRI reference, IRI base) {
         // Note the argument order is reverse from "resolve(base, relative)"
         // to be more like RFC 3986.
         String t_scheme = null;
@@ -228,12 +227,15 @@ class AlgIRI {
 
     /**
      * Calculate a relative IRI for a (base, target) pair.
-     * Resturn null if none generated.
+     * Returns null if none generated.
      * The base IRI must not have query string.
      */
     public static IRI3986 relativize(IRI base, IRI iri) {
         Objects.requireNonNull(iri);
-        if ( ! base.hasScheme() || base.hasQuery() )
+        if ( ! base.hasScheme() )
+            return null;
+        if ( base.hasQuery() )
+            // Don't support relativize if the base has a query string.
             return null;
         if ( ! iri.hasScheme() || !iri.hasAuthority() )
             return null;
@@ -260,9 +262,6 @@ class AlgIRI {
         IRI3986 relIRI = IRI3986.build(null, null, relPath, iri.query(), iri.fragment());
         return relIRI;
     }
-
-//    enum Relativization { PARENT };
-//    private static EnumSet<Relativization> flags = EnumSet.of(Relativization.PARENT);
 
     /**
      * Calculate a relative path so that resolve("base", relative path) = "path".
@@ -362,9 +361,7 @@ class AlgIRI {
         return null;
     }
 
-    /**
-     *  Ensure the relative path satisfies segment-no-nc in it's first segment.
-     */
+    /** Ensure the relative path satisfies segment-no-nc in it's first segment. */
     public static String safeInitalSegment(String relPath) {
         // segment-no-nc handling.
         // Check: Does the initial segment have ':' in it? Test: A ':' before first '/'
@@ -379,42 +376,4 @@ class AlgIRI {
             relPath = "./"+relPath;
         return relPath;
     }
-
-    // Old verision of relativePath. No parent.
-//  /**
-//   * Calculate a relative path so that resolve("base", relative path) = "path". This is
-//   * limited to the case where basePath is a prefix of path segments for the path
-//   * to be made relative.
-//   * <p>
-//   * If basePath == path, return "".
-//   * <p>
-//   * It is "same document", "child" relative, and does not
-//   * return not "network" ("//host/a/c" or "/a/c" for same schema and host ) or
-//   * parent ("../a/b/c") relative IRIs.
-//   * <p>
-//   */
-//  private static String relativePath(String basePath, String path) {
-//      if ( basePath.equals(path) )
-//          return "";
-//      int idx = basePath.lastIndexOf('/');
-//      if ( idx < 0 )
-//          return null;
-//      // Include the "/"
-//      String basePrefix = basePath.substring(0,idx);
-//      if ( ! path.startsWith(basePrefix) )
-//          return null;
-//      String relPath = path.substring(idx+1);
-//
-//      // Initial segment has ':' ? A ':' before first '/'
-//      int rColon = relPath.indexOf(':');
-//      if ( rColon < 0 )
-//          return relPath;
-//      int rPathSep = relPath.indexOf('/');
-//      if ( rPathSep < 0 || rColon < rPathSep )
-//          // and so rPathSep != 0.
-//          relPath = "./"+relPath;
-//      return relPath;
-//  }
-
-
 }
