@@ -58,38 +58,44 @@ public class Violations {
     private static SeverityMap systemSettings() {
         Map<Issue, Severity> severityMap = new HashMap<>();
         SeverityMap.setSeverity(severityMap, Issue.ParseError,                        Severity.INVALID);
+
         // General
         SeverityMap.setSeverity(severityMap, Issue.iri_percent_not_uppercase,         Severity.WARNING);
         SeverityMap.setSeverity(severityMap, Issue.iri_host_not_lowercase,            Severity.WARNING);
+
         // Scheme
         SeverityMap.setSeverity(severityMap, Issue.iri_scheme_name_is_not_lowercase,  Severity.WARNING);
         SeverityMap.setSeverity(severityMap, Issue.iri_scheme_expected,               Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.iri_scheme_unexpected,             Severity.ERROR);
+
         // http/https
         SeverityMap.setSeverity(severityMap, Issue.http_no_host,                      Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.http_empty_host,                   Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.http_empty_port,                   Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.http_port_not_advised,             Severity.WARNING);
-
         SeverityMap.setSeverity(severityMap, Issue.http_userinfo,                     Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.http_password,                     Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.http_omit_well_known_port,         Severity.ERROR);
+
         // urn:uuid and uuid
         SeverityMap.setSeverity(severityMap, Issue.urn_uuid_bad_pattern,              Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.uuid_bad_pattern,                  Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.uuid_has_query,                    Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.uuid_has_fragment,                 Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.uuid_not_lowercase,                Severity.ERROR);
-        // urn
+
+        // urn (not UUID)
         SeverityMap.setSeverity(severityMap, Issue.urn_bad_pattern,                   Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.urn_nid,                           Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.urn_nss,                           Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.urn_bad_query,                     Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.urn_bad_fragment,                  Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.urn_non_ascii_character,           Severity.ERROR);
+
         // file
         SeverityMap.setSeverity(severityMap, Issue.file_bad_form,                     Severity.WARNING);
         SeverityMap.setSeverity(severityMap, Issue.file_relative_path,                Severity.WARNING);
+
         // did
         SeverityMap.setSeverity(severityMap, Issue.did_bad_syntax,                    Severity.ERROR);
 
