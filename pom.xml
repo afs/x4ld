@@ -50,7 +50,7 @@
     <ver.log4j2>2.20.0</ver.log4j2>
     <ver.commons-codec>1.15</ver.commons-codec>
     <!-- Testing only -->
-    <ver.jena>4.7.0</ver.jena>  
+    <ver.jena>4.8.0</ver.jena>  
   </properties>
 
   <modules>
