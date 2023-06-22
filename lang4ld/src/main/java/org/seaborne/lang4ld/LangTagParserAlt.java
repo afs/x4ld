@@ -153,6 +153,8 @@ public class LangTagParserAlt {
     /*
      * Having broken the string up, use the size rules
      * to place them into the right places.
+     * This does mean subtags can be out of order, e.g. language-region-script
+     * should be language-script-region.
      */
     private static String[] parse2(List<String> strings) {
         if ( strings.size() == 0 ) {
@@ -212,7 +214,7 @@ public class LangTagParserAlt {
         }
 
         // variant  = 5*8alphanum  or (DIGIT 3alphanum)
-        if ( str.length() >= 4 && str.length() <= 8 ) {
+        if ( str.length() >= 5 && str.length() <= 8 ) {
             langTag[idxVariant] = str;
             idx++;
             if ( idx >= strings.size() )

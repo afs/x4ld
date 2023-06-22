@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+
+H="$HOME/ASF/x4ld/lang4ld"
+
+CMD=org.seaborne.lang4ld.cmd.CmdLangTag
+
+java -cp $H/target/classes $CMD "$@"
