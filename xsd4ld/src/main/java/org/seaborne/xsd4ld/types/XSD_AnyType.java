@@ -17,14 +17,14 @@
 
 package org.seaborne.xsd4ld.types;
 
-import org.seaborne.xsd4ld.ValueClass;
+import org.seaborne.xsd4ld.ValueSpace;
 import org.seaborne.xsd4ld.XSDConst;
 import org.seaborne.xsd4ld.XSDDatatype;
 
 public class XSD_AnyType extends XSDDatatype {
 
     public XSD_AnyType() {
-        super(XSDConst.xsd_anyType, null, ValueClass.ANY, null);
+        super(XSDConst.xsd_anyType, null, ValueSpace.ANY, null);
     }
 
     @Override

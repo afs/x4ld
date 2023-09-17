@@ -22,7 +22,7 @@ package org.seaborne.xsd4ld;
  *  This is not directly related to derived types.
  *  Code will need to know that INTEGER + DOUBLE is DOUBLE.
  */
-public enum ValueClass {
+public enum ValueSpace {
     DECIMAL, INTEGER, DOUBLE, FLOAT, 
     STRING, BOOLEAN,
     DATETIME, DURATION,

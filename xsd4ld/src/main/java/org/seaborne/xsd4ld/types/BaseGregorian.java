@@ -20,7 +20,7 @@ package org.seaborne.xsd4ld.types;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.seaborne.xsd4ld.ValueClass;
+import org.seaborne.xsd4ld.ValueSpace;
 import org.seaborne.xsd4ld.XSDConst;
 import org.seaborne.xsd4ld.XSDDatatype;
 import org.seaborne.xsd4ld.XSDTypeRegistry;
@@ -41,7 +41,7 @@ abstract class BaseGregorian extends XSDDatatype  {
     }
 
     private BaseGregorian(String shortName, String derivedFrom, Parser parser) {
-        super(shortName, derivedFrom, ValueClass.DATETIME, XSDTypeRegistry.getRegex(shortName));
+        super(shortName, derivedFrom, ValueSpace.DATETIME, XSDTypeRegistry.getRegex(shortName));
         this.parser = parser;
     }
 

@@ -17,13 +17,13 @@
 
 package org.seaborne.xsd4ld.types;
 
-import org.seaborne.xsd4ld.ValueClass;
+import org.seaborne.xsd4ld.ValueSpace;
 import org.seaborne.xsd4ld.XSDConst;
 
 public class XSD_Double extends BaseDoubleFloat {
 
     public XSD_Double() {
-        super(XSDConst.xsd_double, ValueClass.DOUBLE);
+        super(XSDConst.xsd_double, ValueSpace.DOUBLE);
     }
 
     @Override

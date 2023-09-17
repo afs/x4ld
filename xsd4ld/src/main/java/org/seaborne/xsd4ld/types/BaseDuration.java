@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 import javax.xml.datatype.Duration;
 
-import org.seaborne.xsd4ld.ValueClass;
+import org.seaborne.xsd4ld.ValueSpace;
 import org.seaborne.xsd4ld.XSDDatatype;
 
 /** Durations */
@@ -29,7 +29,7 @@ abstract class BaseDuration extends XSDDatatype {
     // java.time.Duration only supports day-time durations.
 
     protected BaseDuration(String shortName, String derivedFrom, Pattern regex) {
-        super(shortName, derivedFrom, ValueClass.DURATION, regex);
+        super(shortName, derivedFrom, ValueSpace.DURATION, regex);
     }
 
     @Override

@@ -17,7 +17,7 @@
 
 package org.seaborne.xsd4ld.types;
 
-import org.seaborne.xsd4ld.ValueClass;
+import org.seaborne.xsd4ld.ValueSpace;
 import org.seaborne.xsd4ld.XSDConst;
 import org.seaborne.xsd4ld.XSDDatatype;
 
@@ -25,7 +25,7 @@ import org.seaborne.xsd4ld.XSDDatatype;
 public class XSD_Atomic extends XSDDatatype {
 
     public XSD_Atomic() {
-        super(XSDConst.xsd_atomic, XSDConst.xsd_simple, ValueClass.ANY, null);
+        super(XSDConst.xsd_atomic, XSDConst.xsd_simple, ValueSpace.ANY, null);
     }
 
     @Override

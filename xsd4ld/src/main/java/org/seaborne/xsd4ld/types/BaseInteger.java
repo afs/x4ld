@@ -19,7 +19,7 @@ package org.seaborne.xsd4ld.types;
 
 import java.math.BigInteger;
 
-import org.seaborne.xsd4ld.ValueClass;
+import org.seaborne.xsd4ld.ValueSpace;
 import org.seaborne.xsd4ld.XSDConst;
 import org.seaborne.xsd4ld.XSDDatatype;
 import org.seaborne.xsd4ld.XSDTypeRegistry;
@@ -30,7 +30,7 @@ abstract class BaseInteger extends XSDDatatype {
 
     protected BaseInteger(String shortName, String baseType,
                           BigInteger minValue, BigInteger maxValue) {
-        super(shortName, baseType, ValueClass.INTEGER, XSDTypeRegistry.getRegex(XSDConst.xsd_integer));
+        super(shortName, baseType, ValueSpace.INTEGER, XSDTypeRegistry.getRegex(XSDConst.xsd_integer));
         this.minValue = minValue;
         this.maxValue = maxValue;
     }

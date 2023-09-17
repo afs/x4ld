@@ -19,11 +19,11 @@ package org.seaborne.xsd4ld.types;
 
 import java.util.regex.Pattern;
 
-import org.seaborne.xsd4ld.ValueClass;
+import org.seaborne.xsd4ld.ValueSpace;
 import org.seaborne.xsd4ld.XSDDatatype;
 
 abstract class BaseDecimal extends XSDDatatype {
     protected BaseDecimal(String shortName, String baseType, Pattern regex) {
-        super(shortName, baseType, ValueClass.DECIMAL, regex);
+        super(shortName, baseType, ValueSpace.DECIMAL, regex);
     }
 }

@@ -19,14 +19,14 @@ package org.seaborne.xsd4ld.types;
 
 import static org.seaborne.xsd4ld.XSDConst.*;
 
-import org.seaborne.xsd4ld.ValueClass;
+import org.seaborne.xsd4ld.ValueSpace;
 import org.seaborne.xsd4ld.XSDDatatype;
 import org.seaborne.xsd4ld.XSDTypeRegistry;
 
 public class XSD_AnyURI extends XSDDatatype {
 
     public XSD_AnyURI() {
-        super(xsd_anyURI, xsd_atomic, ValueClass.ANY, XSDTypeRegistry.getRegex(xsd_anyURI));
+        super(xsd_anyURI, xsd_atomic, ValueSpace.ANY, XSDTypeRegistry.getRegex(xsd_anyURI));
     }
 
     @Override

@@ -17,7 +17,7 @@
 
 package org.seaborne.xsd4ld.types;
 
-import org.seaborne.xsd4ld.ValueClass;
+import org.seaborne.xsd4ld.ValueSpace;
 import org.seaborne.xsd4ld.XSDConst;
 import org.seaborne.xsd4ld.XSDDatatype;
 import org.seaborne.xsd4ld.XSDTypeRegistry;
@@ -25,7 +25,7 @@ import org.seaborne.xsd4ld.XSDTypeRegistry;
 /** Commonality for XSD_Double and XSD_Float */
 abstract class BaseDoubleFloat extends XSDDatatype {
 
-    public BaseDoubleFloat(String shortName, ValueClass valueClass) {
+    public BaseDoubleFloat(String shortName, ValueSpace valueClass) {
         super(shortName, XSDConst.xsd_atomic, valueClass, XSDTypeRegistry.getRegex(shortName));
     }
 

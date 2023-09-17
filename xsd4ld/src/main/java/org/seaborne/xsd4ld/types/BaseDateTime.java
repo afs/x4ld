@@ -24,7 +24,7 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAccessor;
 
-import org.seaborne.xsd4ld.ValueClass;
+import org.seaborne.xsd4ld.ValueSpace;
 import org.seaborne.xsd4ld.XSDConst;
 import org.seaborne.xsd4ld.XSDDatatype;
 import org.seaborne.xsd4ld.XSDTypeRegistry;
@@ -44,7 +44,7 @@ abstract class BaseDateTime extends XSDDatatype  {
     }
 
     public BaseDateTime(String shortName, String derivedFrom, Parser parser) {
-        super(shortName, derivedFrom, ValueClass.DATETIME, XSDTypeRegistry.getRegex(shortName));
+        super(shortName, derivedFrom, ValueSpace.DATETIME, XSDTypeRegistry.getRegex(shortName));
         this.parser = parser;
     }
 

@@ -17,13 +17,13 @@
 
 package org.seaborne.xsd4ld.types;
 
-import org.seaborne.xsd4ld.ValueClass;
+import org.seaborne.xsd4ld.ValueSpace;
 import org.seaborne.xsd4ld.XSDDatatype;
 
 abstract class BaseString extends XSDDatatype {
 
     public BaseString(String shortName, String baseType) {
-        super(shortName, baseType, ValueClass.STRING, null);
+        super(shortName, baseType, ValueSpace.STRING, null);
     }
 
     // Extra validate.

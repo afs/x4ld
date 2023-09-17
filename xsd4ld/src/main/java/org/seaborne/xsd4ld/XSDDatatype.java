@@ -29,9 +29,9 @@ public abstract class XSDDatatype {
     protected final String uri;
     protected final Pattern regex;
     protected final String derivedFrom;
-    protected final ValueClass valueClass;
+    protected final ValueSpace valueClass;
 
-    protected XSDDatatype(String shortName, String derivedFrom, ValueClass valueClass, Pattern regex) {
+    protected XSDDatatype(String shortName, String derivedFrom, ValueSpace valueClass, Pattern regex) {
         this.shortName = shortName;
         this.uri = XSDns+shortName;
         this.derivedFrom = derivedFrom;
