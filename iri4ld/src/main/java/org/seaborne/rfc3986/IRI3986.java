@@ -1621,9 +1621,6 @@ public class IRI3986 implements IRI {
 
     /**
      * Checks for "urn:" and "urn:uuid:"
-     *
-     * @param errorHandler
-     * @param schemeName (without ":")
      */
     private void checkUUID() {
         checkSchemeName(URIScheme.URN_UUID);
@@ -1667,10 +1664,6 @@ public class IRI3986 implements IRI {
             schemeReport(this, Issue.uuid_bad_pattern, scheme, "Not a valid UUID string: " + uuidStr);
     }
 
-    /**
-     * @param errorHandler
-     * @see ParseDID
-     */
     private void checkDID() {
         checkSchemeName(DID);
         try {
@@ -1682,8 +1675,6 @@ public class IRI3986 implements IRI {
 
     /**
      * URI scheme "example:" from RFC 7595
-     *
-     * @param errorHandler
      */
     private void checkExample() {
         checkSchemeName(EXAMPLE);
