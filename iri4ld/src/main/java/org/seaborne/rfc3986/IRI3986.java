@@ -1516,11 +1516,22 @@ public class IRI3986 implements IRI {
     // "urn", ASCII, min 2 char NID min two char NSS (urn:NID:NSS)
     // Query string starts ?+ or ?=
 
-    /* namestring = assigned-name [ rq-components ] [ "#" f-component ] assigned-name
-     * = "urn" ":" NID ":" NSS NID = (alphanum) 0*30(ldh) (alphanum) ldh = alphanum /
-     * "-" NSS = pchar *(pchar / "/") rq-components = [ "?+" r-component ] [ "?="
-     * q-component ] r-component = pchar *( pchar / "/" / "?" ) q-component = pchar
-     * *( pchar / "/" / "?" ) f-component = fragment */
+    /* @formatter:off
+     *
+     * namestring    = assigned-name
+     *                  [ rq-components ]
+     *                  [ "#" f-component ]
+     * assigned-name = "urn" ":" NID ":" NSS
+     * NID           = (alphanum) 0*30(ldh) (alphanum)
+     * ldh           = alphanum / "-"
+     * NSS           = pchar *(pchar / "/")
+     * rq-components = [ "?+" r-component ]
+     *                 [ "?=" q-component ]
+     * r-component   = pchar *( pchar / "/" / "?" )
+     * q-component   = pchar *( pchar / "/" / "?" )
+     * f-component   = fragment
+     * @formatter:on
+     */
     // Without specifically testing for rq-components and "#" f-component
     // Strict - requires 2 char NID and one char NSS.
     private static Pattern URN_PATTERN_ASSIGNED_NAME_STRICT = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,30}[a-zA-Z0-9]:.+");
@@ -1535,6 +1546,8 @@ public class IRI3986 implements IRI {
     private static Pattern URN_PATTERN_BAD_NID_2 = Pattern.compile("^urn:X-:");
 
     /**
+     * <a href="https://datatracker.ietf.org/doc/html/rfc8141">RFC 8141</a>.
+     *
      * Check "urn:". Additional check for "urn:uuid:" available in
      * {@link #checkURN_UUID(String)}.
      */
@@ -1576,6 +1589,8 @@ public class IRI3986 implements IRI {
     }
 
     /**
+     * <a href="https://datatracker.ietf.org/doc/html/rfc8089">RFC 8089</a>.
+     *
      * Check "file:"
      */
     private void checkFILE() {
@@ -1601,8 +1616,9 @@ public class IRI3986 implements IRI {
             schemeReport(this, Issue.file_relative_path, URIScheme.FILE, "file: URLs are of the form file:///path/...");
     }
 
-    /**
+    /*
      * Both "urn:uuid:" and the unofficial "uuid:"
+     * URN r-component, q-component and f-component not allowed.
      */
     private static Pattern UUID_PATTERN_LC = Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
     private static Pattern UUID_PATTERN_UC = Pattern.compile("^(?:urn:uuid|uuid):[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$");
@@ -1610,6 +1626,9 @@ public class IRI3986 implements IRI {
     private static Pattern UUID_PATTERN_AnyCase = Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
                                                                   Pattern.CASE_INSENSITIVE);
 
+    /**
+     * <a href="https://datatracker.ietf.org/doc/html/rfc4122">RFC4122</a>
+     */
     private void checkURN_UUID() {
         checkSchemeName(URIScheme.URN_UUID);
         boolean matches = UUID_PATTERN_LC.matcher(iriStr).matches();
