@@ -26,6 +26,12 @@ import java.util.function.Consumer;
  * an exception. Errors and warnings may throw an exception to terminate
  * processing or may return after, for example, logging a message. The exact
  * policy is determined the error handler itself.
+ * <p>
+ * IRI parsing does not throw errors except for bad syntax.
+ * Scheme specific issues are "violations" carried by the {@link IRI3986} object
+ * and accessed with {@link IRI3986#forEachViolation}.
+ * <p>
+ * Use with {@code SystemIRI3986.toHandler}.
  */
 @FunctionalInterface
 public interface ErrorHandler

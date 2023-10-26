@@ -111,27 +111,27 @@ public class TestRelative3 {
         IRI3986 base = IRI3986.create(iriStr1);
         IRI3986 target = IRI3986.create(iriStr2);
         {
-            IRI3986 r = AlgIRI.relativize(base, target);
+            IRI3986 r = AlgResolveIRI.relativize(base, target);
             executeTest("all", dftFlags, base, target, r);
         }{
             int flag = IRIRelativize.NETWORK;
-            IRI3986 r = AlgIRI2.relativeScheme(base, target);
+            IRI3986 r = AlgRelativizeIRI.relativeScheme(base, target);
             executeTest("relativeScheme", flag, base, target, r);
         }{
             int flag = IRIRelativize.ABSOLUTE;
-            IRI3986 r = AlgIRI2.relativeResource(base, target);
+            IRI3986 r = AlgRelativizeIRI.relativeResource(base, target);
             executeTest("relativeResource", flag, base, target, r);
         }{
             int flag = IRIRelativize.CHILD;
-            IRI3986 r = AlgIRI2.relativePath(base, target);
+            IRI3986 r = AlgRelativizeIRI.relativePath(base, target);
             executeTest("relativePath", flag, base, target, r);
         }{
             int flag = IRIRelativize.PARENT;
-            IRI3986 r = AlgIRI2.relativeParentPath(base, target);
+            IRI3986 r = AlgRelativizeIRI.relativeParentPath(base, target);
             executeTest("relativeParentPath", flag, base, target, r);
         }{
             int flag = IRIRelativize.SAMEDOCUMENT;;
-            IRI3986 r = AlgIRI2.relativeSameDocument(base, target);
+            IRI3986 r = AlgRelativizeIRI.relativeSameDocument(base, target);
             executeTest("relativeSameDocument", flag, base, target, r);
         }
     }
@@ -158,7 +158,7 @@ public class TestRelative3 {
         // Known variance between iri4ld and jena-iri
         boolean variance = false;
 
-        if ( ! AlgIRI2.legacyCompatibility ) {
+        if ( ! AlgRelativizeIRI.legacyCompatibility ) {
             // Legacy jena-iri does not generate <> for the path when base path == target path.
             // e.g. jena-iri does not generate <#frag> for a CHILD when paths match and there is no query string
             // Covered by compatibility mode

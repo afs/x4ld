@@ -62,7 +62,6 @@ public class SeverityMap {
         map.put(issue, severity);
     }
 
-
     /** Utility to verify that a severity map is complete. */
     public static void checkComplete(Map<Issue, Severity> levels) {
         Set<Issue> keys = levels.keySet();

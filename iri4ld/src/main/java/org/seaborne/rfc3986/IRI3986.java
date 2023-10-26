@@ -21,8 +21,8 @@ package org.seaborne.rfc3986;
 import static java.lang.String.format;
 import static org.seaborne.rfc3986.Chars3986.EOF;
 import static org.seaborne.rfc3986.Chars3986.displayChar;
-import static org.seaborne.rfc3986.ErrorIRI3986.formatMsg;
-import static org.seaborne.rfc3986.ErrorIRI3986.parseError;
+import static org.seaborne.rfc3986.ParseErrorIRI3986.formatMsg;
+import static org.seaborne.rfc3986.ParseErrorIRI3986.parseError;
 import static org.seaborne.rfc3986.URIScheme.*;
 
 import java.text.Normalizer;
@@ -137,95 +137,11 @@ public class IRI3986 implements IRI {
      * {@link #forEachViolation}.
      * <p>
      * This operation checks the resulting IRI conforms to URI scheme specific rules
-     * only if the synatx as an IRi is valid.
+     * only if the synatx as an IRI is valid.
      */
     public static IRI3986 createAny(String iristr) {
         IRI3986 iri = newAndCheck(iristr);
         return iri;
-    }
-
-    /**
-     * Send any violations to an {@link ErrorHandler}.
-     * <p>
-     * The error handler may throw an exception to give an operation that is "good
-     * IRI or exception".
-     */
-    public void toHandler(ErrorHandler errorHandler) {
-        toHandler(Violations.severities(), errorHandler);
-    }
-
-    /**
-     * Determine the severity of each violation and send to an {@link ErrorHandler}.
-     * The severity is determined from the severity function, which should not return
-     * null.
-     * <p>
-     * The error handler may throw an exception to give an operation that is "good
-     * IRI or exception".
-     */
-    public void toHandler(SeverityMap severityMap, ErrorHandler errorHandler) {
-        forEachViolation((Violation report) -> {
-            Severity severity = severityMap.getOrDefault(report.issue(), Severity.INVALID);
-            switch (severity) {
-                case WARNING :
-                    errorHandler.warning(report.message());
-                    break;
-                case ERROR :
-                case INVALID :
-                    errorHandler.error(report.message());
-                    break;
-            }
-        });
-    }
-
-    /**
-     * Does this IRI have any scheme specific issues?
-     * <p>
-     * The normal way to create IRIs, {@link #create} throws an
-     * {@link IRIParseException}. Parse errors in IRI string are
-     * {@link IRIParseException}s (unless {@link #createAny} is used). In addition to
-     * parsing, IRIs are checked for some of the scheme-specific issues in the
-     * standards. See enum {@link Issue}.
-     * <ul>
-     * <li>{@code http:} IRi must not have an empty port (":" present but no port
-     * number)</li>
-     * <li>URN with name space (NID) "uuid" must have a namsespace specific part
-     * matchign the UUID string pattern.
-     * <li>URNs Must have at least two characters on the NID.
-     * <li>{@code file:} IRIs must start "///".
-     * </ul>
-     * These are recorded in the IRI object; they do not automatically cause
-     * exceptions. See {@link Violations} for mapping issues to warnings and errors.
-     */
-    public boolean hasViolations() {
-        return reports != null && !reports.isEmpty();
-    }
-
-    /**
-     * Cal a consumer function for any violations recorded for this IRI.
-     * <p>
-     * The normal way to create IRIs, {@link #create}, throws an
-     * {@link IRIParseException} if the IRI string does not match teh grammar of RFC
-     * 3986/3987 and other RFCs. In addition to parsing, IRIs are checked for
-     * scheme-specific issues in the standards. See enum {@link Issue} for the issues
-     * covered.
-     * <p>
-     * Issues are recorded as {@link Violations}.
-     * <ul>
-     * <li>{@code http:} IRI must not have an empty port (":" present but no port
-     * number)</li>
-     * <li>URNs Must have at least two characters on the NID.</li>
-     * <li>{@code file:} IRIs must start "///".</li>
-     * </ul>
-     * These are recorded in the IRI object; they do not automatically cause
-     * exceptions. See {@link Violations} for mapping issues to warnings and errors.
-     * <p>
-     * See {@link #createAny} for an operation to create a IRI that records parse
-     * exceptions are does not throw exception.
-     */
-    public void forEachViolation(Consumer<Violation> action) {
-        if ( reports == null )
-            return;
-        reports.forEach(action);
     }
 
     /**
@@ -335,6 +251,57 @@ public class IRI3986 implements IRI {
         if ( iriStr != null )
             return iriStr;
         return rebuild();
+    }
+
+    /**
+     * Does this IRI have any scheme specific issues?
+     * <p>
+     * The normal way to create IRIs, {@link #create} throws an
+     * {@link IRIParseException}. Parse errors in IRI string are
+     * {@link IRIParseException}s (unless {@link #createAny} is used). In addition to
+     * parsing, IRIs are checked for some of the scheme-specific issues in the
+     * standards. See enum {@link Issue}.
+     * <ul>
+     * <li>{@code http:} IRi must not have an empty port (":" present but no port
+     * number)</li>
+     * <li>URN with name space (NID) "uuid" must have a namsespace specific part
+     * matchign the UUID string pattern.
+     * <li>URNs Must have at least two characters on the NID.
+     * <li>{@code file:} IRIs must start "///".
+     * </ul>
+     * These are recorded in the IRI object; they do not automatically cause
+     * exceptions. See {@link Violations} for mapping issues to warnings and errors.
+     */
+    public boolean hasViolations() {
+        return reports != null && !reports.isEmpty();
+    }
+
+    /**
+     * Cal a consumer function for any violations recorded for this IRI.
+     * <p>
+     * The normal way to create IRIs, {@link #create}, throws an
+     * {@link IRIParseException} if the IRI string does not match teh grammar of RFC
+     * 3986/3987 and other RFCs. In addition to parsing, IRIs are checked for
+     * scheme-specific issues in the standards. See enum {@link Issue} for the issues
+     * covered.
+     * <p>
+     * Issues are recorded as {@link Violations}.
+     * <ul>
+     * <li>{@code http:} IRI must not have an empty port (":" present but no port
+     * number)</li>
+     * <li>URNs Must have at least two characters on the NID.</li>
+     * <li>{@code file:} IRIs must start "///".</li>
+     * </ul>
+     * These are recorded in the IRI object; they do not automatically cause
+     * exceptions. See {@link Violations} for mapping issues to warnings and errors.
+     * <p>
+     * See {@link #createAny} for an operation to create a IRI that records parse
+     * exceptions are does not throw exception.
+     */
+    public void forEachViolation(Consumer<Violation> action) {
+        if ( reports == null )
+            return;
+        reports.forEach(action);
     }
 
     /** Human-readable appearance. Use {@link #str()} to a string to use in code. */
@@ -638,7 +605,7 @@ public class IRI3986 implements IRI {
 // 6.2.2.3. Path Segment Normalization
 
         if ( path != null )
-            path = AlgIRI.remove_dot_segments(path);
+            path = AlgResolveIRI.remove_dot_segments(path);
         if ( path == null || path.isEmpty() )
             path = "/";
 
@@ -732,7 +699,7 @@ public class IRI3986 implements IRI {
      */
     public IRI3986 relativize(IRI iri) {
         // "this" is the base.
-        return AlgIRI.relativize(this, iri);
+        return AlgResolveIRI.relativize(this, iri);
     }
 
     /**
@@ -747,7 +714,7 @@ public class IRI3986 implements IRI {
         // if ( ! hasScheme()() ) {}
         // Base must have scheme. Be lax.
         /* 5.2.2. Transform References */
-        IRI3986 iri = AlgIRI.resolve(this, other);
+        IRI3986 iri = AlgResolveIRI.resolve(this, other);
         iri.schemeSpecificRulesInternal();
         return iri;
     }
@@ -872,9 +839,9 @@ public class IRI3986 implements IRI {
         Pattern pattern = RFC3986.rfc3986regex;
         Matcher m = pattern.matcher(iriStr);
         if ( !m.matches() )
-            throw new IRIParseException("iriStr does not match the regular expression for IRIs");
+            // Does not return.
+            throw parseError(iriStr, "String does not match the regular expression for IRIs");
         final int length = iriStr.length();
-
         final int schemeGroup = 2;
         final int authorityGroup = 4;
         final int pathGroup = 5;
@@ -984,7 +951,7 @@ public class IRI3986 implements IRI {
             else
                 label = "path";
             // System.err.printf("(x3=%d, length=%d)\n", x, length);
-            parseError(iriStr, "Bad character in " + label + " component: " + displayChar(charAt(x)));
+            throw parseError(iriStr, "Bad character in " + label + " component: " + displayChar(charAt(x)));
         }
         return this;
     }
@@ -1034,7 +1001,7 @@ public class IRI3986 implements IRI {
         // path-rootless.
         char ch = charAt(start);
         if ( ch == ':' )
-            parseError(iriStr, "A URI without a scheme can't start with a ':'");
+            throw parseError(iriStr, "A URI without a scheme can't start with a ':'");
         int p = maybeAuthority(start);
         return pathQueryFragment(p, false);
     }
@@ -1092,15 +1059,15 @@ public class IRI3986 implements IRI {
             } else if ( ch == '/' ) {
                 // Normal exit
                 if ( startIPv6 >= 0 && endIPv6 == -1 )
-                    parseError(iriStr, p + 1, "Bad IPv6 address - No closing ']'");
+                    throw parseError(iriStr, p + 1, "Bad IPv6 address - No closing ']'");
                 break;
             } else if ( ch == '@' ) {
                 if ( endUserInfo != -1 )
-                    parseError(iriStr, p + 1, "Bad authority segment - multiple '@'");
+                    throw parseError(iriStr, p + 1, "Bad authority segment - multiple '@'");
                 // Found userinfo end; reset counts and trackers.
                 // Check for IPv6 []
                 if ( startIPv6 != -1 || endIPv6 != -1 )
-                    parseError(iriStr, p + 1, "Bad authority segment - contains '[' or ']'");
+                    throw parseError(iriStr, p + 1, "Bad authority segment - contains '[' or ']'");
                 endUserInfo = p;
                 // Reset port colon tracking.
                 countColon = 0;
@@ -1108,14 +1075,14 @@ public class IRI3986 implements IRI {
             } else if ( ch == '[' ) {
                 // Still to check whether user authority
                 if ( startIPv6 >= 0 )
-                    parseError(iriStr, p + 1, "Bad IPv6 address - multiple '['");
+                    throw parseError(iriStr, p + 1, "Bad IPv6 address - multiple '['");
                 startIPv6 = p;
             } else if ( ch == ']' ) {
                 // Still to check whether user authority
                 if ( startIPv6 == -1 )
-                    parseError(iriStr, p + 1, "Bad IPv6 address - No '[' to match ']'");
+                    throw parseError(iriStr, p + 1, "Bad IPv6 address - No '[' to match ']'");
                 if ( endIPv6 >= 0 )
-                    parseError(iriStr, p + 1, "Bad IPv6 address - multiple ']'");
+                    throw parseError(iriStr, p + 1, "Bad IPv6 address - multiple ']'");
                 endIPv6 = p;
                 // Reset port colon tracking.
                 countColon = 0;
@@ -1134,7 +1101,7 @@ public class IRI3986 implements IRI {
 
         if ( startIPv6 != -1 ) {
             if ( endIPv6 == -1 )
-                parseError(iriStr, startIPv6, "Bad IPv6 address - missing ']'");
+                throw parseError(iriStr, startIPv6, "Bad IPv6 address - missing ']'");
             char ch1 = iriStr.charAt(startIPv6);
             char ch2 = iriStr.charAt(endIPv6);
             ParseIPv6Address.checkIPv6(iriStr, startIPv6, endIPv6 + 1);
@@ -1158,7 +1125,7 @@ public class IRI3986 implements IRI {
 
         // Check only one ":" in host.
         if ( countColon > 1 )
-            parseError(iriStr, -1, "Multiple ':' in host:port section");
+            throw parseError(iriStr, -1, "Multiple ':' in host:port section");
 
         if ( lastColon != -1 ) {
             host1 = lastColon;
@@ -1173,7 +1140,7 @@ public class IRI3986 implements IRI {
                 x++;
             }
             if ( x != port1 )
-                parseError(iriStr, -1, "Bad port");
+                throw parseError(iriStr, -1, "Bad port");
         } else
             host1 = endAuthority;
 
@@ -1242,7 +1209,7 @@ public class IRI3986 implements IRI {
             if ( charLen == 1 ) {
                 if ( !allowColon && ch == ':' ) {
                     // segment-nz-nc
-                    parseError(iriStr, p + 1, "':' in initial segment of a scheme-less IRI");
+                    throw parseError(iriStr, p + 1, "':' in initial segment of a scheme-less IRI");
                 }
                 p++;
                 continue;
@@ -1257,12 +1224,12 @@ public class IRI3986 implements IRI {
             // Maybe new one.
             if ( ch != '/' ) {
                 if ( ch == ' ' )
-                    parseError(iriStr, p + 1, "Space found in IRI");
+                    throw parseError(iriStr, p + 1, "Space found in IRI");
                 // ? or # else error
                 if ( ch == '?' || ch == '#' )
                     break;
                 // Not IPChar
-                parseError(iriStr, p + 1, format("Bad character in IRI path: %s (U+%04X)", Character.toString((int)ch), (int)ch));
+                throw parseError(iriStr, p + 1, format("Bad character in IRI path: %s (U+%04X)", Character.toString((int)ch), (int)ch));
             }
             allowColon = true;
             segStart = p + 1;
@@ -1360,14 +1327,12 @@ public class IRI3986 implements IRI {
 
     private boolean percentCheck(int idx, char ch1, char ch2) {
         if ( ch1 == EOF || ch2 == EOF ) {
-            parseError(iriStr, idx + 1, "Incomplete %-encoded character");
-            return false;
+            throw parseError(iriStr, idx + 1, "Incomplete %-encoded character");
         }
         // Any case.
         if ( Chars3986.isHexDigit(ch1) && Chars3986.isHexDigit(ch2) )
             return true;
-        parseError(iriStr, idx + 1, "Bad %-encoded character [" + displayChar(ch1) + " " + displayChar(ch2) + "]");
-        return false;
+        throw parseError(iriStr, idx + 1, "Bad %-encoded character [" + displayChar(ch1) + " " + displayChar(ch2) + "]");
     }
 
     // pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
@@ -1745,8 +1710,7 @@ public class IRI3986 implements IRI {
         Objects.requireNonNull(issue);
         if ( issue == Issue.ParseError ) {
             // Should not happen.
-            ErrorIRI3986.parseError(iri.str(), msg);
-            return;
+            throw parseError(iri.str(), msg);
         }
         addReport(iri, iri.str(), scheme, issue, msg);
     }

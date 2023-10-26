@@ -27,17 +27,6 @@ public class CmdIRI {
             System.exit(1);
         }
 
-        ErrorHandler errorHandler = new ErrorHandler() {
-            @Override
-            public void warning(String message) {
-                System.err.println("Scheme specific warning:");
-                System.err.println("    "+message);
-            }
-            @Override
-            public void error(String message) { throw new IRIParseException(message); }
-        };
-        SystemIRI3986.setErrorHandler(errorHandler);
-
         for (String iriStr : args ) {
             if ( iriStr.startsWith("<") && iriStr.endsWith(">") )
                 iriStr = iriStr.substring(1, iriStr.length()-1);
@@ -66,7 +55,7 @@ public class CmdIRI {
                 if ( iri.hasViolations() ) {
                     iri.forEachViolation(v->{
                         System.out.println();
-                        System.err.println("Scheme specific error:");
+                        System.err.println("Scheme specific warning:");
                         System.err.println("    "+v.message());
                     });
                 }

@@ -18,6 +18,8 @@
 
 package org.seaborne.rfc3986;
 
+import static org.seaborne.rfc3986.ParseErrorIRI3986.parseError;
+
 /** Characters and character classes */
 public class Chars3986 {
     // See Also RiotChars - SPARQL and Turtle parsing.
@@ -173,14 +175,11 @@ public class Chars3986 {
     }
 
     private static boolean percentCheck(int idx, char ch1, char ch2) {
-        if ( ch1 == EOF || ch2 == EOF ) {
-            parseError(idx+1, "Incomplete %-encoded character");
-            return false;
-        }
+        if ( ch1 == EOF || ch2 == EOF )
+            throw parseError(null, idx+1, "Incomplete %-encoded character");
         if ( isHexDigit(ch1) && isHexDigit(ch2) )
             return true;
-        parseError(idx+1, "Bad %-encoded character ["+displayChar(ch1)+" "+displayChar(ch2)+"]");
-        return false;
+        throw parseError(null, idx+1, "Bad %-encoded character ["+displayChar(ch1)+" "+displayChar(ch2)+"]");
     }
 
     /** String.charAt except with an EOF character, not an exception. */
@@ -212,10 +211,5 @@ public class Chars3986 {
         if ( range(ch, 'A', 'F' ) ) return ch-'A'+10;
         if ( range(ch, 'a', 'f' ) ) return ch-'a'+10;
         return -1;
-    }
-
-    private static void parseError(int posn, String s) {
-        // Choice of error handling.
-        ErrorIRI3986.parseError(null, posn, s);
     }
 }

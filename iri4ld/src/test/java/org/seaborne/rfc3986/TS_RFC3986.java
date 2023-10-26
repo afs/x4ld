@@ -37,7 +37,6 @@ import org.junit.runners.Suite;
     TestParseIPv6Address.class,
     TestParseDNS.class,
     TestParseDID.class,
-
     TestSystem3986.class
 } )
 

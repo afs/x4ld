@@ -38,7 +38,7 @@ public class TestSystem3986 {
         assertTrue(iri.hasViolations());
         Consumer<String> x = (msg)-> { throw new MarkerException(msg); };
         ErrorHandler eh = ErrorHandler.create(x, x);
-        iri.toHandler(eh);
+        SystemIRI3986.toHandler(iri, eh);
     }
 
     @Test
@@ -46,8 +46,9 @@ public class TestSystem3986 {
         // Warning as information
         IRI3986 iri = IRI3986.createAny("HTTP://host/path");
         assertTrue(iri.hasViolations());
+        // This should not be called - it is errors, not warnings.
         Consumer<String> x = (msg)-> { throw new MarkerException(msg); };
         ErrorHandler eh = ErrorHandler.create(x, null);
-        iri.toHandler(eh);
+        SystemIRI3986.toHandler(iri, eh);
     }
 }

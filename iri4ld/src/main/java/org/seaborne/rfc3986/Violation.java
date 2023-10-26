@@ -24,28 +24,3 @@ public record Violation (String iriStr, URIScheme scheme, Issue issue, String me
         return iriStr + " : " + scheme.getPrefix() + " " + message;
     }
 }
-
-// In case we go back to Java11...
-//class Violation {
-//    private final String iriStr;
-//    private final URIScheme scheme;
-//    private final Issue issue;
-//    private final String message;
-//
-//    Violation2(String iriStr, URIScheme scheme, Issue violation, String message) {
-//        this.iriStr = iriStr;
-//        this.scheme = scheme;
-//        this.violation = null;
-//        this.message = message;
-//    }
-//
-//    @Override
-//    public String toString() {
-//        return iriStr + " : " + message;
-//    }
-//
-//    public String getIriStr()     { return iriStr; }
-//    public URIScheme getScheme()  { return scheme; }
-//    public Issue getIssue()       { return violation; }
-//    public String getMessage()    { return message; }
-//}

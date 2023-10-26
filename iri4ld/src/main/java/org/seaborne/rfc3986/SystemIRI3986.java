@@ -21,46 +21,6 @@ package org.seaborne.rfc3986;
 /** Setup and configuration of the IRI3986 parser package. */
 public class SystemIRI3986 {
 
-//    public enum Compliance { STRICT, NOT_STRICT }
-//
-//    /* package*/ static Compliance Compliance_HTTPx_SCHEME      = Compliance.STRICT;
-//    /* package*/ static Compliance Compliance_URN_SCHEME        = Compliance.STRICT;
-//    /* package*/ static Compliance Compliance_FILE_SCHEME       = Compliance.STRICT;
-//
-//    public static void strictMode(String scheme, Compliance compliance) {
-//        if ( "all".equals(scheme) ) {
-//            Compliance_HTTPx_SCHEME      = compliance;
-//            Compliance_URN_SCHEME        = compliance;
-//            Compliance_FILE_SCHEME       = compliance;
-//            return;
-//        }
-//
-//        switch (scheme) {
-//            case "http" :
-//                Compliance_HTTPx_SCHEME = compliance;
-//                break;
-//            case "urn" :
-//                Compliance_URN_SCHEME = compliance;
-//                break;
-//            case "file" :
-//                Compliance_FILE_SCHEME = compliance;
-//                break;
-//        }
-//    }
-//
-//    public static Compliance getStrictMode(String scheme) {
-//        switch (scheme) {
-//            case "http" :
-//                return SystemIRI3986.Compliance_HTTPx_SCHEME;
-//            case "urn" :
-//                return SystemIRI3986.Compliance_URN_SCHEME;
-//            case "file" :
-//                return SystemIRI3986.Compliance_FILE_SCHEME;
-//            default:
-//                return SystemIRI3986.Compliance.NOT_STRICT;
-//        }
-//    }
-
     /** System default : throw exception on errors, silent about warnings. */
     private static final ErrorHandler errorHandlerSystemDefault =
             ErrorHandler.create(s -> { throw new IRIParseException(s); }, null);
@@ -77,5 +37,41 @@ public class SystemIRI3986 {
 
     public static ErrorHandler getErrorHandler() {
         return errorHandler;
+    }
+
+    /**
+     * Send any violations to an {@link ErrorHandler}.
+     * <p>
+     * The error handler may throw an exception to give an operation that is "good
+     * IRI or exception".
+     * <p>
+     * This call uses the system default {@link SeverityMap} from
+     * {@link Violations#severities()}.
+     */
+    public static void toHandler(IRI3986 iri, ErrorHandler errorHandler) {
+        toHandler(iri, Violations.severities(), errorHandler);
+    }
+
+    /**
+     * Determine the severity of each violation and send to an {@link ErrorHandler}.
+     * The severity is determined from the severity function, which should not return
+     * null.
+     * <p>
+     * The error handler may throw an exception to give an operation that is "good
+     * IRI or exception".
+     */
+    public static void toHandler(IRI3986 iri, SeverityMap severityMap, ErrorHandler errorHandler) {
+        iri.forEachViolation((Violation report) -> {
+            Severity severity = severityMap.getOrDefault(report.issue(), Severity.INVALID);
+            switch (severity) {
+                case WARNING :
+                    errorHandler.warning(report.message());
+                    break;
+                case ERROR :
+                case INVALID :
+                    errorHandler.error(report.message());
+                    break;
+            }
+        });
     }
 }

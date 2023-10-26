@@ -22,10 +22,10 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * More algotihms on IRI3986's.
- * The various forms of relative IRI.
+ * More algorithms on IRI3986's.
+ * The various forms of relativizing IRIs.
  */
-public class AlgIRI2 {
+public class AlgRelativizeIRI {
 
     // For compatibility with jena-iri ...
     // Case 1: relativePath: when same path, no query string, with fragment, would be "#frag" which is "same document" but jena-iri/CHILD is abc#frag.
@@ -33,18 +33,6 @@ public class AlgIRI2 {
     //    Strict, illegal because if there is a scheme, there must be //
     //private static final boolean legacyCompatibility = false;
     static boolean legacyCompatibility = false;
-
-    /**
-     * Convert an IRI to one suitable for a base else return null.
-     */
-    public static IRI3986 toBase(IRI3986 iri) {
-        if ( ! iri.hasScheme() )
-            return null;
-        if ( iri.hasQuery() )
-            return null;
-        return iri;
-        //return IRI3986.build(iri.scheme(), iri.authority(), iri.path(), null,  iri.fragment());
-    }
 
     /**
      * Calculate a "same scheme" relative URI, if possible.
@@ -196,7 +184,7 @@ public class AlgIRI2 {
         String relPath = targetPath.substring(basePrefix.length());
         if ( targetPathEndInSlash && relPath.isEmpty() )
             return ".";
-        relPath = AlgIRI.safeInitalSegment(relPath);
+        relPath = AlgResolveIRI.safeInitalSegment(relPath);
         return relPath;
     }
 
@@ -294,7 +282,7 @@ public class AlgIRI2 {
     }
 
     /** Validate for use as a base IRI. */
-    private static boolean validBase(IRI base) {
-        return base.hasScheme() && ! base.hasQuery();
+    /*package*/ static boolean validBase(IRI base) {
+        return AlgIRI.validBase(base);
     }
 }

@@ -19,31 +19,17 @@
 package org.seaborne.rfc3986;
 
 /**
- * Internal functions for the IRI3986 parser for errors and warnings.
- * This makes having a common easier.
+ * Handling parse errors.
+ * Parse errors must be exceptions (parsing stops).
  */
-/*package*/ class ErrorIRI3986 {
+/*package*/ class ParseErrorIRI3986 {
 
-    //  Parse error must be exceptions.
-    static void parseError(CharSequence source, int posn, String s) {
-        parseException(formatMsg(source, posn, s));
+    /*package*/ static IRIParseException parseError(CharSequence source, String s) {
+        return parseError(source, -1, s);
     }
 
-    static void parseError(CharSequence source, String s) {
-        parseError(source, -1, s);
-    }
-
-//    static void parseWarning(ErrorHandler eh, CharSequence source, int posn, String s) {
-//        warning(eh, formatMsg(source, posn, s));
-//    }
-//
-//    static void parseWarning(ErrorHandler eh, CharSequence source, String s) {
-//        parseWarning(eh, source, -1, s);
-//    }
-
-
-    /*package*/ static String formatMsg(CharSequence source, String s) {
-        return formatMsg(source, -1, s);
+    /*package*/ static IRIParseException parseError(CharSequence source, int posn, String s) {
+        return parseException(formatMsg(source, posn, s));
     }
 
     /*package*/ static String formatMsg(CharSequence source, int posn, String s) {
@@ -60,19 +46,7 @@ package org.seaborne.rfc3986;
         return sb.toString();
     }
 
-    private static void parseException(String s) {
-        throw new IRIParseException(s);
-    }
-
-    /*package*/ static void error(ErrorHandler eh, String s) {
-        errorHandler(eh).error(s);
-    }
-
-    /*package*/ static void warning(ErrorHandler eh, String s) {
-        errorHandler(eh).warning(s);
-    }
-
-    private static ErrorHandler errorHandler(ErrorHandler errorHandler) {
-        return  errorHandler != null ? errorHandler : SystemIRI3986.getErrorHandler();
+    private static IRIParseException parseException(String s) {
+        return new IRIParseException(s);
     }
 }
