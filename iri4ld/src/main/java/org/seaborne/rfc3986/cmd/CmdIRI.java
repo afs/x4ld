@@ -18,6 +18,8 @@
 
 package org.seaborne.rfc3986.cmd;
 
+import java.io.PrintStream;
+
 import org.seaborne.rfc3986.*;
 
 public class CmdIRI {
@@ -27,40 +29,52 @@ public class CmdIRI {
             System.exit(1);
         }
 
-        for (String iriStr : args ) {
-            if ( iriStr.startsWith("<") && iriStr.endsWith(">") )
-                iriStr = iriStr.substring(1, iriStr.length()-1);
+        boolean first = true;
+        PrintStream out = System.out;
+        // Errors and warnings.
+        PrintStream err = System.err;
+
+        for (String iriStrInput : args ) {
+            if ( iriStrInput.startsWith("<") && iriStrInput.endsWith(">") )
+                iriStrInput = iriStrInput.substring(1, iriStrInput.length()-1);
+            if ( !first ) {
+                first = false;
+                out.println();
+            }
+
+            String iriStr = iriStrInput;
             try {
                 IRI3986 iri = RFC3986.create(iriStr);
                 IRI3986 iri1 = iri.normalize();
 
-                System.out.println(iriStr);
-                System.out.println("      ==> "+iri) ;
-//                System.out.println("Absolute: "+iri.isAbsolute());
-//                System.out.println("Relative: "+iri.isRelative());
-//                System.out.println("Hierarchical: "+iri.isHierarchical());
-//                System.out.println("Rootless: "+iri.isRootless());
+                out.printf("Input: %s\n", iriStr);
+                out.printf("  Parsed:       %s\n", iri.rebuild()) ;
+                out.printf("  Absolute:     %s\n", iri.isAbsolute());
+                out.printf("  Relative:     %s\n", iri.isRelative());
+                out.printf("  Hierarchical: %s\n", iri.isHierarchical());
+                out.printf("  Rootless:     %s\n", iri.isRootless());
                 if ( ! iri.equals(iri1) )
-                    System.out.println("      ==> "+iri1) ;
-
-                System.out.printf("%s|%s|  ", "Scheme",     iri.scheme());
-                System.out.printf("%s|%s|  ", "Authority",  iri.authority());
-                System.out.printf("%s|%s|  ", "Host",       iri.host());
+                  out.printf("  Normalized:   %s\n", iri1) ;
+                out.printf("\n");
+                out.printf("%s|%s|  ", "Scheme",     iri.scheme());
+                out.printf("%s|%s|  ", "Authority",  iri.authority());
+                out.printf("%s|%s|  ", "Host",       iri.host());
                 if ( iri.hasPort() )
-                    System.out.printf("%s|%s|  ", "Port",       iri.port());
-                System.out.printf("%s|%s|  ", "Path",       iri.path());
-                System.out.printf("%s|%s|  ", "Query",      iri.query());
-                System.out.printf("%s|%s|", "Fragment",   iri.fragment());
-                System.out.println();
+                    out.printf("%s|%s|  ", "Port",       iri.port());
+                out.printf("%s|%s|  ", "Path",       iri.path());
+                out.printf("%s|%s|  ", "Query",      iri.query());
+                out.printf("%s|%s|", "Fragment",   iri.fragment());
+                out.println();
                 if ( iri.hasViolations() ) {
+                    out.println();
+                    out.println("Scheme specific warnings:");
                     iri.forEachViolation(v->{
-                        System.out.println();
-                        System.err.println("Scheme specific warning:");
-                        System.err.println("    "+v.message());
+                        out.print("   ");
+                        err.printf("%s\n", v.toString());
                     });
                 }
             } catch (IRIParseException ex) {
-                System.err.println(ex.getMessage());
+                System.err.printf("Error: %s\n", ex.getMessage());
             }
         }
     }

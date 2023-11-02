@@ -40,4 +40,4 @@ import org.junit.runners.Suite;
     TestSystem3986.class
 } )
 
-public class TS_RFC3986 { }
+public class TS_iri4ld { }

@@ -74,4 +74,18 @@ public class SystemIRI3986 {
             }
         });
     }
+
+    /*package*/ static String formatMsg(CharSequence source, int posn, String s) {
+        StringBuilder sb = new StringBuilder(s.length()+20);
+        if ( source != null ) {
+            sb.append("<");
+            sb.append(source);
+            sb.append("> : ");
+        }
+        if ( posn >= 0 ) {
+            sb.append("[Posn "+posn+"] ");
+        }
+        sb.append(s);
+        return sb.toString();
+    }
 }

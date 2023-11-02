@@ -41,7 +41,8 @@ public class ParseDID {
 
     April 2021: At-risk : add: empty  method-specific-id
 */
-    private static Pattern DID_PATTERN = Pattern.compile("^did:[a-z]+:(?:(?:[A-Za-z0-9.-_]|%[0-9]A-Fa-f]{2})+)$");
+    private static final Pattern DID_PATTERN = Pattern.compile("^did:[a-z]+:(?:(?:[A-Za-z0-9.-_]|%[0-9]A-Fa-f]{2})+)$");
+    private static final int DIDStart = "did:".length();
 
     static
     public void parse(String string, boolean allowPercentEncoding) {
@@ -50,7 +51,7 @@ public class ParseDID {
 
         //int end = length;
         int end = string.length();
-        int p = "did:".length();
+        int p = DIDStart;
 
         // XXX if string is empty or single space.
         // XXX if string starts "."
@@ -128,11 +129,11 @@ public class ParseDID {
     }
 
     static class DIDParseException extends IRIParseException {
-        DIDParseException(String msg) { super(msg); }
+        DIDParseException(String entity, String msg) { super(entity, msg); }
     }
 
     private static void error(String didString, String msg) {
-        throw new DIDParseException(msg);
+        throw new DIDParseException(didString, msg);
     }
 
     /** String.charAt except with an EOF character, not an exception. */

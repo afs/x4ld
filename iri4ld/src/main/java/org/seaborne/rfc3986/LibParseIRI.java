@@ -19,7 +19,7 @@
 package org.seaborne.rfc3986;
 
 /** Operations related to parsing IRIs */
-/*package*/ class ParseLib {
+/*package*/ class LibParseIRI {
 
     private static int CASE_DIFF = 'a'-'A';     // 0x20. Only for ASCII.
     /*

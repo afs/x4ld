@@ -21,7 +21,6 @@ package org.seaborne.rfc3986;
 import static java.lang.String.format;
 import static org.seaborne.rfc3986.Chars3986.EOF;
 import static org.seaborne.rfc3986.Chars3986.displayChar;
-import static org.seaborne.rfc3986.ParseErrorIRI3986.formatMsg;
 import static org.seaborne.rfc3986.ParseErrorIRI3986.parseError;
 import static org.seaborne.rfc3986.URIScheme.*;
 
@@ -439,15 +438,18 @@ public class IRI3986 implements IRI {
         // No scheme.
         // This is not "! isAbsolute()"
 
+        // @formatter:off
         // relative-part = "//" authority path-abempty
-        // / path-absolute
-        // / path-noscheme
-        // / path-empty
+        //               / path-absolute
+        //               / path-noscheme
+        //               / path-empty
         // whereas:
         // hier-part = "//" authority path-abempty
-        // / path-absolute
-        // / path-rootless
-        // / path-empty
+        //           / path-absolute
+        //           / path-rootless
+        //           / path-empty
+        //
+        // @formatter:on
         //
         // Difference between "path-noscheme" and "path-rootless" is that
         // "path-noscheme" does not allow a colon in the first segment.
@@ -456,8 +458,8 @@ public class IRI3986 implements IRI {
     }
 
     /**
-     * <a href="https://tools.ietf.org/html/rfc3986#section-3">RFC 3986, Section
-     * 3</a>. IRI has a scheme, no authority (no //) and is path-rootless (does not
+     * <a href="https://tools.ietf.org/html/rfc3986#section-3">RFC 3986, Section 3</a>.
+     * IRI has a scheme, no authority (no //) and is path-rootless (does not
      * start with /) e.g. URN's.
      */
     @Override
@@ -466,8 +468,7 @@ public class IRI3986 implements IRI {
     }
 
     /**
-     * <a href="https://tools.ietf.org/html/rfc3986#section-1.2.3">RFC 3986, Section
-     * 1.2.3 : Hierarchical Identifiers</a>.
+     * <a href="https://tools.ietf.org/html/rfc3986#section-1.2.3">RFC 3986, Section 1.2.3 : Hierarchical Identifiers</a>.
      */
     @Override
     public boolean isHierarchical() {
@@ -532,7 +533,7 @@ public class IRI3986 implements IRI {
             if ( ch <= 0x7F )
                 sb.append(ch);
             else
-                ParseLib.encodeAsHex(sb, '%', ch);
+                LibParseIRI.encodeAsHex(sb, '%', ch);
         }
         String s = sb.toString();
         return new IRI3986(s);
@@ -550,49 +551,49 @@ public class IRI3986 implements IRI {
         String query = query();
         String fragment = fragment();
 
-// 6.2.2. Syntax-Based Normalization
-//
-// Implementations may use logic based on the definitions provided by
-// this specification to reduce the probability of false negatives.
-// This processing is moderately higher in cost than character-for-
-// character string comparison. For example, an application using this
-// approach could reasonably consider the following two URIs equivalent:
-//
-// example://a/b/c/%7Bfoo%7D
-// eXAMPLE://a/./b/../b/%63/%7bfoo%7d
-//
-// Web user agents, such as browsers, typically apply this type of URI
-// normalization when determining whether a cached response is
-// available. Syntax-based normalization includes such techniques as
-// case normalization, percent-encoding normalization, and removal of
-// dot-segments.
-//
-// 6.2.2.1. Case Normalization
-//
-// For all URIs, the hexadecimal digits within a percent-encoding
-// triplet (e.g., "%3a" versus "%3A") are case-insensitive and therefore
-// should be normalized to use uppercase letters for the digits A-F.
-//
-// When a URI uses components of the generic syntax, the component
-// syntax equivalence rules always apply; namely, that the scheme and
-// host are case-insensitive and therefore should be normalized to
-// lowercase. For example, the URI <HTTP://www.EXAMPLE.com/> is
-// equivalent to <http://www.example.com/>. The other generic syntax
-// components are assumed to be case-sensitive unless specifically
-// defined otherwise by the scheme (see Section 6.2.3).
+        // 6.2.2. Syntax-Based Normalization
+        //
+        // Implementations may use logic based on the definitions provided by
+        // this specification to reduce the probability of false negatives.
+        // This processing is moderately higher in cost than character-for-
+        // character string comparison. For example, an application using this
+        // approach could reasonably consider the following two URIs equivalent:
+        //
+        // example://a/b/c/%7Bfoo%7D
+        // eXAMPLE://a/./b/../b/%63/%7bfoo%7d
+        //
+        // Web user agents, such as browsers, typically apply this type of URI
+        // normalization when determining whether a cached response is
+        // available. Syntax-based normalization includes such techniques as
+        // case normalization, percent-encoding normalization, and removal of
+        // dot-segments.
+        //
+        // 6.2.2.1. Case Normalization
+        //
+        // For all URIs, the hexadecimal digits within a percent-encoding
+        // triplet (e.g., "%3a" versus "%3A") are case-insensitive and therefore
+        // should be normalized to use uppercase letters for the digits A-F.
+        //
+        // When a URI uses components of the generic syntax, the component
+        // syntax equivalence rules always apply; namely, that the scheme and
+        // host are case-insensitive and therefore should be normalized to
+        // lowercase. For example, the URI <HTTP://www.EXAMPLE.com/> is
+        // equivalent to <http://www.example.com/>. The other generic syntax
+        // components are assumed to be case-sensitive unless specifically
+        // defined otherwise by the scheme (see Section 6.2.3).
 
         scheme = toLowerCase(scheme);
         authority = toLowerCase(authority);
 
-// 6.2.2.2. Percent-Encoding Normalization
-//
-// The percent-encoding mechanism (Section 2.1) is a frequent source of
-// variance among otherwise identical URIs. In addition to the case
-// normalization issue noted above, some URI producers percent-encode
-// octets that do not require percent-encoding, resulting in URIs that
-// are equivalent to their non-encoded counterparts. These URIs should
-// be normalized by decoding any percent-encoded octet that corresponds
-// to an unreserved character, as described in Section 2.3.
+        // 6.2.2.2. Percent-Encoding Normalization
+        //
+        // The percent-encoding mechanism (Section 2.1) is a frequent source of
+        // variance among otherwise identical URIs. In addition to the case
+        // normalization issue noted above, some URI producers percent-encode
+        // octets that do not require percent-encoding, resulting in URIs that
+        // are equivalent to their non-encoded counterparts. These URIs should
+        // be normalized by decoding any percent-encoded octet that corresponds
+        // to an unreserved character, as described in Section 2.3.
 
         // percent encoding - to upper case.
         // percent encoding - remove unnecessary encoding.
@@ -602,14 +603,14 @@ public class IRI3986 implements IRI {
         query = normalizePercent(query);
         fragment = normalizePercent(fragment);
 
-// 6.2.2.3. Path Segment Normalization
+        // 6.2.2.3. Path Segment Normalization
 
         if ( path != null )
             path = AlgResolveIRI.remove_dot_segments(path);
         if ( path == null || path.isEmpty() )
             path = "/";
 
-// 6.2.3. Scheme-Based Normalization
+        // 6.2.3. Scheme-Based Normalization
 
         // HTTP and :80.
         // HTTPS and :443
@@ -625,8 +626,8 @@ public class IRI3986 implements IRI {
                 authority = authority.substring(0, authority.length() - 4);
         }
 
-// 6.2.4. Protocol-Based Normalization
-// None.
+        // 6.2.4. Protocol-Based Normalization
+        // None.
 
         // Rebuild.
         if ( Objects.equals(scheme, scheme()) && Objects.equals(authority, authority()) && Objects.equals(path, path())
@@ -641,8 +642,8 @@ public class IRI3986 implements IRI {
     }
 
     /**
-     * Convert unnecessary %-encoding into the real character. Convert %-encoding to
-     * upper case
+     * Convert unnecessary %-encoding into the real character.
+     * Convert %-encoding to upper case.
      */
     private String normalizePercent(String str) {
         if ( str == null )
@@ -703,8 +704,8 @@ public class IRI3986 implements IRI {
     }
 
     /**
-     * Resolve an IRI, using this as the base. <a
-     * href=https://tools.ietf.org/html/rfc3986#section-5">RFC 3986 section 5</a>
+     * Resolve an IRI, using this as the base.
+     * <a href=https://tools.ietf.org/html/rfc3986#section-5">RFC 3986 section 5</a>
      */
     public IRI3986 resolve(IRI3986 other) {
         // Not isAbsolute here - absolute URIs do not allow a fragment.
@@ -823,7 +824,7 @@ public class IRI3986 implements IRI {
 
     private static Pattern authorityRegex = Pattern.compile("(([^/?#@]*)@)?" +               // user
                                                             "(\\[[^/?#]*\\]|([^/?#:]*))?" +  // host
-                                                            "(:([^/?#]*)?)?");             // port
+                                                            "(:([^/?#]*)?)?");               // port
 
     /**
      * Create an IRI using the regular expression of RFC 3986. Throws an exception of
@@ -924,6 +925,7 @@ public class IRI3986 implements IRI {
         return index < 0 ? index : offset + index;
     }
 
+    // ----------------------------------------------------------------------
     // ==== Parsing
 
     /** Parse (i.e. check) or create an IRI object. */
@@ -978,25 +980,39 @@ public class IRI3986 implements IRI {
         return 0;
     }
 
+    /** Parse any scheme RFC 3986/3987 URI/IRI string. */
     private int withScheme(int start) {
+        // @formatter:off
+        //
         // URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+
         // absolute-URI = scheme ":" hier-part [ "?" query ]
-        // hier-part = "//" authority path-abempty
-        // / path-absolute
-        // / path-rootless
-        // / path-empty
+        // hier-part    = "//" authority path-abempty
+        //              / path-absolute
+        //              / path-rootless
+        //              / path-empty
+        //
+        // @formatter:on
+
+        // Check for specific parsers: URN, UUID, OID, DID
+        // While this class is general, directly parsing and checking may be advantageous.
+        // Note that errors in scheme-specific schemes will need to be checked by the general code.
+        // General code can throw IRIParseException or record scheme-specific violations.
 
         int p = maybeAuthority(start);
         return pathQueryFragment(p, true);
     }
 
     private int withoutScheme(int start) {
+        // @formatter:off
+        //
         // relative-ref = relative-part [ "?" query ] [ "#" fragment ]
         // relative-part = "//" authority path-abempty
-        // / path-absolute
-        // / path-noscheme
-        // / path-empty
+        //                / path-absolute
+        //                / path-noscheme
+        //                / path-empty
         //
+        // @formatter:on
         // Check not starting with ':' then path-noscheme is the same as
         // path-rootless.
         char ch = charAt(start);
@@ -1020,25 +1036,31 @@ public class IRI3986 implements IRI {
         return p;
     }
 
-    /* authority = [ userinfo "@" ] host [ ":" port ] userinfo = *( unreserved /
-     * pct-encoded / sub-delims / ":" ) host = IP-literal / IPv4address / reg-name
-     * port = *DIGIT
+    // @formatter:off
+    /*
+     * authority     = [ userinfo "@" ] host [ ":" port ]
+     * userinfo      = *( unreserved / pct-encoded / sub-delims / ":" )
+     * host          = IP-literal / IPv4address / reg-name
+     * port          = *DIGIT
      *
-     * IP-literal = "[" ( IPv6address / IPvFuture ) "]" IPvFuture = "v" 1*HEXDIG "."
-     * 1*( unreserved / sub-delims / ":" ) IPv6address = hex and ":", and "." for
-     * IPv4 in IPv6. IPv4address = dec-octet "." dec-octet "." dec-octet "."
-     * dec-octet
+     * IP-literal    = "[" ( IPv6address / IPvFuture  ) "]"
+     * IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
+     * IPv6address   = hex and ":", and "." for IPv4 in IPv6.
+     * IPv4address   = dec-octet "." dec-octet "." dec-octet "." dec-octet
      *
      * reg-name = *( unreserved / pct-encoded / sub-delims )
      *
-     * So the section is only unreserved / pct-encoded / sub-delims / ":" / "@" / "["
-     * / "]". isPChar includes ":" / "@" unreserved has "."
+     * So the section is only unreserved / pct-encoded / sub-delims / ":" / "@" / "[" / "]".
+     * isPChar includes ":" / "@" unreserved has "."
      *
-     * iauthority = [ iuserinfo "@" ] ihost [ ":" port ] iuserinfo = *( iunreserved /
-     * pct-encoded / sub-delims / ":" ) ihost = IP-literal / IPv4address / ireg-name
+     * iauthority     = [ iuserinfo "@" ] ihost [ ":" port ]
+     * iuserinfo      = *( iunreserved / pct-encoded / sub-delims / ":" )
+     * ihost          = IP-literal / IPv4address / ireg-name
      *
-     * There are further restrictions on DNS names. RFC 5890, RFC 5891, RFC 5892, RFC
-     * 5893 */
+     * There are further restrictions on DNS names.
+     * RFC 5890, RFC 5891, RFC 5892, RFC 5893
+     */
+    // @formatter:on
     private int authority(int start) {
         int end = length;
         int p = start;
@@ -1088,12 +1110,9 @@ public class IRI3986 implements IRI {
                 countColon = 0;
                 lastColon = -1;
             } else if ( !isIPChar(ch, p) ) {
+                // XXX Need to check for %-encoding.
                 // All the characters in an (i)authority section, regardless of
                 // correct use.
-                // While percent-encoded is possible, the extra logic to avoid
-                // parsing
-                // the hex digits again is not worth it especially aas they are very
-                // likely cache hits.
                 break;
             }
             p++;
@@ -1159,9 +1178,9 @@ public class IRI3986 implements IRI {
 
         // hier-part => path-abempty
         // relative-part = path-abempty
-        // / path-absolute
-        // / path-noscheme
-        // / path-empty
+        //               / path-absolute
+        //               / path-noscheme
+        //               / path-empty
         // then [ "?" query ] [ "#" fragment ]
 
         int x1 = path(start, withScheme);
@@ -1181,19 +1200,27 @@ public class IRI3986 implements IRI {
     // ---- Path
     // If not withScheme, then segment-nz-nc applies.
     private int path(int start, boolean withScheme) {
-        // path = path-abempty ; begins with "/" or is empty
-        // / path-absolute ; begins with "/" but not "//"
-        // / path-noscheme ; begins with a non-colon segment
-        // / path-rootless ; begins with a segment
-        // / path-empty ; zero characters
+        // @formatter:off
+        //
+        // path = path-abempty  ; begins with "/" or is empty
+        //      / path-absolute ; begins with "/" but not "//"
+        //      / path-noscheme ; begins with a non-colon segment
+        //      / path-rootless ; begins with a segment
+        //      / path-empty    ; zero characters
 
         // path-abempty, path-absolute, path-rootless, path-empty
         //
-        // path-abempty = *( "/" segment )
+        // path-abempty  = *( "/" segment )
         // path-absolute = "/" [ segment-nz *( "/" segment ) ]
         // path-noscheme = segment-nz-nc *( "/" segment )
         // path-rootless = segment-nz *( "/" segment )
         // path-empty = 0<pchar>
+
+        // segment       = *pchar
+        // segment-nz    = 1*pchar
+        // segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
+        //
+        // @formatter:on
 
         if ( start == length )
             return start;
@@ -1456,12 +1483,19 @@ public class IRI3986 implements IRI {
     }
 
     private void checkHTTPx(URIScheme scheme) {
-        /* https://tools.ietf.org/html/rfc2616#section-3.2.2 http_URL = "http:" "//"
-         * host [ ":" port ] [ abs_path [ "?" query ]] */
+        // @formatter:off
 
-        /* https://tools.ietf.org/html/rfc7230#section-2.7.1 A sender MUST NOT
-         * generate an "http" URI with an empty host identifier. A recipient that
-         * processes such a URI reference MUST reject it as invalid. */
+        /*
+         * https://tools.ietf.org/html/rfc2616#section-3.2.2
+         * http_URL = "http:" "//" host [ ":" port ] [ abs_path [ "?" query ]]
+         */
+
+        /* https://tools.ietf.org/html/rfc7230#section-2.7.1
+         * A sender MUST NOT generate an "http" URI with an empty host identifier.
+         * A recipient that processes such a URI reference MUST reject it as invalid.
+         */
+
+        // @formatter:on
 
         if ( !hasHost() )
             schemeReport(this, Issue.http_no_host, scheme, "http and https URI schemes require //host/");
@@ -1516,8 +1550,37 @@ public class IRI3986 implements IRI {
     // "urn", ASCII, min 2 char NID min two char NSS (urn:NID:NSS)
     // Query string starts ?+ or ?=
 
-    /* @formatter:off
+    /**
+     * <a href="https://datatracker.ietf.org/doc/html/rfc8089">RFC 8089</a>.
      *
+     * Check "file:"
+     */
+    private void checkFILE() {
+        checkSchemeName(URIScheme.FILE);
+
+        // Must have authority and it must be empty. i.e. file:///
+        if ( !hasAuthority() ) {
+            if ( path().startsWith("/") )
+                schemeReport(this, Issue.file_bad_form, URIScheme.FILE, "file: URLs are of the form file:///path/...");
+            else
+                schemeReport(this, Issue.file_relative_path, URIScheme.FILE,
+                             "file: URLs are of the form file:///path/..., not file:filename");
+        }
+
+        // We do not support file:// because file://path1/path2/ makes the host
+        // "path1" (which is then ignored!)
+        if ( hasAuthority() && authority0 != authority1 ) {
+            // file://path1/path2/..., so path becomes the "authority"
+            schemeReport(this, Issue.file_bad_form, URIScheme.FILE, "file: URLs are of the form file:///path/..., not file://path");
+        }
+
+        if ( this.length < 8 )
+            schemeReport(this, Issue.file_relative_path, URIScheme.FILE, "file: URLs are of the form file:///path/...");
+    }
+
+
+    // @formatter:off
+    /*
      * namestring    = assigned-name
      *                  [ rq-components ]
      *                  [ "#" f-component ]
@@ -1530,8 +1593,9 @@ public class IRI3986 implements IRI {
      * r-component   = pchar *( pchar / "/" / "?" )
      * q-component   = pchar *( pchar / "/" / "?" )
      * f-component   = fragment
-     * @formatter:on
      */
+    //@formatter:on
+
     // Without specifically testing for rq-components and "#" f-component
     // Strict - requires 2 char NID and one char NSS.
     private static Pattern URN_PATTERN_ASSIGNED_NAME_STRICT = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,30}[a-zA-Z0-9]:.+");
@@ -1567,16 +1631,24 @@ public class IRI3986 implements IRI {
                 schemeReport(this, Issue.urn_bad_pattern, URIScheme.URN,
                              "URI does not match the 'assigned-name' rule regular expression (\"urn\" \":\" NID \":\" NSS)");
         }
+
+        urnQueryStringCheck();
+        urnFragmentCheck();
+    }
+
+    private void urnFragmentCheck() {
+        if ( hasFragment() )
+            urnCharCheck("fragment", "f-component", fragment());
+    }
+
+    private void urnQueryStringCheck() {
         if ( hasQuery() ) {
             String qs = query();
             if ( !qs.startsWith("+") && !qs.startsWith("=") )
                 schemeReport(this, Issue.urn_bad_query, URIScheme.URN,
-                             "Improper start to q-component of URN (must be '?+...' or '?=...').");
+                        "Improper start to q-component of URN (must be '?+...' or '?=...').");
             urnCharCheck("query", "q-component", qs);
         }
-
-        if ( hasFragment() )
-            urnCharCheck("fragment", "f-component", fragment());
     }
 
     private void urnCharCheck(String uriName, String urnName, String string) {
@@ -1586,34 +1658,6 @@ public class IRI3986 implements IRI {
                 schemeReport(this, Issue.urn_non_ascii_character, URIScheme.URN,
                              uriName + " : Non-ASCII character in " + urnName + " of URN");
         }
-    }
-
-    /**
-     * <a href="https://datatracker.ietf.org/doc/html/rfc8089">RFC 8089</a>.
-     *
-     * Check "file:"
-     */
-    private void checkFILE() {
-        checkSchemeName(URIScheme.FILE);
-
-        // Must have authority and it must be empty. i.e. file:///
-        if ( !hasAuthority() ) {
-            if ( path().startsWith("/") )
-                schemeReport(this, Issue.file_bad_form, URIScheme.FILE, "file: URLs are of the form file:///path/...");
-            else
-                schemeReport(this, Issue.file_relative_path, URIScheme.FILE,
-                             "file: URLs are of the form file:///path/..., not file:filename");
-        }
-
-        // We do not support file:// because file://path1/path2/ makes the host
-        // "path1" (which is then ignored!)
-        if ( hasAuthority() && authority0 != authority1 ) {
-            // file://path1/path2/..., so path becomes the "authority"
-            schemeReport(this, Issue.file_bad_form, URIScheme.FILE, "file: URLs are of the form file:///path/..., not file://path");
-        }
-
-        if ( this.length < 8 )
-            schemeReport(this, Issue.file_relative_path, URIScheme.FILE, "file: URLs are of the form file:///path/...");
     }
 
     /*
@@ -1659,6 +1703,7 @@ public class IRI3986 implements IRI {
 
         // Specific tests, specific messages
         if ( hasQuery() ) {
+            // Conform.
             schemeReport(this, Issue.uuid_has_query, scheme, "query component not allowed: " + iriStr);
             warningIssued = true;
         }
@@ -1725,47 +1770,6 @@ public class IRI3986 implements IRI {
         addReport(iri, iri.str(), scheme, issue, msg);
     }
 
-    private static String formatSchemeMsg(CharSequence source, String scheme, String s) {
-        String s1 = scheme + " URI scheme -- " + s;
-        String x = formatMsg(source, -1, s1);
-        return x;
-    }
-
-// private void x_schemeError(CharSequence source, char[] scheme, String s) {
-// x_schemeError(source, String.copyValueOf(scheme), s);
-// }
-//
-// private void x_schemeError(CharSequence source, String scheme, String s) {
-// String msg = formatSchemeMsg(source, scheme, s);
-// URIScheme uriScheme = URIScheme.get(scheme);
-// addReport(this, String.valueOf(source), uriScheme, null, msg);
-// }
-//
-// private void x_schemeWarning(CharSequence source, String scheme, String s) {
-// String msg = formatSchemeMsg(source, scheme, s);
-// addReport(this, String.valueOf(source), null, null, msg);
-// }
-
-// private void schemeError(CharSequence source, char[] scheme, Issue issue, String
-// s) {
-// schemeError(source, String.copyValueOf(scheme), issue, s);
-// }
-//
-// private void schemeError(CharSequence source, String scheme, Issue issue, String
-// s) {
-// String msg = formatSchemeMsg(source, scheme, s);
-// URIScheme uriScheme = URIScheme.get(scheme);
-// addReport(new Violation(String.valueOf(source), MessageCategory.WARNING,
-// uriScheme, issue, msg));
-// }
-//
-// private void schemeWarning(CharSequence source, String scheme, Issue issue, String
-// s) {
-// String msg = formatSchemeMsg(source, scheme, s);
-// addReport(new Violation(String.valueOf(source), MessageCategory.WARNING, null,
-// issue, msg));
-// }
-
     private static void addReport(IRI3986 iri, String iriStr, URIScheme uriScheme, Issue issue, String message) {
         Violation v = new Violation(iriStr, uriScheme, issue, message);
         addReport(iri, v);
@@ -1778,120 +1782,214 @@ public class IRI3986 implements IRI {
     }
 }
 
+
+// @formatter:off
+
+// RFC3986 Regex: ^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?
+
 /* RFC 3986
- *
- * URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
- *
- * hier-part = "//" authority path-abempty / path-absolute / path-rootless /
- * path-empty
- *
- * URI-reference = URI / relative-ref
- *
- * absolute-URI = scheme ":" hier-part [ "?" query ]
- *
- * relative-ref = relative-part [ "?" query ] [ "#" fragment ]
- *
- * relative-part = "//" authority path-abempty / path-absolute / path-noscheme /
- * path-empty
- *
- * scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
- *
- * authority = [ userinfo "@" ] host [ ":" port ] userinfo = *( unreserved /
- * pct-encoded / sub-delims / ":" ) host = IP-literal / IPv4address / reg-name port =
- * *DIGIT
- *
- * IP-literal = "[" ( IPv6address / IPvFuture ) "]"
- *
- * IPvFuture = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
- *
- * IPv6address = 6( h16 ":" ) ls32 / "::" 5( h16 ":" ) ls32 / [ h16 ] "::" 4( h16 ":"
- * ) ls32 / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32 / [ *2( h16 ":" ) h16 ] "::"
- * 2( h16 ":" ) ls32 / [ *3( h16 ":" ) h16 ] "::" h16 ":" ls32 / [ *4( h16 ":" ) h16
- * ] "::" ls32 / [ *5( h16 ":" ) h16 ] "::" h16 / [ *6( h16 ":" ) h16 ] "::"
- *
- * h16 = 1*4HEXDIG ls32 = ( h16 ":" h16 ) / IPv4address IPv4address = dec-octet "."
- * dec-octet "." dec-octet "." dec-octet
- *
- * dec-octet = DIGIT ; 0-9 / %x31-39 DIGIT ; 10-99 / "1" 2DIGIT ; 100-199 / "2"
- * %x30-34 DIGIT ; 200-249 / "25" %x30-35 ; 250-255
- *
- * reg-name = *( unreserved / pct-encoded / sub-delims )
- *
- * path = path-abempty ; begins with "/" or is empty / path-absolute ; begins with
- * "/" but not "//" / path-noscheme ; begins with a non-colon segment / path-rootless
- * ; begins with a segment / path-empty ; zero characters
- *
- * path-abempty = *( "/" segment ) path-absolute = "/" [ segment-nz *( "/" segment )
- * ] path-noscheme = segment-nz-nc *( "/" segment ) path-rootless = segment-nz *( "/"
- * segment ) path-empty = 0<pchar>
- *
- * segment = *pchar segment-nz = 1*pchar segment-nz-nc = 1*( unreserved / pct-encoded
- * / sub-delims / "@" ) ; non-zero-length segment without any colon ":"
- *
- * pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
- *
- * query = *( pchar / "/" / "?" )
- *
- * fragment = *( pchar / "/" / "?" )
- *
- * pct-encoded = "%" HEXDIG HEXDIG
- *
- * unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~" reserved = gen-delims /
- * sub-delims gen-delims = ":" / "/" / "?" / "#" / "[" / "]" / "@" sub-delims = "!" /
- * "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "=" / "*" / "+" / "," / ";"
- * / "="
- *
- * RFC 3897 : IRIs ---- NB "unreserved" used in IPvFuture = "v" 1*HEXDIG "." 1*(
- * unreserved / sub-delims / ":" ) ----
- *
- * ipchar = iunreserved / pct-encoded / sub-delims / ":" / "@"
- *
- * iquery = *( ipchar / iprivate / "/" / "?" )
- *
- * iunreserved = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
- *
- * ucschar = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF / %x10000-1FFFD / %x20000-2FFFD /
- * %x30000-3FFFD / %x40000-4FFFD / %x50000-5FFFD / %x60000-6FFFD / %x70000-7FFFD /
- * %x80000-8FFFD / %x90000-9FFFD / %xA0000-AFFFD / %xB0000-BFFFD / %xC0000-CFFFD /
- * %xD0000-DFFFD / %xE1000-EFFFD
- *
- * iprivate = %xE000-F8FF / %xF0000-FFFFD / %x100000-10FFFD
- *
- *
- * ALPHA = %x41-5A / %x61-7A ; A-Z / a-z DIGIT = %x30-39 ; 0-9 */
+   URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+
+   hier-part     = "//" authority path-abempty
+                 / path-absolute
+                 / path-rootless
+                 / path-empty
+
+   URI-reference = URI / relative-ref
+
+   absolute-URI  = scheme ":" hier-part [ "?" query ]
+
+   relative-ref  = relative-part [ "?" query ] [ "#" fragment ]
+
+   relative-part = "//" authority path-abempty
+                 / path-absolute
+                 / path-noscheme
+                 / path-empty
+
+   scheme        = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+
+   authority     = [ userinfo "@" ] host [ ":" port ]
+   userinfo      = *( unreserved / pct-encoded / sub-delims / ":" )
+   host          = IP-literal / IPv4address / reg-name
+   port          = *DIGIT
+
+   IP-literal    = "[" ( IPv6address / IPvFuture  ) "]"
+
+   IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
+
+   IPv6address   =                            6( h16 ":" ) ls32
+                 /                       "::" 5( h16 ":" ) ls32
+                 / [               h16 ] "::" 4( h16 ":" ) ls32
+                 / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
+                 / [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
+                 / [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
+                 / [ *4( h16 ":" ) h16 ] "::"              ls32
+                 / [ *5( h16 ":" ) h16 ] "::"              h16
+                 / [ *6( h16 ":" ) h16 ] "::"
+
+   h16           = 1*4HEXDIG
+   ls32          = ( h16 ":" h16 ) / IPv4address
+   IPv4address   = dec-octet "." dec-octet "." dec-octet "." dec-octet
+
+   dec-octet     = DIGIT                 ; 0-9
+                 / %x31-39 DIGIT         ; 10-99
+                 / "1" 2DIGIT            ; 100-199
+                 / "2" %x30-34 DIGIT     ; 200-249
+                 / "25" %x30-35          ; 250-255
+
+   reg-name      = *( unreserved / pct-encoded / sub-delims )
+
+   path          = path-abempty    ; begins with "/" or is empty
+                 / path-absolute   ; begins with "/" but not "//"
+                 / path-noscheme   ; begins with a non-colon segment
+                 / path-rootless   ; begins with a segment
+                 / path-empty      ; zero characters
+
+   path-abempty  = *( "/" segment )
+   path-absolute = "/" [ segment-nz *( "/" segment ) ]
+   path-noscheme = segment-nz-nc *( "/" segment )
+   path-rootless = segment-nz *( "/" segment )
+   path-empty    = 0<pchar>
+
+   segment       = *pchar
+   segment-nz    = 1*pchar
+   segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
+                 ; non-zero-length segment without any colon ":"
+
+   pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+
+   query         = *( pchar / "/" / "?" )
+
+   fragment      = *( pchar / "/" / "?" )
+
+   pct-encoded   = "%" HEXDIG HEXDIG
+
+   unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+   reserved      = gen-delims / sub-delims
+   gen-delims    = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+   sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+                 / "*" / "+" / "," / ";" / "="
+ */
+
+/*
+ * RFC 3897 : IRIs
+IRI            = scheme ":" ihier-part [ "?" iquery ]
+                         [ "#" ifragment ]
+
+   ihier-part     = "//" iauthority ipath-abempty
+                  / ipath-absolute
+                  / ipath-rootless
+                  / ipath-empty
+
+   IRI-reference  = IRI / irelative-ref
+
+   absolute-IRI   = scheme ":" ihier-part [ "?" iquery ]
+
+   irelative-ref  = irelative-part [ "?" iquery ] [ "#" ifragment ]
+
+   irelative-part = "//" iauthority ipath-abempty
+                    / ipath-absolute
+                    / ipath-noscheme
+                    / ipath-empty
+
+   iauthority     = [ iuserinfo "@" ] ihost [ ":" port ]
+   iuserinfo      = *( iunreserved / pct-encoded / sub-delims / ":" )
+   ihost          = IP-literal / IPv4address / ireg-name
+
+   ireg-name      = *( iunreserved / pct-encoded / sub-delims )
+
+   ipath          = ipath-abempty   ; begins with "/" or is empty
+                  / ipath-absolute  ; begins with "/" but not "//"
+                  / ipath-noscheme  ; begins with a non-colon segment
+                  / ipath-rootless  ; begins with a segment
+                  / ipath-empty     ; zero characters
+
+   ipath-abempty  = *( "/" isegment )
+   ipath-absolute = "/" [ isegment-nz *( "/" isegment ) ]
+   ipath-noscheme = isegment-nz-nc *( "/" isegment )
+   ipath-rootless = isegment-nz *( "/" isegment )
+   ipath-empty    = 0<ipchar>
+
+   isegment       = *ipchar
+   isegment-nz    = 1*ipchar
+   isegment-nz-nc = 1*( iunreserved / pct-encoded / sub-delims
+                        / "@" )
+                  ; non-zero-length segment without any colon ":"
+
+   ipchar         = iunreserved / pct-encoded / sub-delims / ":"
+                  / "@"
+
+   iquery         = *( ipchar / iprivate / "/" / "?" )
+
+   ifragment      = *( ipchar / "/" / "?" )
+
+   iunreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~" / ucschar
+
+   ucschar        = %xA0-D7FF / %xF900-FDCF / %xFDF0-FFEF
+                  / %x10000-1FFFD / %x20000-2FFFD / %x30000-3FFFD
+                  / %x40000-4FFFD / %x50000-5FFFD / %x60000-6FFFD
+                  / %x70000-7FFFD / %x80000-8FFFD / %x90000-9FFFD
+                  / %xA0000-AFFFD / %xB0000-BFFFD / %xC0000-CFFFD
+                  / %xD0000-DFFFD / %xE1000-EFFFD
+
+   iprivate       = %xE000-F8FF / %xF0000-FFFFD / %x100000-10FFFD
+   */
+
+
+
 /* ABNF core rules: (ABNF is RFC 5234)
  *
- * ALPHA = %x41-5A / %x61-7A ; A-Z / a-z
- *
- * BIT = "0" / "1"
- *
- * CHAR = %x01-7F ; any 7-bit US-ASCII character, ; excluding NUL
- *
- * CR = %x0D ; carriage return
- *
- * CRLF = CR LF ; Internet standard newline
- *
- * CTL = %x00-1F / %x7F ; controls
- *
- * DIGIT = %x30-39 ; 0-9
- *
- * DQUOTE = %x22 ; " (Double Quote)
- *
- * HEXDIG = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
- *
- * HTAB = %x09 ; horizontal tab
- *
- * LF = %x0A ; linefeed
- *
- * LWSP = *(WSP / CRLF WSP) ; Use of this linear-white-space rule ; permits lines
- * containing only white ; space that are no longer legal in ; mail headers and have
- * caused ; interoperability problems in other ; contexts. ; Do not use when defining
- * mail ; headers and use with caution in ; other contexts.
- *
- * OCTET = %x00-FF ; 8 bits of data
- *
- * SP = %x20
- *
- * VCHAR = %x21-7E ; visible (printing) characters
- *
- * WSP = SP / HTAB ; white space */
+         ALPHA          =  %x41-5A / %x61-7A   ; A-Z / a-z
+
+         BIT            =  "0" / "1"
+
+         CHAR           =  %x01-7F
+                                ; any 7-bit US-ASCII character,
+                                ;  excluding NUL
+
+         CR             =  %x0D
+                                ; carriage return
+
+         CRLF           =  CR LF
+                                ; Internet standard newline
+
+         CTL            =  %x00-1F / %x7F
+                                ; controls
+
+         DIGIT          =  %x30-39
+                                ; 0-9
+
+         DQUOTE         =  %x22
+                                ; " (Double Quote)
+
+         HEXDIG         =  DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
+
+         HTAB           =  %x09
+                                ; horizontal tab
+
+         LF             =  %x0A
+                                ; linefeed
+
+         LWSP           =  *(WSP / CRLF WSP)
+                                ; Use of this linear-white-space rule
+                                ;  permits lines containing only white
+                                ;  space that are no longer legal in
+                                ;  mail headers and have caused
+                                ;  interoperability problems in other
+                                ;  contexts.
+                                ; Do not use when defining mail
+                                ;  headers and use with caution in
+                                ;  other contexts.
+
+         OCTET          =  %x00-FF
+                                ; 8 bits of data
+
+         SP             =  %x20
+
+         VCHAR          =  %x21-7E
+                                ; visible (printing) characters
+
+         WSP            =  SP / HTAB
+                                ; white space
+ */
+//@formatter:on

@@ -28,6 +28,9 @@ public class IRIParseException extends RuntimeException {
     // not a programming error.
 
     // Must gave a message.
+    public IRIParseException(CharSequence entity, String message) { this(message); }
+
+    // Must gave a message.
     public IRIParseException(String message) {super(message); }
 
     // Where in the parser, the exception comes from is not relevant.

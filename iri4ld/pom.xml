@@ -34,7 +34,6 @@
   <properties>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
     <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
-    <ver.junit>4.13.2</ver.junit>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 

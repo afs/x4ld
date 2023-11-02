@@ -29,24 +29,10 @@ package org.seaborne.rfc3986;
     }
 
     /*package*/ static IRIParseException parseError(CharSequence source, int posn, String s) {
-        return parseException(formatMsg(source, posn, s));
+        return parseException(source, SystemIRI3986.formatMsg(source, posn, s));
     }
 
-    /*package*/ static String formatMsg(CharSequence source, int posn, String s) {
-        StringBuilder sb = new StringBuilder(s.length()+20);
-        if ( source != null ) {
-            sb.append("<");
-            sb.append(source);
-            sb.append("> : ");
-        }
-        if ( posn >= 0 ) {
-            sb.append("[Posn "+posn+"] ");
-        }
-        sb.append(s);
-        return sb.toString();
-    }
-
-    private static IRIParseException parseException(String s) {
-        return new IRIParseException(s);
+    private static IRIParseException parseException(CharSequence iriStr, String s) {
+        return new IRIParseException(iriStr, s);
     }
 }

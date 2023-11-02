@@ -28,14 +28,13 @@ public class AlgIRI {
     // Misc algorithms
 
     /**
-     * Ensure an IRI to one suitable for a base else return null.
+     * Ensure an IRI is suitable for a base else return null.
      */
     public static IRI3986 toBase(IRI3986 iri) {
         if ( ! validBase(iri) )
             return null;
         return iri;
     }
-
 
     /** Validate for use as a base IRI. */
     /*package*/ static boolean validBase(IRI base) {

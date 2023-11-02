@@ -106,6 +106,61 @@ public class TestRFC3986_Scheme {
         badSpecific("uuid:06e775ac-2c38-11b2");
     }
 
+    private static String testUUID = "0fa0c738-a789-11eb-b471-abdc7e01c508";
+
+    // RFC 8141 allows query and fragment in urn: (limited character set).
+    // It even permits retrospectively applying to older schemes,
+    // However, the r- (?+"), p- ("?=") or f- (#) components do not play a part in URN equivalence.
+
+    // RFC 4122 (uuid namespace definition) does not mention r- p- or f- component
+    @Test public void parse_uuid_bad_8141_01() {
+        badSpecific("urn:uuid:" + testUUID + "#frag");
+    }
+
+    // RFC 8141 allows query string must be ?=<one+ char> or ?+<one+ char>
+    @Test public void parse_uuid_bad_8141_03() {
+        badSpecific("urn:uuid:" + testUUID + "?+chars");
+    }
+
+    @Test public void parse_uuid_bad_8141_04() {
+        badSpecific("urn:uuid:" + testUUID + "?=chars");
+    }
+
+    @Test public void parse_uuid_bad_8141_05() {
+        badSpecific("urn:uuid:" + testUUID + "?+chars#frag");
+    }
+
+    @Test public void parse_uuid_bad_8141_06() {
+        badSpecific("urn:uuid:" + testUUID + "?=chars#frag");
+    }
+
+    // Always bad.
+    @Test public void parse_uuid_bad_8141_10() {
+        badSpecific("urn:uuid:" + testUUID + "?abc");
+    }
+
+    // Always bad.
+    @Test public void parse_uuid_bad_8141_11() {
+        badSpecific("urn:uuid:" + testUUID + "?");
+    }
+
+    @Test public void parse_uuid_bad_8141_12() {
+        badSpecific("urn:uuid:" + testUUID + "?+");
+    }
+
+    @Test public void parse_uuid_bad_8141_13() {
+        badSpecific("urn:uuid:" + testUUID + "?=");
+    }
+
+    @Test public void parse_uuid_bad_8141_14() {
+        // Not ASCII
+        badSpecific("urn:uuid:" + testUUID + "#αβγ");
+    }
+
+    @Test public void parse_uuid_bad_8141_152() {
+        badSpecific("urn:uuid:" + testUUID + "#");
+    }
+
     public static ErrorHandler create(Consumer<String> onError, Consumer<String> onWarning) {
         return ErrorHandlerBase.create(onError, onWarning);
     }

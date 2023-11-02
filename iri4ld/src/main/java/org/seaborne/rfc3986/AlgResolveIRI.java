@@ -155,7 +155,7 @@ public class AlgResolveIRI {
         String s1 = remove_dot_segments$(path);
         if ( false ) {
             // Checking code.
-            String s2 = ParseLib.jenaIRIremoveDotSegments(path);
+            String s2 = LibParseIRI.jenaIRIremoveDotSegments(path);
             if ( ! Objects.equals(s1, s2) )
                 System.err.printf("remove_dot_segments : IRI3986:%s  Jena IRI:%s\n", s1, s2);
         }

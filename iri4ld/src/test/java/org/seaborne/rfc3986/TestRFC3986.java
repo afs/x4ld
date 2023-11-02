@@ -105,6 +105,7 @@ public class TestRFC3986 {
 
     // rq-components = [ "?+" r-component ]
     //                 [ "?=" q-component ]
+    // f-component   = fragment
 
     @Test public void parse_urn_02()        { good("urn:x-local:abc/def?+more"); }
 
@@ -114,7 +115,7 @@ public class TestRFC3986 {
 
     @Test public void parse_urn_05()        { good("urn:abc0:def"); }
 
-    private static String testUUID = "0fa0c738-a789-11eb-b471-abdc7e01c508";
+    private static final String testUUID = "326f63ea-7447-11ee-b715-0be26fda5b37";
 
     @Test public void parse_uuid_01()   { good("uuid:"+testUUID); }
 

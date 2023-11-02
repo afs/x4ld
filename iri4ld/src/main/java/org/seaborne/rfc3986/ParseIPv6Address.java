@@ -171,7 +171,7 @@ public class ParseIPv6Address {
         int h16c = 0;
 
         //starting ::
-        boolean b = ParseLib.peekFor(string, p, ':',  ':');
+        boolean b = LibParseIRI.peekFor(string, p, ':',  ':');
         if ( b ) {
             h16c1 = h16c;
             h16c = 0 ;
