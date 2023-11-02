@@ -50,7 +50,21 @@
     <ver.log4j2>2.21.1</ver.log4j2>
     <ver.commons-codec>1.16.0</ver.commons-codec>
     <!-- Testing only -->
-    <ver.jena>4.9.0</ver.jena>  
+    <ver.jena>5.0.0-SNAPSHOT</ver.jena>  
+
+    <!-- Plugins -->
+    <ver.plugin.rat>0.15</ver.plugin.rat>
+    <ver.plugin.resources>3.3.1</ver.plugin.resources>
+    <ver.plugin.source>3.3.0</ver.plugin.source>
+    <ver.plugin.jar>3.3.0</ver.plugin.jar>
+    <ver.plugin.assembly>3.5.0</ver.plugin.assembly>
+    <ver.plugin.compiler>3.11.0</ver.plugin.compiler>
+    <ver.plugin.surefire>3.2.1</ver.plugin.surefire>
+    <ver.plugin.javadoc>3.6.0</ver.plugin.javadoc>
+
+    <ver.plugin.enforcer>3.4.1</ver.plugin.enforcer>
+    <ver.plugin.cyclonedx>2.7.9</ver.plugin.cyclonedx>
+
   </properties>
 
   <modules>
@@ -117,9 +131,10 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.11.0</version>
+          <version>${ver.plugin.compiler}</version>
           <configuration>
 	          <encoding>UTF-8</encoding>
+            <compilerArgument>-proc:none</compilerArgument>
             <release>${java.version}</release>
           </configuration>
         </plugin>
@@ -127,7 +142,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.2.1</version>
+          <version>${ver.plugin.surefire}</version>
           <configuration>
             <includes>
               <include>**/TS_*.java</include>
@@ -138,7 +153,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>3.3.1</version>
+          <version>${ver.plugin.resources}</version>
           <configuration>
             <encoding>UTF-8</encoding>
           </configuration>
@@ -147,28 +162,13 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>3.3.0</version>
-          <executions>
-            <execution>
-              <id>attach-sources</id>
-              <phase>package</phase>
-              <goals>
-                <goal>jar-no-fork</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>attach-sources-test</id>
-              <goals>
-                <goal>test-jar-no-fork</goal>
-              </goals>
-            </execution>
-          </executions>
+          <version>${ver.plugin.source}</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>3.3.0</version>
+          <version>${ver.plugin.jar}</version>
           <configuration>
           </configuration>
           <executions>
@@ -183,30 +183,42 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.6.0</version>
-            <executions>
-              <execution>
-                <id>attach-javadocs</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-            <configuration>
-              <!-- <doclint>none</doclint> -->
-              <!-- To allow the build to keep going despite javadoc problems:
-                   <failOnError>false</failOnError>
-              -->
-              <version>true</version>
-              <quiet>true</quiet>
-              <show>public</show>
-              <encoding>UTF-8</encoding>
-              <windowtitle>${project.name} ${project.version}</windowtitle>
-              <doctitle>${project.name} ${project.version}</doctitle>
-              <bottom>Licensed under the Apache License, Version 2.0</bottom>
-            </configuration>
+          <version>${ver.plugin.javadoc}</version>
+          <executions>
+            <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <!-- <doclint>none</doclint> -->
+            <!-- To allow the build to keep going despite javadoc problems:
+                 <failOnError>false</failOnError>
+            -->
+            <version>true</version>
+            <quiet>true</quiet>
+            <show>public</show>
+            <encoding>UTF-8</encoding>
+            <windowtitle>${project.name} ${project.version}</windowtitle>
+            <doctitle>${project.name} ${project.version}</doctitle>
+            <bottom>Licensed under the Apache License, Version 2.0</bottom>
+          </configuration>
         </plugin>
 
+        <plugin>
+          <groupId>org.apache.rat</groupId>
+          <artifactId>apache-rat-plugin</artifactId>
+          <version>${ver.plugin.rat}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>${ver.plugin.enforcer}</version>
+        </plugin>
+                
       </plugins>
     </pluginManagement>
     
@@ -214,6 +226,126 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>attach-sources-test</id>
+            <goals>
+              <goal>test-jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Run the RAT Plugin -->
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <!-- 
+             Run only if maven is running from this POM,
+             not when run in a sub-module with this as parent.
+        -->
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>rat-checks</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <excludeSubProjects>false</excludeSubProjects>
+          <excludes>
+            <exclude>**/hs_err_pid*.log</exclude>
+            <exclude>docs/**</exclude>
+            <exclude>local/**</exclude>
+            <exclude>.github/**</exclude>
+
+            <exclude>**/.project</exclude>
+            <exclude>**/.settings/**</exclude>
+            <exclude>**/.classpath</exclude>
+            <exclude>**/*.recommenders/**/*</exclude>
+
+            <exclude>**/delta.classpath*</exclude>
+            <exclude>**/README.*</exclude>
+            <exclude>**/*.cfg</exclude>
+
+            <!--
+                Javadoc add-ons files are required to be simple and our javadoc configuration
+                will ensure appropriate license and copyright statements are inserted
+                into generated documentation anyway so no need to put license statements in these
+                files
+            -->
+            <exclude>**/src/main/**/*.html</exclude>
+            <exclude>**/src/**/package-info.java</exclude>
+            
+            <!--
+                Text and Markdown files are typically used only for documentation purposes
+                and license declarations are usually spurious in these files since often they
+                will refer to the LICENSE/NOTICE for users to find the actual licenses
+            -->
+            <exclude>**/*.txt</exclude>
+            <exclude>**/*.md</exclude>
+           
+            <!--
+                META-INF services files can include comments but a license header would be
+                unnecessarily clutter so we exclude these
+            -->
+            <exclude>**/META-INF/services/*</exclude>
+            
+            <exclude>**/testing/**/*</exclude>
+            <exclude>**/log4j*.properties</exclude>
+            <exclude>**/logging*.properties</exclude>
+
+            <!-- Exclude anything created during the build (plugin generated files) ->-->
+            <exclude>**/target/**/*</exclude>
+            <!-- MSHADE-124 -->
+            <exclude>**/dependency-reduced-pom.xml</exclude>
+
+            <!-- ZooKeeper files -->
+            <exclude>**/Tutorial/**/zoo.dynamic</exclude>
+            <exclude>**/Tutorial/**/myid</exclude>
+
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <rules>
+            <!--
+            <requirePluginVersions>
+              <message>Best practice is to always define plugin versions!</message>
+              <banLatest>true</banLatest>
+              <banRelease>true</banRelease>
+            </requirePluginVersions>
+            -->
+            <requireReleaseDeps>
+              <message>No SNAPSHOT dependencies are allowed!</message>
+              <onlyWhenRelease>true</onlyWhenRelease>
+            </requireReleaseDeps>
+            <requireMavenVersion>
+              <version>3.5.0</version>
+            </requireMavenVersion>
+          </rules>
+          <fail>true</fail>
+        </configuration>
       </plugin>
     </plugins>
       
