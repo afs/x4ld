@@ -1,6 +1,7 @@
 #!/bin/bash
+## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
 
-CP="${CP:-/home/afs/ASF/xsd4ld/target/classes}"
+CP="${CP:-/home/afs/ASF/x4ld/xsd4ld/target/classes}"
 ## commons codec
 REPO=/home/afs/.m2/repo/
 CP="$CP:$REPO/commons-codec/commons-codec/1.15/commons-codec-1.15.jar"
