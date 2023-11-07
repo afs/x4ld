@@ -1578,7 +1578,7 @@ public class IRI3986 implements IRI {
             schemeReport(this, Issue.file_relative_path, URIScheme.FILE, "file: URLs are of the form file:///path/...");
     }
 
-
+    // RFC 8141
     // @formatter:off
     /*
      * namestring    = assigned-name
@@ -1594,16 +1594,25 @@ public class IRI3986 implements IRI {
      * q-component   = pchar *( pchar / "/" / "?" )
      * f-component   = fragment
      */
-    //@formatter:on
+    /*
+    // pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+
+       pct-encoded   = "%" HEXDIG HEXDIG
+       unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+       reserved      = gen-delims / sub-delims
+       gen-delims    = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+       sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+                           / "*" / "+" / "," / ";" / "="
+    */
+    // @formatter:on
 
     // Without specifically testing for rq-components and "#" f-component
-    // Strict - requires 2 char NID and one char NSS.
+    // Strict - requires 2 char NID and one char NSS. ASCII.
     private static Pattern URN_PATTERN_ASSIGNED_NAME_STRICT = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,30}[a-zA-Z0-9]:.+");
 
     // More generous.
     // NID, can be one char and can be "X-" (RFC 2141)
-    // NSS, and it's colon can be absent. base names can be <urn:nid:> but not
-    // <urn:nid>
+    // NSS, and it's colon can be absent. Base names can be <urn:nid:> but not <urn:nid>
     private static Pattern URN_PATTERN_ASSIGNED_NAME_LOOSE = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,31}:(?:.*)");
     // Common bad cases : "urn:x:" and "urn:X-ABC:"
     private static Pattern URN_PATTERN_BAD_NID_1 = Pattern.compile("^urn:(?:[a-zA-Z0-9])(?::(?:.*))?");
