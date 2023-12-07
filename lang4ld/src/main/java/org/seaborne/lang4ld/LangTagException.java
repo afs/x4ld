@@ -18,20 +18,6 @@
 
 package org.seaborne.lang4ld;
 
-/*package*/ class LangTagLib {
-
-    /** ASCII A-Z */
-    /*package*/ static boolean isA2Z(int ch) {
-        return range(ch, 'a', 'z') || range(ch, 'A', 'Z');
-    }
-
-    /** ASCII A-Z or 0-9 */
-    /*package*/ static boolean isA2ZN(int ch) {
-        return range(ch, 'a', 'z') || range(ch, 'A', 'Z') || range(ch, '0', '9');
-    }
-
-    private static boolean range(int ch, char a, char b) {
-        return (ch >= a && ch <= b);
-    }
-
+public class LangTagException extends RuntimeException {
+    public LangTagException(String msg) { super(msg); }
 }

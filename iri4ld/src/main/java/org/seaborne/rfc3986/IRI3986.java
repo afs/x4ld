@@ -1256,7 +1256,7 @@ public class IRI3986 implements IRI {
                 if ( ch == '?' || ch == '#' )
                     break;
                 // Not IPChar
-                throw parseError(iriStr, p + 1, format("Bad character in IRI path: %s (U+%04X)", Character.toString((int)ch), (int)ch));
+                throw parseError(iriStr, p + 1, format("Bad character in IRI path: '%s' (U+%04X)", Character.toString((int)ch), (int)ch));
             }
             allowColon = true;
             segStart = p + 1;

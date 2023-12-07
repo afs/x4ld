@@ -16,19 +16,8 @@
  * limitations under the License.
  */
 
-package org.seaborne.lang4ld.cmd;
+package org.seaborne.lang4ld;
 
-import org.seaborne.lang4ld.LangTag;
-import org.seaborne.lang4ld.LangTagParserAlt;
-
-public class CmdLangTag {
-    public static void main(String...args) {
-        for (String input : args ) {
-            LangTag langTag = LangTagParserAlt.parse(input);
-            System.out.printf("%s => %s\n", input, langTag.asString());
-
-//            String x = LangTagParser.canonical(input);
-//            System.out.printf("%s => %s\n", input, x);
-        }
-    }
+public class SysLangTag {
+    // Injectable error handling.
 }
