@@ -30,37 +30,40 @@ public class LangTagOps {
      * <a href="https://datatracker.ietf.org/doc/html/rfc5646#section-2.1.1">RFC 5646 section 2.1.1</a>
      * with the interpretation that "after singleton"
      */
-    public static String format(String string) {
+    public static String basicFormat(String string) {
+        // with the interpretation that "after singleton" means anywhere after the singleton.
         if ( string == null )
             return null;
         if ( string.isEmpty() )
             return string;
         List<String> strings = splitOnDash(string);
         if ( strings == null ) {
-            // Bad input.
-            // Either the exception in splitOnDash
-            // or
+            //return lowercase(string);
             error("Bad language string: %s", string);
         }
         StringBuilder sb = new StringBuilder(string.length());
-        boolean extension = false;
+        boolean singleton = false;
         boolean first = true;
 
         for ( String s : strings ) {
             if ( first ) {
+                // language
                 sb.append(lowercase(s));
                 first = false;
                 continue;
             }
+            first = false;
+            // All subtags after language
             sb.append('-');
-
-            if ( extension )
+            if ( singleton )
+                // Always lowercase
                 sb.append(lowercase(s));
             else {
+                // case depends on ;length
                 sb.append(strcase(s));
-                extension = s.equalsIgnoreCase("x");
+                if ( s.length() == 1 )
+                    singleton = true;
             }
-            first = false;
         }
         return sb.toString();
     }
@@ -124,7 +127,6 @@ public class LangTagOps {
         string = lowercase(string.substring(1));
         return ch1 + string;
     }
-
 
     /** ASCII A-Z */
     /*package*/ static boolean isA2Z(int ch) {
