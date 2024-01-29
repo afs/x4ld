@@ -53,7 +53,7 @@
     <ver.jena>5.0.0-SNAPSHOT</ver.jena>  
 
     <!-- Plugins -->
-    <ver.plugin.rat>0.16</ver.plugin.rat>
+    <ver.plugin.rat>0.16.1</ver.plugin.rat>
     <ver.plugin.resources>3.3.1</ver.plugin.resources>
     <ver.plugin.source>3.3.0</ver.plugin.source>
     <ver.plugin.jar>3.3.0</ver.plugin.jar>
