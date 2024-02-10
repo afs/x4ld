@@ -18,13 +18,13 @@
 
 package org.seaborne.rfc3986;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
  * <a href="https://datatracker.ietf.org/doc/html/rfc3061">RFC 3061</a>
- *
  * urn:NID:NSS
- * where NID = "oid" (case insentsive) and NSS is the oid grammar.
+ * where NID = "oid" (case insensitive) and NSS is the oid grammar.
  * <pre>
  *   oid             = number *( DOT number )
  *   number          = DIGIT / ( LEADDIGIT 1*DIGIT )
@@ -39,18 +39,23 @@ import java.util.regex.Pattern;
  * </pre>
  */
 public class ParseOID {
-    // and some (often non-URN) uses of OIDmay restrict size and length:
+    // and some (often non-URN) uses of OID may restrict size and length:
     //   ^([1-9][0-9]{0,3}|0)(\.([1-9][0-9]{0,3}|0)){5,13}$
 
-    private static String NUM = "(0|[1-9][0-9]*)";
-    private static String OID_URN = "^urn:oid:"+NUM+"(\\."+NUM+")*$";
-    private static Pattern OID_URN_RE = Pattern.compile(OID_URN, Pattern.CASE_INSENSITIVE);
+    private static final String NUM = "(0|[1-9][0-9]*)";
+    private static final String OID_URN = "^urn:oid:"+NUM+"(\\."+NUM+")*$";
+    private static final Pattern OID_URN_RE = Pattern.compile(OID_URN, Pattern.CASE_INSENSITIVE);
 
     // Where * is {0,3}
 
-    private static int pathOffset = "urn:".length();
+    private static final int pathOffset = "urn:".length();
+
+    public static void check(String string) {
+        parse(string);
+    }
 
     public static IRI3986 parse(String string) {
+        Objects.requireNonNull(string);
         if ( ! OID_URN_RE.matcher(string).matches() )
             throw new OIDParseException(string, "Not a match");
         IRI3986 iri = IRI3986.build("urn", null,  string.substring(pathOffset), null, null);

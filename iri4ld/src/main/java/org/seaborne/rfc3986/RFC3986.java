@@ -25,16 +25,15 @@ import java.util.regex.Pattern;
  * <p>
  * See the <a href="{@docRoot}/iri/package-summary.html">Package Overview</a>.
  * <p>
- *
  * As is common, these are referred to
  * as "3986" regardless just as {@code java.net.URI} covers IRIs. {@code java.net.URI}
  * parses and allocates and follows RFC 2396 with modifications (several of which are in
  * RFC 3986).
- *
+ * <p>
  * This provides a fast checking operation which does not copy the various parts of the
  * IRI and which creates a single object. The cost of extracting and allocating strings
  * happen when the getter for the component is called.
- *
+ * <p>
  * Implements the algorithms specified in RFC 3986 operations for:
  * <ul>
  * <li>Checking a string matches the IRI grammar.

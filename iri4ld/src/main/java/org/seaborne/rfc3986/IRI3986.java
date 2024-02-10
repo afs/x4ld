@@ -822,9 +822,9 @@ public class IRI3986 implements IRI {
 
     // ==== Regex
 
-    private static Pattern authorityRegex = Pattern.compile("(([^/?#@]*)@)?" +               // user
-                                                            "(\\[[^/?#]*\\]|([^/?#:]*))?" +  // host
-                                                            "(:([^/?#]*)?)?");               // port
+    private static final Pattern authorityRegex = Pattern.compile("(([^/?#@]*)@)?" +               // user
+                                                                  "(\\[[^/?#]*\\]|([^/?#:]*))?" +  // host
+                                                                  "(:([^/?#]*)?)?");               // port
 
     /**
      * Create an IRI using the regular expression of RFC 3986. Throws an exception of
@@ -834,7 +834,6 @@ public class IRI3986 implements IRI {
      * of the syntax, nor check scheme specific rules. Use the resulting IRI3986 with
      * care.
      */
-
     static IRI3986 createByRegex(String iriStr) {
         Objects.requireNonNull(iriStr);
         Pattern pattern = RFC3986.rfc3986regex;
