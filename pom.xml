@@ -50,7 +50,7 @@
     <ver.log4j2>2.23.1</ver.log4j2>
     <ver.commons-codec>1.16.1</ver.commons-codec>
     <!-- Testing only -->
-    <ver.jena>5.0.0-SNAPSHOT</ver.jena>  
+    <ver.jena>5.0.0</ver.jena>  
 
     <!-- Plugins -->
     <ver.plugin.rat>0.16.1</ver.plugin.rat>
