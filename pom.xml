@@ -50,7 +50,7 @@
     <ver.log4j2>2.23.1</ver.log4j2>
     <ver.commons-codec>1.16.1</ver.commons-codec>
     <!-- Testing only -->
-    <ver.jena>5.0.0</ver.jena>  
+    <ver.jena-iri>5.0.0</ver.jena-iri>  
 
     <!-- Plugins -->
     <ver.plugin.rat>0.16.1</ver.plugin.rat>
@@ -108,7 +108,7 @@
         <!-- For testing only -->
         <groupId>org.apache.jena</groupId>
         <artifactId>jena-iri</artifactId>
-        <version>${ver.jena}</version>
+        <version>${ver.jena-iri}</version>
         <scope>test</scope>
       </dependency>
 
