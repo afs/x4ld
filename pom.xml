@@ -56,7 +56,7 @@
     <ver.plugin.rat>0.16.1</ver.plugin.rat>
     <ver.plugin.resources>3.3.1</ver.plugin.resources>
     <ver.plugin.source>3.3.1</ver.plugin.source>
-    <ver.plugin.jar>3.4.0</ver.plugin.jar>
+    <ver.plugin.jar>3.4.1</ver.plugin.jar>
     <ver.plugin.assembly>3.5.0</ver.plugin.assembly>
     <ver.plugin.compiler>3.13.0</ver.plugin.compiler>
     <ver.plugin.surefire>3.2.5</ver.plugin.surefire>
