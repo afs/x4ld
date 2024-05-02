@@ -52,7 +52,7 @@
 	  <scope>test</scope>
     </dependency>
 
-    <!-- Used for BinHex and Base64 -->
+    <!-- Used for xsd:hexBinary -->
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>

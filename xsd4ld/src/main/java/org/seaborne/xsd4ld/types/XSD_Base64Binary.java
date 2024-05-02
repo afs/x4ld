@@ -17,7 +17,6 @@
 
 package org.seaborne.xsd4ld.types;
 
-import org.apache.commons.codec.binary.Base64;
 import org.seaborne.xsd4ld.XSDConst;
 import org.seaborne.xsd4ld.XSDTypeRegistry;
 
@@ -26,9 +25,11 @@ public class XSD_Base64Binary extends BaseBinary {
     public XSD_Base64Binary() {
         super(XSDConst.xsd_base64Binary, XSDConst.xsd_atomic, XSDTypeRegistry.getRegex(XSDConst.xsd_base64Binary));
     }
-    
+
     @Override
     protected byte[] valueOrException(String lex) {
-        return Base64.decodeBase64(lex);
+        // Decodes base64, base64 with spaces (required by xsd:base64Binary) and base64url)
+        return org.apache.commons.codec.binary.Base64.decodeBase64(lex);
+        //return Base64.getMimeDecoder().decode(lex);
     }
 }
