@@ -31,9 +31,10 @@ public interface IRI {
     @Override
     public int hashCode();
 
-    /** Java equals. IRI implementations must provide value-based equaliaty and hashCode.
-     * That is, two IRI objects with the same components are ".equals"and have the same ".hashCode".
+    /** Java equals. IRI implementations must provide value-based equality and hashCode.
+     * That is, two IRI objects with the same components are ".equals" and have the same ".hashCode".
      * (Like java.lang.String where "same chars" means "equals".)
+     * <p>
      * Specifically, if two IRI objects are parsed from the same string or return the same "str()"
      * they are .equals and hence also have the same .hashCode.
      */
@@ -74,15 +75,15 @@ public interface IRI {
 
     /**
      * <a href="https://tools.ietf.org/html/rfc3986#section-4.2">RFC 3986, Section 4.2</a>.
-     * This is not "! isAbsolute()".
-     *  */
+     * This is not "{@code ! isAbsolute()}".
+     */
     public default boolean isRelative() {
         return ! hasScheme();
     }
 
     /**
      * <a href="https://tools.ietf.org/html/rfc3986#section-3">RFC 3986, Section 3</a>.
-     * IRI has a scheme, no authority (no //) and is path-rootless (does not start with /)
+     * IRI has a scheme, no authority (no //) and is path-rootless (the path does not start with /)
      * e.g. URN's.
      */
     public default boolean isRootless() {
