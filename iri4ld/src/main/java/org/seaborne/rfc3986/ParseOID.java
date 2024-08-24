@@ -43,7 +43,8 @@ public class ParseOID {
     //   ^([1-9][0-9]{0,3}|0)(\.([1-9][0-9]{0,3}|0)){5,13}$
 
     private static final String NUM = "(0|[1-9][0-9]*)";
-    private static final String OID_URN = "^urn:oid:"+NUM+"(\\."+NUM+")*$";
+    // Checks both correct "urn:oid:" and incorrect "oid:".
+    private static final String OID_URN = "^(?:urn:oid|oid):"+NUM+"(\\."+NUM+")*$";
     private static final Pattern OID_URN_RE = Pattern.compile(OID_URN, Pattern.CASE_INSENSITIVE);
 
     // Where * is {0,3}

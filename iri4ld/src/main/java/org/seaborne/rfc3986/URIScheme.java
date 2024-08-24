@@ -34,8 +34,11 @@ public enum URIScheme {
     URN_UUID("urn:uuid"),
     // It's not officially registered but may be found in the wild.
     UUID("uuid"),
-    DID("did"),
     FILE("file"),
+    DID("did"),
+    URN_OID("urn:oid"),
+    // It's not officially registered but may be found in the wild.
+    OID("oid"),
     // RFC 7595 and registered.
     EXAMPLE("example")
     ;

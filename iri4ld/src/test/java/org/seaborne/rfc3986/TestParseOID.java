@@ -19,7 +19,9 @@
 package org.seaborne.rfc3986;
 
 import org.junit.Test;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
+
+import java.util.StringJoiner;
 
 public class TestParseOID {
 
@@ -44,6 +46,10 @@ public class TestParseOID {
 
     @Test public void oid_10() { test("urn:oid:Z", false); }
 
+    // Test the schema specific tests are in IRI3986
+    @Test public void iri3986_oid_10() { test3986("urn:oid:2.3.4", true); }
+    @Test public void iri3986_oid_11() { test3986("urn:oid:Z", false); }
+
     static IRI3986 test(String string, boolean valid) {
         try {
             IRI3986 iri = ParseOID.parse(string);
@@ -58,4 +64,18 @@ public class TestParseOID {
         return null;
     }
 
+    static IRI3986 test3986(String iristr, boolean valid) {
+        IRI3986 iri = IRI3986.create(iristr);
+        if ( valid ) {
+            StringJoiner sj = new StringJoiner("\n");
+            if ( iri.hasViolations() ) {
+                iri.forEachViolation(v->sj.add(v.message()));
+                String all = sj.toString();
+                System.err.println(all);
+            }
+            assertFalse("Has violations", iri.hasViolations());
+        } else
+            assertTrue("Expected violations", iri.hasViolations());
+        return iri;
+    }
 }

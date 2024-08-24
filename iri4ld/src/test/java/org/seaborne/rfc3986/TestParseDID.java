@@ -18,7 +18,11 @@
 
 package org.seaborne.rfc3986;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.util.StringJoiner;
 
 import org.junit.Test;
 
@@ -45,7 +49,8 @@ public class TestParseDID {
     @Test public void parseDID_bad_09() { badDID("urn:%6b:NSS"); } // %61 == lowercase 'a'
     @Test public void parseDID_bad_20() { badDID("urn:NID:NSS"); }
 
-
+    @Test public void parse_IRI3986_DID_01() { test3986("did:method:specific", true); }
+    @Test public void parse_IRI3986_DID_02() { test3986("did::", false); }
 
     private void goodDID(String string) {
         ParseDID.parse(string, false);
@@ -58,4 +63,18 @@ public class TestParseDID {
         } catch (IRIParseException ex) {}
     }
 
+    static IRI3986 test3986(String iristr, boolean valid) {
+        IRI3986 iri = IRI3986.create(iristr);
+        if ( valid ) {
+            StringJoiner sj = new StringJoiner("\n");
+            if ( iri.hasViolations() ) {
+                iri.forEachViolation(v->sj.add(v.message()));
+                String all = sj.toString();
+                System.err.println(all);
+            }
+            assertFalse("Has violations", iri.hasViolations());
+        } else
+            assertTrue("Expected violations", iri.hasViolations());
+        return iri;
+    }
 }

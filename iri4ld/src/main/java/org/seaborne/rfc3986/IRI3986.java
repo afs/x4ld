@@ -1425,6 +1425,9 @@ public class IRI3986 implements IRI {
             checkHTTP();
         else if ( matches(iriStr, URN_UUID) )
             checkURN_UUID();
+        else if ( matches(iriStr, URN_OID) )
+            checkURN_OID();
+        // "urn" namespaces must go before this test.
         else if ( matches(iriStr, URN) )
             checkURN();
         else if ( matches(iriStr, FILE) )
@@ -1433,6 +1436,8 @@ public class IRI3986 implements IRI {
             checkUUID();
         else if ( matches(iriStr, DID) )
             checkDID();
+        else if ( matches(iriStr, OID) )
+            checkOID();
         else if ( matches(iriStr, EXAMPLE) )
             checkExample();
 
@@ -1690,11 +1695,11 @@ public class IRI3986 implements IRI {
         checkUUID(URIScheme.URN_UUID, iriStr);
     }
 
-    /**
-     * Checks for "urn:" and "urn:uuid:"
-     */
     private void checkUUID() {
         checkSchemeName(URIScheme.URN_UUID);
+        /**
+         * Checks for "urn:" and "urn:uuid:"
+         */
         boolean matches = UUID_PATTERN_LC.matcher(iriStr).matches();
         if ( matches )
             // Fast path - no string manipulation
@@ -1702,6 +1707,7 @@ public class IRI3986 implements IRI {
         checkUUID(URIScheme.UUID, iriStr);
     }
 
+    // Check for both cases.
     private void checkUUID(URIScheme scheme, String iriStr) {
         // It did not pass the fast-path regular expression.
         int offset = scheme.getPrefix().length();
@@ -1742,6 +1748,27 @@ public class IRI3986 implements IRI {
             ParseDID.parse(iriStr, true);
         } catch (RuntimeException ex) {
             schemeReport(this, Issue.did_bad_syntax, URIScheme.DID, "Invalid DID: " + ex.getMessage());
+        }
+    }
+
+    // Correct
+    private void checkURN_OID() {
+        checkSchemeName(URN_OID);
+        checkOID(URN_OID, iriStr);
+    }
+
+    // Incorrect by RFC
+    private void checkOID() {
+        checkSchemeName(OID);
+        checkOID(OID, iriStr);
+    }
+
+    // Check for both cases.
+    private void checkOID(URIScheme scheme, String iriStr) {
+        try {
+            ParseOID.parse(iriStr);
+        } catch (RuntimeException ex) {
+            schemeReport(this, Issue.oid_bad_syntax, scheme, "Invalid OID: " + ex.getMessage());
         }
     }
 
