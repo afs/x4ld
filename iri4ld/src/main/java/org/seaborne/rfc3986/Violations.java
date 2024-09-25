@@ -83,11 +83,12 @@ public class Violations {
         SeverityMap.setSeverity(severityMap, Issue.uuid_has_query,                    Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.uuid_has_fragment,                 Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.uuid_not_lowercase,                Severity.ERROR);
+        SeverityMap.setSeverity(severityMap, Issue.uuid_not_registered,               Severity.WARNING);
 
         // urn (not UUID)
         SeverityMap.setSeverity(severityMap, Issue.urn_bad_pattern,                   Severity.ERROR);
-        SeverityMap.setSeverity(severityMap, Issue.urn_nid,                           Severity.ERROR);
-        SeverityMap.setSeverity(severityMap, Issue.urn_nss,                           Severity.ERROR);
+        SeverityMap.setSeverity(severityMap, Issue.urn_bad_nid,                       Severity.ERROR);
+        SeverityMap.setSeverity(severityMap, Issue.urn_bad_nss,                       Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.urn_bad_query,                     Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.urn_bad_fragment,                  Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.urn_non_ascii_character,           Severity.ERROR);
@@ -99,7 +100,10 @@ public class Violations {
         // did
         SeverityMap.setSeverity(severityMap, Issue.did_bad_syntax,                    Severity.ERROR);
 
-        return SeverityMap.create(severityMap);
+        // OID
+        SeverityMap.setSeverity(severityMap, Issue.oid_bad_syntax,                    Severity.ERROR);
+
+        return SeverityMap.create("IRI3986 SystemSettings", severityMap);
     }
 
     /** "all errors" settings */
@@ -128,10 +132,11 @@ public class Violations {
         SeverityMap.setSeverity(severityMap, Issue.uuid_has_query,                    Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.uuid_has_fragment,                 Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.uuid_not_lowercase,                Severity.ERROR);
+        SeverityMap.setSeverity(severityMap, Issue.uuid_not_registered,               Severity.ERROR);
         // urn
         SeverityMap.setSeverity(severityMap, Issue.urn_bad_pattern,                   Severity.ERROR);
-        SeverityMap.setSeverity(severityMap, Issue.urn_nid,                           Severity.ERROR);
-        SeverityMap.setSeverity(severityMap, Issue.urn_nss,                           Severity.ERROR);
+        SeverityMap.setSeverity(severityMap, Issue.urn_bad_nid,                       Severity.ERROR);
+        SeverityMap.setSeverity(severityMap, Issue.urn_bad_nss,                       Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.urn_bad_query,                     Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.urn_bad_fragment,                  Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.urn_non_ascii_character,           Severity.ERROR);
@@ -140,7 +145,9 @@ public class Violations {
         SeverityMap.setSeverity(severityMap, Issue.file_relative_path,                Severity.ERROR);
         // did
         SeverityMap.setSeverity(severityMap, Issue.did_bad_syntax,                    Severity.ERROR);
+        // OID
+        SeverityMap.setSeverity(severityMap, Issue.oid_bad_syntax,                    Severity.ERROR);
 
-        return SeverityMap.create(severityMap);
+        return SeverityMap.create("All errors",severityMap);
     }
 }

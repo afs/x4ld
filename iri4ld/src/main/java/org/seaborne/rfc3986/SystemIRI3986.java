@@ -64,13 +64,9 @@ public class SystemIRI3986 {
         iri.forEachViolation((Violation report) -> {
             Severity severity = severityMap.getOrDefault(report.issue(), Severity.INVALID);
             switch (severity) {
-                case WARNING :
-                    errorHandler.warning(report.message());
-                    break;
-                case ERROR :
-                case INVALID :
-                    errorHandler.error(report.message());
-                    break;
+                case WARNING ->        errorHandler.warning(report.message());
+                case ERROR, INVALID -> errorHandler.error(report.message());
+                case IGNORE -> {}
             }
         });
     }

@@ -19,6 +19,7 @@
 package org.seaborne.rfc3986;
 
 public enum Issue {
+
     ParseError,
     // General
     iri_percent_not_uppercase,
@@ -41,11 +42,12 @@ public enum Issue {
     uuid_has_query,
     uuid_has_fragment,
     uuid_not_lowercase,
+    uuid_not_registered,
     // urn
     urn_non_ascii_character,
     urn_bad_pattern,
-    urn_nid,
-    urn_nss,
+    urn_bad_nid,
+    urn_bad_nss,
     urn_bad_query,
     urn_bad_fragment,
     // file

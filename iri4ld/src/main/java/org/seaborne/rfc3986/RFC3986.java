@@ -126,6 +126,17 @@ public class RFC3986 {
         return new Builder();
     }
 
+    /** Ensure an {@link IRI} is a {@link IRI3986} */
+    public static IRI3986 create(IRI iriOther) {
+        if ( iriOther instanceof IRI3986 ref3986 )
+            return ref3986;
+        return RFC3986.newBuilder()
+                .scheme(iriOther.scheme()).authority(iriOther.authority())
+                .path(iriOther.path())
+                .query(iriOther.query()).fragment(iriOther.fragment())
+                .build();
+    }
+
     /** Normalize an IRI (RFC 3986 - Syntax-Based Normalization) */
     public static IRI3986 normalize(IRI3986 iri) { return iri.normalize(); }
 

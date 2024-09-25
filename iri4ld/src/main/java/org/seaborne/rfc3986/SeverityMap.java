@@ -26,16 +26,24 @@ import java.util.function.BiConsumer;
 
 /** Immutable choice of severity settings for {@link Issue Issues}. */
 public class SeverityMap {
+    private final String severityMapName ;
     private final Map<Issue, Severity> map;
 
+    /** @deprecated SeverityMaps should have a name, Use {@link #create(String, Map)}. */
+    @Deprecated
     public static SeverityMap create(Map<Issue, Severity> map) {
-        checkComplete(map);
-        return new SeverityMap(map);
+        checkSeverityMappingComplete("unnamed", map);
+        return new SeverityMap(null, map);
     }
 
-    private SeverityMap(Map<Issue, Severity> map) {
-        checkComplete(map);
+    public static SeverityMap create(String name, Map<Issue, Severity> map) {
+        checkSeverityMappingComplete(name, map);
+        return new SeverityMap(name, map);
+    }
+
+    private SeverityMap(String name, Map<Issue, Severity> map) {
         this.map = Map.copyOf(map);
+        this.severityMapName = name;
     }
 
     /** Return a mutable copy of the severity settings. */
@@ -63,11 +71,11 @@ public class SeverityMap {
     }
 
     /** Utility to verify that a severity map is complete. */
-    public static void checkComplete(Map<Issue, Severity> levels) {
+    /*package*/ static void checkSeverityMappingComplete(String name, Map<Issue, Severity> levels) {
         Set<Issue> keys = levels.keySet();
         for ( Issue issue : Issue.values()) {
             if ( ! keys.contains(issue) ) {
-                System.err.println("Missing entry for "+issue);
+                System.err.printf("Severity map %s : Missing entry for issue %s\n", name, issue);
             }
         }
     }

@@ -24,17 +24,31 @@ import java.util.StringJoiner;
 /** Algorithms for IRIs : resolution */
 public class AlgResolveIRI {
 
-    /** Resolve an IRI against a base.*/
+    /**
+     * Resolve an IRI against a base.
+     * <p>
+     * This function includes resolving the path if the scheme of base and the scheme
+     * of the reference is the same or both absent.
+     */
     public static IRI3986 resolve(IRI base, IRI reference) {
-        //if ( ! base.isAbsolute() )
-        // Lax version
-        return transformReferences(reference, base);
+        return transformReferencesNonStrict(reference, base);
     }
 
-    /** 5.2.2.  Transform References */
-    private static IRI3986 transformReferences(IRI reference, IRI base) {
-        // Note the argument order is reverse from "resolve(base, relative)"
-        // to be more like RFC 3986.
+    /** 5.2.2.  Transform References
+     * <p>
+     * <a href="https://datatracker.ietf.org/doc/html/rfc3986#section-5.2.2">RFC 3986 section 5.2.2</a>.
+     * <p>
+     * "A non-strict parser" - this resolves (hosts and) paths if the reference and the base have the same scheme.
+     */
+    private static IRI3986 transformReferencesStrict(IRI reference, IRI base) {
+        boolean sameScheme = Objects.equals(reference.scheme(), base.scheme());
+        if ( reference.hasScheme() )
+            return RFC3986.create(reference);
+        return transformReferencesNonStrict(reference, base);
+    }
+
+    private static IRI3986 transformReferencesNonStrict(IRI reference, IRI base) {
+        // Note the argument order is reverse from "resolve(base, relative)" to be more like RFC 3986.
         String t_scheme = null;
         String t_authority = "";
         String t_path = "";
@@ -86,7 +100,7 @@ public class AlgResolveIRI {
 //
 //        T.fragment = R.fragment;
 
-        // "not strict"
+        // "not strict", including both missing schemes
         boolean sameScheme = Objects.equals(reference.scheme(), base.scheme());
 
         if ( reference.hasScheme() && ! sameScheme ) {

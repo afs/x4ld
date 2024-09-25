@@ -703,17 +703,28 @@ public class IRI3986 implements IRI {
         return AlgResolveIRI.relativize(this, iri);
     }
 
+    private static final boolean strictResolver = false;
     /**
      * Resolve an IRI, using this as the base.
-     * <a href=https://tools.ietf.org/html/rfc3986#section-5">RFC 3986 section 5</a>
+     * <a href="https://tools.ietf.org/html/rfc3986#section-5">RFC 3986 section 5</a>
      */
     public IRI3986 resolve(IRI3986 other) {
         // Not isAbsolute here - absolute URIs do not allow a fragment.
         // "!isRelative" is not the same as "isAbsolute"
-        if ( !other.isRelative() )
+
+//        -- A non-strict parser may ignore a scheme in the reference
+//        -- if it is identical to the base URI's scheme.
+
+        if ( strictResolver && !other.isRelative() ) {
+            // RFC 3986 section 5.2.2
+            //          -- A non-strict parser may ignore a scheme in the reference
+            //          -- if it is identical to the base URI's scheme.
             return other;
-        // if ( ! hasScheme()() ) {}
-        // Base must have scheme. Be lax.
+        }
+//        if ( strictResolver && ! this.hasScheme() )
+//            return other;
+        // Be lax - don't require bas to have scheme.
+        // Rel path resolves against rel path.
         /* 5.2.2. Transform References */
         IRI3986 iri = AlgResolveIRI.resolve(this, other);
         iri.schemeSpecificRulesInternal();
@@ -1458,6 +1469,7 @@ public class IRI3986 implements IRI {
         // if ( hasPort() && (port0 == port1) ) //getPort().isEmpty()
         // warning("http", "port is empty");
 
+        // ***
         // lower case scheme
         // uppercase %encoding.
 
@@ -1599,7 +1611,11 @@ public class IRI3986 implements IRI {
      * f-component   = fragment
      */
     /*
+     * alphanum, fragment, and pchar from RFC 3986
+     *
     // pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+       alphanum       | ALPHA / DIGIT
+       fragment    = *( pchar / "/" / "?" )
 
        pct-encoded   = "%" HEXDIG HEXDIG
        unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
@@ -1621,6 +1637,7 @@ public class IRI3986 implements IRI {
     // Common bad cases : "urn:x:" and "urn:X-ABC:"
     private static Pattern URN_PATTERN_BAD_NID_1 = Pattern.compile("^urn:(?:[a-zA-Z0-9])(?::(?:.*))?");
     private static Pattern URN_PATTERN_BAD_NID_2 = Pattern.compile("^urn:X-:");
+    // Bad NSS (empty string) is tested for in checkUUID.
 
     /**
      * <a href="https://datatracker.ietf.org/doc/html/rfc8141">RFC 8141</a>.
@@ -1639,7 +1656,9 @@ public class IRI3986 implements IRI {
 
         if ( !matches ) {
             if ( URN_PATTERN_BAD_NID_1.matcher(iriStr).matches() )
-                schemeReport(this, Issue.urn_nid, URIScheme.URN, "NID must be at least 2 characters");
+                schemeReport(this, Issue.urn_bad_nid, URIScheme.URN, "NID must be at least 2 characters");
+            else if ( path().endsWith(":") )
+                schemeReport(this, Issue.urn_bad_nss, URIScheme.URN, "NSS must be at least 1 character");
             else
                 schemeReport(this, Issue.urn_bad_pattern, URIScheme.URN,
                              "URI does not match the 'assigned-name' rule regular expression (\"urn\" \":\" NID \":\" NSS)");
@@ -1696,50 +1715,53 @@ public class IRI3986 implements IRI {
     }
 
     private void checkUUID() {
-        checkSchemeName(URIScheme.URN_UUID);
-        /**
-         * Checks for "urn:" and "urn:uuid:"
-         */
+        checkSchemeName(URIScheme.UUID);
+        schemeReport(this, Issue.uuid_not_registered, URN_UUID, "uuid: is not a registered URI scheme. Use urn:uuid:");
+        // Warning? uuid: is not registered.
+        // Checks for "urn:uuid:" and "uuid:"
         boolean matches = UUID_PATTERN_LC.matcher(iriStr).matches();
         if ( matches )
             // Fast path - no string manipulation
             return;
+
         checkUUID(URIScheme.UUID, iriStr);
+
+        // Specific "uuid:..." tests
+        if ( hasQuery() )
+            schemeReport(this, Issue.uuid_has_query, URIScheme.UUID, "query component not allowed: " + str());
+        if ( hasFragment() )
+            schemeReport(this, Issue.uuid_has_fragment, URIScheme.UUID, "fragment not allowed: " + str());
     }
 
     // Check for both cases.
     private void checkUUID(URIScheme scheme, String iriStr) {
         // It did not pass the fast-path regular expression.
-        int offset = scheme.getPrefix().length();
-        String uuidStr = iriStr.substring(offset);
-        int uuidLen = iriStr.length() - offset;
         boolean warningIssued = false;
-
-        // Specific tests, specific messages
-        if ( hasQuery() ) {
-            // Conform.
-            schemeReport(this, Issue.uuid_has_query, scheme, "query component not allowed: " + iriStr);
-            warningIssued = true;
+        // 36 if uuid:, 41 is urn:uuid:
+        int uuidPathLen;
+        if ( scheme == URIScheme.UUID ) {
+            // "uuid:...."
+            uuidPathLen = 36;
+        } else {
+            // "urn:uuid:..."
+            // The URI path is string from "uuid:...."
+            uuidPathLen = 41;
         }
-        if ( hasFragment() ) {
-            schemeReport(this, Issue.uuid_has_fragment, scheme, "fragment not allowed: " + iriStr);
-            warningIssued = true;
-        }
 
-        if ( !warningIssued && uuidLen != 36 ) {
-            // Don't output if query or fragment
-            schemeReport(this, Issue.uuid_bad_pattern, scheme, "Bad UUID string (wrong length): " + uuidStr);
+        int actualPathLen = path1-path0;
+        if (actualPathLen != uuidPathLen ) {
+            schemeReport(this, Issue.uuid_bad_pattern, scheme, "Bad UUID string (wrong length): " + iriStr);
             warningIssued = true;
         }
 
         boolean matchesAnyCase = UUID_PATTERN_AnyCase.matcher(iriStr).matches();
         if ( matchesAnyCase ) {
-            schemeReport(this, Issue.uuid_not_lowercase, scheme, "Lowercase recommended for UUID string: " + uuidStr);
+            schemeReport(this, Issue.uuid_not_lowercase, scheme, "Lowercase recommended for UUID string: " + iriStr);
             warningIssued = true;
         }
         if ( !warningIssued )
             // Didn't match UUID_PATTERN_LC or UUID_PATTERN_AnyCase
-            schemeReport(this, Issue.uuid_bad_pattern, scheme, "Not a valid UUID string: " + uuidStr);
+            schemeReport(this, Issue.uuid_bad_pattern, scheme, "Not a valid UUID string: " + iriStr);
     }
 
     private void checkDID() {

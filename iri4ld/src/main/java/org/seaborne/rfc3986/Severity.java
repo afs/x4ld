@@ -18,4 +18,4 @@
 
 package org.seaborne.rfc3986;
 
-public enum Severity { ERROR, WARNING, INVALID }
+public enum Severity { IGNORE, ERROR, WARNING, INVALID }
