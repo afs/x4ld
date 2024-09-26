@@ -78,5 +78,8 @@ public class SeverityMap {
                 System.err.printf("Severity map %s : Missing entry for issue %s\n", name, issue);
             }
         }
+        if ( levels.get(Issue.ParseError) != Severity.INVALID ) {
+            System.err.printf("Severity map %s : %s is not severity INVALID", name, Issue.ParseError);
+        }
     }
 }

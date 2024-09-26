@@ -23,6 +23,7 @@ import static org.junit.Assert.*;
 
 import java.util.StringJoiner;
 
+/** Test the class ParseOID */
 public class TestParseOID {
 
     @Test public void oid_01() { test("urn:oid:1", true); }
@@ -35,8 +36,7 @@ public class TestParseOID {
 
     @Test public void oid_05() { test("urn:oid:", false); }
 
-
-    @Test public void oid_06() { test("urn:oid:", false); }
+    @Test public void oid_06() { test("oid:", false); }
 
     @Test public void oid_07() { test("urn:oid:01", false); }
 

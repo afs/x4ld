@@ -55,7 +55,8 @@ public enum Issue {
     file_relative_path,
     // did
     did_bad_syntax,
-    // run:oid and oid:
-    oid_bad_syntax
+    // urn:oid and oid:
+    oid_bad_syntax,
+    oid_not_registered
 }
 

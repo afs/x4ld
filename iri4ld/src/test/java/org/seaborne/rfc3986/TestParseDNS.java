@@ -22,6 +22,7 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
+/** Test the class ParseDNS */
 public class TestParseDNS {
 
     @Test public void parseDNS_01() { goodDNS("a.b.c.d"); }

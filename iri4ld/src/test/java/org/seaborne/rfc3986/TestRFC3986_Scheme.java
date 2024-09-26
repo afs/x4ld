@@ -29,7 +29,7 @@ import org.junit.runners.MethodSorters;
 /**
  * Scheme specific tests
  *
- * @see TestRFC3986 -- for parsing the URI grammar.
+ * @see TestRFC3986_Syntax -- for parsing the URI grammar.
  * @see TestRFC3986_Features
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -159,6 +159,15 @@ public class TestRFC3986_Scheme {
 
     @Test public void parse_uuid_bad_8141_152() {
         badSpecific("urn:uuid:" + testUUID + "#");
+    }
+
+    @Test public void parse_urn_oid_1() {
+        badSpecific("urn:oid:Z");
+    }
+
+    @Test public void parse_urn_oid_2() {
+        // It's "urn:oid:..."
+        badSpecific("oid:1.2.3");
     }
 
     public static ErrorHandler create(Consumer<String> onError, Consumer<String> onWarning) {

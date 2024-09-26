@@ -26,6 +26,7 @@ import java.util.StringJoiner;
 
 import org.junit.Test;
 
+/** Test the class ParseDID */
 public class TestParseDID {
     @Test public void parseDID_01() { goodDID("did:method:specific"); }
     @Test public void parseDID_02() { goodDID("did:method:SPECIFIC"); }

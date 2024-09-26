@@ -33,7 +33,7 @@ import org.junit.runners.MethodSorters;
  * @see TestRFC3986_Features
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestRFC3986 {
+public class TestRFC3986_Syntax {
     // Detailed testing IPv4 parsing is in {@link TestParseIPv4Address}
     // Detailed testing IPv6 parsing is in {@link TestParseIPv6Address}
 
@@ -128,6 +128,8 @@ public class TestRFC3986 {
     @Test public void parse_uuid_05()   { good("urn:uuid:"+(testUUID.toUpperCase(Locale.ROOT))); }
 
     @Test public void parse_uuid_06()   { goodNoIRICheck("URN:UUID:"+testUUID); }
+
+    @Test public void parse_oid_1()     { good("oid:1.2.3"); }
 
     @Test public void parse_ftp_01()    { good("ftp://user@host:3333/abc/def?qs=ghi#jkl"); }
 

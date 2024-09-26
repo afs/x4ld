@@ -24,7 +24,7 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
     TestParseComponents.class,
-    TestRFC3986.class,
+    TestRFC3986_Syntax.class,
     TestRFC3986_Scheme.class,
     TestRFC3986_Features.class,
     TestResolve.class,

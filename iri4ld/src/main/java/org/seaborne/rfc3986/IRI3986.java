@@ -1716,7 +1716,7 @@ public class IRI3986 implements IRI {
 
     private void checkUUID() {
         checkSchemeName(URIScheme.UUID);
-        schemeReport(this, Issue.uuid_not_registered, URN_UUID, "uuid: is not a registered URI scheme. Use urn:uuid:");
+        schemeReport(this, Issue.uuid_not_registered, URIScheme.UUID, "Use urn:uuid: -  'uuid:' is not a registered URI scheme.");
         // Warning? uuid: is not registered.
         // Checks for "urn:uuid:" and "uuid:"
         boolean matches = UUID_PATTERN_LC.matcher(iriStr).matches();
@@ -1765,7 +1765,7 @@ public class IRI3986 implements IRI {
     }
 
     private void checkDID() {
-        checkSchemeName(DID);
+        checkSchemeName(URIScheme.DID);
         try {
             ParseDID.parse(iriStr, true);
         } catch (RuntimeException ex) {
@@ -1773,16 +1773,16 @@ public class IRI3986 implements IRI {
         }
     }
 
-    // Correct
     private void checkURN_OID() {
-        checkSchemeName(URN_OID);
-        checkOID(URN_OID, iriStr);
+        checkSchemeName(URIScheme.URN_OID);
+        checkOID(URIScheme.URN_OID, iriStr);
     }
 
-    // Incorrect by RFC
+    // Incorrect by RFC (there was a a draft, but RFC 3061 is urn:oid:...)
     private void checkOID() {
-        checkSchemeName(OID);
-        checkOID(OID, iriStr);
+        checkSchemeName(URIScheme.OID);
+        schemeReport(this, Issue.uuid_not_registered, URIScheme.OID, "Use 'urn:oid:' - 'oid:' is not a registered URI scheme.");
+        checkOID(URIScheme.OID, iriStr);
     }
 
     // Check for both cases.
@@ -1798,7 +1798,7 @@ public class IRI3986 implements IRI {
      * URI scheme "example:" from RFC 7595
      */
     private void checkExample() {
-        checkSchemeName(EXAMPLE);
+        checkSchemeName(URIScheme.EXAMPLE);
     }
 
     private void checkSchemeName(URIScheme scheme) {
