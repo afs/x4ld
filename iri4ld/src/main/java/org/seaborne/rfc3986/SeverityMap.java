@@ -63,7 +63,12 @@ public class SeverityMap {
         map.forEach(action);
     }
 
-    /** Utility to help build a severity map */
+    @Override
+    public String toString() {
+        return "SeverityMap: "+severityMapName;
+    }
+
+    /** Utility to help build a {@link Map} for creating a {@link SeverityMap}. */
     public static void setSeverity(Map<Issue, Severity> map, Issue issue, Severity severity) {
         Objects.requireNonNull(issue);
         Objects.requireNonNull(severity);
