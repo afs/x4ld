@@ -33,19 +33,18 @@ import java.util.function.Consumer;
  * <p>
  * Use with {@code SystemIRI3986.toHandler}.
  */
-@FunctionalInterface
 public interface ErrorHandler
 {
     /**
      * Create an error handler with two functions, one for warning, one for error.
-     * A value of null implies using a "no action" function.s
+     * A value of null implies using a "no action" function.
      */
     public static ErrorHandler create(Consumer<String> onError, Consumer<String> onWarning) {
         return ErrorHandlerBase.create(onError, onWarning);
     }
 
     /** Report a warning. This method may return. */
-    public default void warning(String message) { }
+    public void warning(String message);
 
     /** Report an error : should not return. */
     public void error(String message) ;
