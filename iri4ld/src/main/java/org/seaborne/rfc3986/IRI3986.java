@@ -1696,6 +1696,7 @@ public class IRI3986 implements IRI {
      * Both "urn:uuid:" and the unofficial "uuid:"
      * URN r-component, q-component and f-component not allowed.
      */
+    private static String URN_COMPONENTS_ASCII = "(?:?\\+[0-9a-z]+)?(?:?=[0-9a-z]+)?(?:#[0-9a-z]*)";
     private static Pattern UUID_PATTERN_LC = Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
     private static Pattern UUID_PATTERN_UC = Pattern.compile("^(?:urn:uuid|uuid):[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$");
 
