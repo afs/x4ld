@@ -35,16 +35,21 @@
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ssZ</maven.build.timestamp.format>
     <build.time.xsd>${maven.build.timestamp}</build.time.xsd>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <ver.plugin.compiler>3.13.0</ver.plugin.compiler>
+    <java.version>17</java.version>
+
   </properties>
 
   <dependencies>
 
+	<!--
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-
+    -->
 	<!-- No logging	
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -53,19 +58,51 @@
     </dependency>
 	-->
 
+    <!-- For testing -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j2-impl</artifactId>
       <scope>test</scope>
     </dependency>
 
-    <!-- For testing only -->
     <dependency>
       <groupId>org.apache.jena</groupId>
       <artifactId>jena-iri</artifactId>
       <scope>test</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-suite-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+	        <encoding>UTF-8</encoding>
+          <compilerArgument>-proc:none</compilerArgument>
+          <release>${java.version}</release>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
