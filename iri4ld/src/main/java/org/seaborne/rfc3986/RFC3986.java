@@ -38,9 +38,10 @@ import java.util.regex.Pattern;
  * <ul>
  * <li>Checking a string matches the IRI grammar.
  * <li>Extracting components of an IRI
- * <li>Normalizing an IRI
  * <li>Resolving an IRI against a base IRI.
- * <li>Rebuilding an IRI from components.
+ * <li>Normalizing an IRI
+ * <li>Relativize an IRI for a given base IRI.
+ * <li>Building an IRI from components.
  * </ul>
  *
  * <h3>Usage</h3>
@@ -76,8 +77,17 @@ import java.util.regex.Pattern;
  * <pre>
  *     IRI3986 base = RFC3986.create(baseIRIString);
  *     IRI3986 target = RFC3986.create(string);
- *     IRI3986 relative = RFC3986(relativize(base, target));
+ *     IRI3986 relative = RFC3986relativize(base, target);
  *     // then base.resolve(relative) equals target
+ * </pre>
+ * <h4>Build an IRI3986 from componets</h4>
+ * <pre>
+ *     IRI3986 iri = RFC3986.newBuilder()
+ *                       .scheme("http")
+ *                       .host("example.org")
+ *                       .path("/dir/page.html")
+ *                       .build();
+ *     System.out.println(iri.str());
  * </pre>
  *
  * <h3>RFC Regular Expression</h3>

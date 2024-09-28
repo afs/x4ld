@@ -32,7 +32,8 @@
  * <li>Extracting components of an IRI
  * <li>Normalizing an IRI
  * <li>Resolving an IRI against a base IRI.
- * <li>Rebuilding an IRI from components.
+ * <li>Relativizing an IRI for a given base IRI.
+ * <li>Building an IRI from components.
  * </ul>
  *
  * Additions:
@@ -68,11 +69,6 @@
  * <h3>RFC 3987 modifications Grammar</h3>
  * <a href="https://tools.ietf.org/html/rfc3987#page-7">2.2.  ABNF for IRI References and IRIs</a>
  *
- */
-
-/* Others:
- * https://tools.ietf.org/html/rfc4248 : telnet
- * https://tools.ietf.org/html/rfc4266 : The gopher URI Scheme
  */
 
 package org.seaborne.rfc3986;
