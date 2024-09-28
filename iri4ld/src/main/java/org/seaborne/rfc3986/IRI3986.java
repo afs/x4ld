@@ -136,7 +136,7 @@ public class IRI3986 implements IRI {
      * {@link #forEachViolation}.
      * <p>
      * This operation checks the resulting IRI conforms to URI scheme specific rules
-     * only if the synatx as an IRI is valid.
+     * only if the syntax as an IRI is valid.
      */
     public static IRI3986 createAny(String iristr) {
         IRI3986 iri = newAndCheck(iristr);
@@ -178,13 +178,12 @@ public class IRI3986 implements IRI {
      * syntax defined by RFC 3986, record this information; the state of the IRI3986
      * object only reflects the information parsed up until the error.
      * <p>
-     * This operations does check the resulting IRI conforms to URI scheme specific
-     * rules.
+     * This operation does check the resulting IRI conforms to URI scheme specific
+     * rules if the IRI string conforms to RFC 3986.
      */
     private static IRI3986 newAndCheck(String iriStr) {
-        // This function assumes the string is valid.
         // The parser does not try to continue after it finds an error
-        // in the RFC3986 syntax so the component at the point of error
+        // in the RFC3986 syntax, so the components at the point of error
         // and later components are not recorded.
         IRI3986 iri = new IRI3986(iriStr);
         try {
@@ -192,7 +191,7 @@ public class IRI3986 implements IRI {
             iri.schemeSpecificRulesInternal();
         } catch (IRIParseException ex) {
             String msg = ex.getMessage();
-            addReport(iri, iriStr, null, Issue.ParseError, ex.getMessage());
+            addReportParseError(iri, iriStr, ex.getMessage());
         }
         return iri;
     }
@@ -1678,7 +1677,7 @@ public class IRI3986 implements IRI {
             String qs = query();
             if ( !qs.startsWith("+") && !qs.startsWith("=") )
                 schemeReport(this, Issue.urn_bad_query, URIScheme.URN,
-                        "Improper start to q-component of URN (must be '?+...' or '?=...').");
+                        "Improper start to components of a URN (must be '?+...' or '?=...').");
             urnCharCheck("query", "q-component", qs);
         }
     }
@@ -1687,8 +1686,7 @@ public class IRI3986 implements IRI {
         for ( int i = 0 ; i < string.length() ; i++ ) {
             char ch = string.charAt(i);
             if ( ch > 0x7F )
-                schemeReport(this, Issue.urn_non_ascii_character, URIScheme.URN,
-                             uriName + " : Non-ASCII character in " + urnName + " of URN");
+                schemeReport(this, Issue.urn_non_ascii_character, URIScheme.URN, "Non-ASCII character in " + urnName + " of URN");
         }
     }
 
@@ -1818,7 +1816,12 @@ public class IRI3986 implements IRI {
         }
     }
 
-    // Variable level.
+    /**
+     * Violation of URI scheme specific rules.
+     * <p>
+     * The URI will be added to the beginning of the message.
+     */
+
     private void schemeReport(IRI3986 iri, Issue issue, URIScheme scheme, String msg) {
         Objects.requireNonNull(issue);
         if ( issue == Issue.ParseError ) {
@@ -1829,7 +1832,16 @@ public class IRI3986 implements IRI {
     }
 
     private static void addReport(IRI3986 iri, String iriStr, URIScheme uriScheme, Issue issue, String message) {
-        Violation v = new Violation(iriStr, uriScheme, issue, message);
+        String msg = "<"+iriStr+"> "+message;
+        Violation v = new Violation(iriStr, uriScheme, issue, msg);
+        addReport(iri, v);
+    }
+
+    private static void addReportParseError(IRI3986 iri, String iriStr, String message) {
+        // The iri object is probably only partial populated.
+        // Use iriStr for the message.
+        String msg = "'"+iriStr+"' : "+message;
+        Violation v = new Violation(iriStr, null, Issue.ParseError, msg);
         addReport(iri, v);
     }
 
@@ -1839,7 +1851,6 @@ public class IRI3986 implements IRI {
         iri.reports.add(report);
     }
 }
-
 
 // @formatter:off
 
