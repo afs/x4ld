@@ -25,7 +25,7 @@ import org.seaborne.rfc3986.RFC3986;
 public class CmdResolve {
     public static void main(String... args) {
         if ( args.length != 2 ) {
-            System.err.println("request two arguments - base and IRI to resolve.");
+            System.err.println("Requires two arguments - base IRI and IRI to resolve.");
             System.exit(1);
         }
 
