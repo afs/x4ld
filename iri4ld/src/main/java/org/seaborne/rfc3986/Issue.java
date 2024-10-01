@@ -42,7 +42,7 @@ public enum Issue {
     uuid_has_query,
     uuid_has_fragment,
     uuid_not_lowercase,
-    uuid_not_registered,
+    uuid_scheme_not_registered,
     // urn
     urn_non_ascii_character,
     urn_bad_pattern,
@@ -57,6 +57,6 @@ public enum Issue {
     did_bad_syntax,
     // urn:oid and oid:
     oid_bad_syntax,
-    oid_not_registered
+    oid_scheme_not_registered
 }
 

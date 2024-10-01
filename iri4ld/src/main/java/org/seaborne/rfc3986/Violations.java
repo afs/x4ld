@@ -83,7 +83,7 @@ public class Violations {
         SeverityMap.setSeverity(severityMap, Issue.uuid_has_query,                    Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.uuid_has_fragment,                 Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.uuid_not_lowercase,                Severity.ERROR);
-        SeverityMap.setSeverity(severityMap, Issue.uuid_not_registered,               Severity.WARNING);
+        SeverityMap.setSeverity(severityMap, Issue.uuid_scheme_not_registered,        Severity.WARNING);
 
         // urn (not UUID)
         SeverityMap.setSeverity(severityMap, Issue.urn_bad_pattern,                   Severity.ERROR);
@@ -102,7 +102,7 @@ public class Violations {
 
         // OID
         SeverityMap.setSeverity(severityMap, Issue.oid_bad_syntax,                    Severity.ERROR);
-        SeverityMap.setSeverity(severityMap, Issue.oid_not_registered,                Severity.WARNING);
+        SeverityMap.setSeverity(severityMap, Issue.oid_scheme_not_registered,         Severity.WARNING);
 
         return SeverityMap.create("IRI3986 SystemSettings", severityMap);
     }
