@@ -47,7 +47,7 @@ public class CmdIRI {
                 IRI3986 iri = RFC3986.create(iriStr);
                 IRI3986 iri1 = iri.normalize();
 
-                out.printf("Input: %s\n", iriStr);
+                out.printf("Input: <%s>\n", iriStr);
                 out.printf("  Parsed:       %s\n", iri.rebuild()) ;
                 out.printf("  Absolute:     %s\n", iri.isAbsolute());
                 out.printf("  Relative:     %s\n", iri.isRelative());
@@ -70,7 +70,7 @@ public class CmdIRI {
                     out.println("Scheme specific warnings:");
                     iri.forEachViolation(v->{
                         out.print("   ");
-                        err.printf("%s\n", v.toString());
+                        err.printf("%s\n", v.message());
                     });
                 }
             } catch (IRIParseException ex) {

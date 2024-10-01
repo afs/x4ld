@@ -1698,8 +1698,8 @@ public class IRI3986 implements IRI {
     private static Pattern UUID_PATTERN_LC = Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
     private static Pattern UUID_PATTERN_UC = Pattern.compile("^(?:urn:uuid|uuid):[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$");
 
-    private static Pattern UUID_PATTERN_AnyCase = Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-                                                                  Pattern.CASE_INSENSITIVE);
+    private static Pattern UUID_PATTERN_AnyCase =
+            Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", Pattern.CASE_INSENSITIVE);
 
     /**
      * <a href="https://datatracker.ietf.org/doc/html/rfc4122">RFC4122</a>
@@ -1727,9 +1727,9 @@ public class IRI3986 implements IRI {
 
         // Specific "uuid:..." tests
         if ( hasQuery() )
-            schemeReport(this, Issue.uuid_has_query, URIScheme.UUID, "query component not allowed: " + str());
+            schemeReport(this, Issue.uuid_has_query, URIScheme.UUID, "query component not allowed");
         if ( hasFragment() )
-            schemeReport(this, Issue.uuid_has_fragment, URIScheme.UUID, "fragment not allowed: " + str());
+            schemeReport(this, Issue.uuid_has_fragment, URIScheme.UUID, "fragment not allowed");
     }
 
     // Check for both cases.
@@ -1749,18 +1749,18 @@ public class IRI3986 implements IRI {
 
         int actualPathLen = path1-path0;
         if (actualPathLen != uuidPathLen ) {
-            schemeReport(this, Issue.uuid_bad_pattern, scheme, "Bad UUID string (wrong length): " + iriStr);
+            schemeReport(this, Issue.uuid_bad_pattern, scheme, "Bad UUID string (wrong length)");
             warningIssued = true;
         }
 
         boolean matchesAnyCase = UUID_PATTERN_AnyCase.matcher(iriStr).matches();
         if ( matchesAnyCase ) {
-            schemeReport(this, Issue.uuid_not_lowercase, scheme, "Lowercase recommended for UUID string: " + iriStr);
+            schemeReport(this, Issue.uuid_not_lowercase, scheme, "Lowercase recommended for UUID string");
             warningIssued = true;
         }
         if ( !warningIssued )
             // Didn't match UUID_PATTERN_LC or UUID_PATTERN_AnyCase
-            schemeReport(this, Issue.uuid_bad_pattern, scheme, "Not a valid UUID string: " + iriStr);
+            schemeReport(this, Issue.uuid_bad_pattern, scheme, "Not a valid UUID string");
     }
 
     private void checkDID() {
