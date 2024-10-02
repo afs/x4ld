@@ -103,17 +103,24 @@ public class TestRFC3986_Syntax {
 
     @Test public void parse_urn_01() { good("urn:x-local:abc/def"); }
 
+    @Test public void parse_urn_02()        { good("urn:abc0:def"); }
+
     // rq-components = [ "?+" r-component ]
     //                 [ "?=" q-component ]
     // f-component   = fragment
 
-    @Test public void parse_urn_02()        { good("urn:x-local:abc/def?+more"); }
+    @Test public void parse_urn_component_01()        { good("urn:ns:abc/def?+more"); }
+    @Test public void parse_urn_component_02()        { good("urn:ns:abc/def?=123"); }
+    @Test public void parse_urn_component_03()        { good("urn:ns:abc/def?=rComp?+qComp"); }
+    @Test public void parse_urn_component_04()        { good("urn:ns:abc/def?=resolve?+123#frag"); }
+    @Test public void parse_urn_component_05()        { good("urn:ns:abc/def#frag"); }
 
-    @Test public void parse_urn_03()        { good("urn:x-local:abc/def?=123"); }
-
-    @Test public void parse_urn_04()        { good("urn:x-local:abc/def?+resolve?=123#frag"); }
-
-    @Test public void parse_urn_05()        { good("urn:abc0:def"); }
+    // Allow Unicode in the NSS and components.
+    // (Strictly, URNs are ASCII)
+    @Test public void parse_urn_unicode_01()        { good("urn:ns:αβγ"); }
+    @Test public void parse_urn_unicode_02()        { good("urn:ns:x?=αβγ"); }
+    @Test public void parse_urn_unicode_03()        { good("urn:ns:x?+α?=βγ"); }
+    @Test public void parse_urn_unicode_04()        { good("urn:ns:x?+α?=β#γ"); }
 
     private static final String testUUID = "326f63ea-7447-11ee-b715-0be26fda5b37";
 
@@ -138,25 +145,25 @@ public class TestRFC3986_Syntax {
     // ---- bad
 
     // Leading ':'
-    @Test public void bad_scheme_1() { bad(":segment"); }
+    @Test public void bad_uri_scheme_1() { bad(":segment"); }
 
     // Bad scheme
-    @Test public void bad_scheme_2() { bad("://host/xyz"); }
+    @Test public void bad_uri_scheme_2() { bad("://host/xyz"); }
 
     // Bad scheme
-    @Test public void bad_scheme_3() { bad("1://host/xyz"); }
+    @Test public void bad_uri_scheme_3() { bad("1://host/xyz"); }
 
     // Bad scheme
-    @Test public void bad_scheme_4() { bad("a~b://host/xyz"); }
+    @Test public void bad_uri_scheme_4() { bad("a~b://host/xyz"); }
 
     // Bad scheme
-    @Test public void bad_scheme_5() { bad("aβ://host/xyz"); }
+    @Test public void bad_uri_scheme_5() { bad("aβ://host/xyz"); }
 
     // Bad scheme
-    @Test public void bad_scheme_6() { bad("_:xyz"); }
+    @Test public void bad_uri_scheme_6() { bad("_:xyz"); }
 
     // Bad scheme
-    @Test public void bad_scheme_7() { bad("a_b:xyz"); }
+    @Test public void bad_uri_scheme_7() { bad("a_b:xyz"); }
 
     // Space!
     @Test public void bad_chars_1() { bad("http://abcdef:80/xyz /abc"); }

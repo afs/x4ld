@@ -20,6 +20,8 @@ package org.seaborne.rfc3986;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.function.Predicate;
 
@@ -118,6 +120,46 @@ public class TestRFC3986_Features {
 
     @Test public void fragment5() {
         isFalse("foo", IRI3986::hasFragment);
+    }
+
+    @Test public void asRFC3986_1() {
+        isTrue("http://host/abc", IRI3986::isRFC3986);
+    }
+
+    @Test public void asRFC3986_2() {
+        isFalse("http://host/αβγ", IRI3986::isRFC3986);
+    }
+
+    @Test public void asRFC3986_3() {
+        String s = "http://host/abc";
+        IRI3986 iri = IRI3986.create(s);
+        IRI3986 iri2 = iri.asRFC3986();
+        assertEquals(iri,  iri2);
+    }
+
+    @Test public void asRFC3986_4() {
+        String s = "http://host/Brontë";
+        IRI3986 iri = IRI3986.create(s);
+        IRI3986 iri2 = iri.asRFC3986();
+        assertNotEquals(iri, iri2);
+        assertEquals("http://host/Bront%EB", iri2.str());
+    }
+
+    @Test public void asRFC3986_5() {
+        String s = "http://host/α/alpha";
+        IRI3986 iri = IRI3986.create(s);
+        IRI3986 iri2 = iri.asRFC3986();
+        assertNotEquals(iri, iri2);
+        assertEquals("http://host/%03%B1/alpha", iri2.str());
+    }
+
+    // %XX in host added at RFC 3986.
+    @Test public void asRFC3986_6() {
+        String s = "http://h-α/alpha";
+        IRI3986 iri = IRI3986.create(s);
+        IRI3986 iri2 = iri.asRFC3986();
+        assertNotEquals(iri, iri2);
+        assertEquals("http://h-%03%B1/alpha", iri2.str());
     }
 
     // ----

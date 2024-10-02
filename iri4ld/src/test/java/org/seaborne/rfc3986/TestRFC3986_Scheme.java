@@ -20,8 +20,6 @@ package org.seaborne.rfc3986;
 
 import static org.junit.Assert.assertTrue;
 
-import java.util.function.Consumer;
-
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
@@ -36,74 +34,85 @@ import org.junit.runners.MethodSorters;
 public class TestRFC3986_Scheme {
 
     // HTTP scheme specific rules.
-    @Test public void parse_http_01()   { badSpecific("http:///file/name.txt"); }
+    @Test public void parse_http_01()   { schemeViolation("http:///file/name.txt"); }
 
     // HTTP scheme specific rules.
-    @Test public void parse_http_02()   { badSpecific("HTTP:///file/name.txt"); }
+    @Test public void parse_http_02()   { schemeViolation("HTTP:///file/name.txt"); }
 
     // This is treated as legal with path and no authority.
     //@Test public void parse_http_02a()   { badSpecific("http:/file/name.txt"); }
 
-    @Test public void parse_http_03()   { badSpecific("http://users@host/file/name.txt"); }
+    @Test public void parse_http_03()   { schemeViolation("http://users@host/file/name.txt"); }
 
-    @Test public void parse_file_01()   { badSpecific("file:"); }
-    @Test public void parse_file_02()   { badSpecific("file:/"); }
-    @Test public void parse_file_03()   { badSpecific("file://"); }
-    @Test public void parse_file_10()   { badSpecific("file:file/name.txt"); }
-    @Test public void parse_file_11()   { badSpecific("file:/file/name.txt"); }
-    @Test public void parse_file_12()   { badSpecific("file://file/name.txt"); }
+    @Test public void parse_file_01()   { schemeViolation("file:"); }
+    @Test public void parse_file_02()   { schemeViolation("file:/"); }
+    @Test public void parse_file_03()   { schemeViolation("file://"); }
+    @Test public void parse_file_10()   { schemeViolation("file:file/name.txt"); }
+    @Test public void parse_file_11()   { schemeViolation("file:/file/name.txt"); }
+    @Test public void parse_file_12()   { schemeViolation("file://file/name.txt"); }
 
-    @Test public void parse_uuid_07()   { badSpecific("urn:uuid:0000"); }
+    @Test public void parse_uuid_07()   { schemeViolation("urn:uuid:0000"); }
 
-    @Test public void parse_uuid_08()   { badSpecific("uuid:0000-1111"); }
+    @Test public void parse_uuid_08()   { schemeViolation("uuid:0000-1111"); }
 
     // ---- bad by scheme.
-    @Test public void parse_http_bad_01() { badSpecific("http://user@host:8081/abc/def?qs=ghi#jkl"); }
+    @Test public void parse_http_bad_01() { schemeViolation("http://user@host:8081/abc/def?qs=ghi#jkl"); }
 
     //  urn:2char:1char
     // urn:NID:NSS where NID is at least 2 alphas, and at most 32 long
-    @Test public void parse_urn_bad_01() { badSpecific("urn:"); }
-    @Test public void parse_urn_bad_02() { badSpecific("urn:x:abc"); }
+    @Test public void parse_urn_bad_01() { schemeViolation("urn:"); }
+    @Test public void parse_urn_bad_02() { schemeViolation("urn:x:abc"); }
 
-    @Test public void parse_urn_bad_03() { badSpecific("urn:abc:"); }
+    @Test public void parse_urn_bad_03() { schemeViolation("urn:abc:"); }
     // 33 chars
-    @Test public void parse_urn_bad_04() { badSpecific("urn:abcdefghij-123456789-123456789-yz:a"); }
+    @Test public void parse_urn_bad_04() { schemeViolation("urn:abcdefghij-123456789-123456789-yz:a"); }
 
     // Bad by URN specific rule for the query components.
-    @Test public void parse_urn_bad_05() { badSpecific("urn:local:abc/def?query=foo"); }
+    @Test public void parse_urn_bad_05() { schemeViolation("urn:local:abc/def?query=foo"); }
+
+    // URNs and Unicode.
+    // Strictly URNs are ASCII but in keeping with internationalization, allow
+    // Unicode in the NSS and components but not in the NID
+
+    @Test public void parse_urn_unicode_bad_01() { schemeViolation("urn:αβγ:xyz"); }
+
+    // Wrong order of r- and q-
+    @Test public void parse_urn_components_bad_01() { schemeViolation("urn:ns:xyz?+qComp?=rComp"); }
+
+    // --- urn:uuid:
 
     @Test public void parse_urn_uuid_bad_01() {
-        badSpecific("urn:uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9?query=foo");
+        schemeViolation("urn:uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9?query=foo");
     }
 
     @Test public void parse_urn_uuid_bad_02() {
-        badSpecific("urn:uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9#frag");
+        schemeViolation("urn:uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9#frag");
     }
 
     @Test public void parse_urn_uuid_bad_03() {
         // Bad length
-        badSpecific("urn:uuid:06e775ac");
+        schemeViolation("urn:uuid:06e775ac");
     }
 
     @Test public void parse_urn_uuid_bad_04() {
         // Bad character
-        badSpecific("urn:uuid:06e775ac-ZZZZ-11b2-801c-8086f2cc00c9");
+        schemeViolation("urn:uuid:06e775ac-ZZZZ-11b2-801c-8086f2cc00c9");
     }
 
     @Test public void parse_uuid_bad_01() {
-        badSpecific("uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9?query=foo");
+        schemeViolation("uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9?query=foo");
     }
 
     @Test public void parse_uuid_bad_02() {
-        badSpecific("uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9#frag");
+        schemeViolation("uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9#frag");
     }
 
     @Test public void parse_uuid_bad_03() {
-        badSpecific("uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9?query#frag");
+        schemeViolation("uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9?query#frag");
     }
 
     @Test public void parse_uuid_bad_04() {
-        badSpecific("uuid:06e775ac-2c38-11b2");
+        schemeViolation("uuid:06e775ac-2c38-11b2");
     }
 
     private static String testUUID = "0fa0c738-a789-11eb-b471-abdc7e01c508";
@@ -114,72 +123,64 @@ public class TestRFC3986_Scheme {
 
     // RFC 4122 (uuid namespace definition) does not mention r- p- or f- component
     @Test public void parse_uuid_bad_8141_01() {
-        badSpecific("urn:uuid:" + testUUID + "#frag");
+        schemeViolation("urn:uuid:" + testUUID + "#frag");
     }
 
     // RFC 8141 allows query string must be ?=<one+ char> or ?+<one+ char>
     @Test public void parse_uuid_bad_8141_03() {
-        badSpecific("urn:uuid:" + testUUID + "?+chars");
+        schemeViolation("urn:uuid:" + testUUID + "?+chars");
     }
 
     @Test public void parse_uuid_bad_8141_04() {
-        badSpecific("urn:uuid:" + testUUID + "?=chars");
+        schemeViolation("urn:uuid:" + testUUID + "?=chars");
     }
 
     @Test public void parse_uuid_bad_8141_05() {
-        badSpecific("urn:uuid:" + testUUID + "?+chars#frag");
+        schemeViolation("urn:uuid:" + testUUID + "?+chars#frag");
     }
 
     @Test public void parse_uuid_bad_8141_06() {
-        badSpecific("urn:uuid:" + testUUID + "?=chars#frag");
+        schemeViolation("urn:uuid:" + testUUID + "?=chars#frag");
     }
 
     // Always bad.
     @Test public void parse_uuid_bad_8141_10() {
-        badSpecific("urn:uuid:" + testUUID + "?abc");
+        schemeViolation("urn:uuid:" + testUUID + "?abc");
     }
 
     // Always bad.
     @Test public void parse_uuid_bad_8141_11() {
-        badSpecific("urn:uuid:" + testUUID + "?");
+        schemeViolation("urn:uuid:" + testUUID + "?");
     }
 
     @Test public void parse_uuid_bad_8141_12() {
-        badSpecific("urn:uuid:" + testUUID + "?+");
+        schemeViolation("urn:uuid:" + testUUID + "?+");
     }
 
     @Test public void parse_uuid_bad_8141_13() {
-        badSpecific("urn:uuid:" + testUUID + "?=");
+        schemeViolation("urn:uuid:" + testUUID + "?=");
     }
 
     @Test public void parse_uuid_bad_8141_14() {
         // Not ASCII
-        badSpecific("urn:uuid:" + testUUID + "#αβγ");
+        schemeViolation("urn:uuid:" + testUUID + "#αβγ");
     }
 
     @Test public void parse_uuid_bad_8141_152() {
-        badSpecific("urn:uuid:" + testUUID + "#");
+        schemeViolation("urn:uuid:" + testUUID + "#");
     }
 
     @Test public void parse_urn_oid_1() {
-        badSpecific("urn:oid:Z");
+        schemeViolation("urn:oid:Z");
     }
 
     @Test public void parse_urn_oid_2() {
         // It's "urn:oid:..."
-        badSpecific("oid:1.2.3");
+        schemeViolation("oid:1.2.3");
     }
 
-    public static ErrorHandler create(Consumer<String> onError, Consumer<String> onWarning) {
-        return ErrorHandlerBase.create(onError, onWarning);
-    }
-
-    private static Consumer<String> onEvent = s -> { throw new IRIParseException(s); };
-    private static ErrorHandler errHandlerTest = ErrorHandlerBase.create(onEvent, onEvent);
-
-    private void badSpecific(String string) {
+    private void schemeViolation(String string) {
         IRI3986 iri = IRI3986.createAny(string);
-        assertTrue("Expected a scheme-specific warning or error: '"+string+"'",
-                   iri.hasViolations());
+        assertTrue("Expected a scheme-specific warning or error: '"+string+"'", iri.hasViolations());
     }
 }

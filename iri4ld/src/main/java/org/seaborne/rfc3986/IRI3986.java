@@ -513,15 +513,16 @@ public class IRI3986 implements IRI {
         return charAt(x0);
     }
 
+
+    /** Test whether the IRIR is RFc 3986 compatible (i.e. ASCII). */
+    public boolean isRFC3986() {
+        // The URI is valid so we just need to test for non-ASCII characters.
+        return isASCII(iriStr);
+    }
     /** Encode RFC 3987 (IRI) as strict 3986 (URI) using %-encoding */
-    public IRI as3986() {
+    public IRI3986 asRFC3986() {
         // The URI is valid so we just need to encode non-ASCII characters.
-        for ( int i = 0 ; i < iriStr.length() ; i++ ) {
-            char ch = iriStr.charAt(i);
-            if ( ch > 0x7F )
-                return encode();
-        }
-        return this;
+        return isRFC3986() ? this : encode();
     }
 
     // The encoding work.
@@ -1415,6 +1416,15 @@ public class IRI3986 implements IRI {
         return -1;
     }
 
+    private boolean isASCII(String string) {
+        for ( int i = 0 ; i < string.length() ; i++ ) {
+            char ch = string.charAt(i);
+            if ( ch > 0x7F )
+                return false;
+        }
+        return true;
+    }
+
     // ==== Scheme specific checking.
 
     private IRI3986 schemeSpecificRulesInternal() {
@@ -1625,18 +1635,27 @@ public class IRI3986 implements IRI {
     */
     // @formatter:on
 
+    // UNICODE_CHARACTER_CLASS -- regex flag for converting POSIX character classes - \p{...}
+
     // Without specifically testing for rq-components and "#" f-component
-    // Strict - requires 2 char NID and one char NSS. ASCII.
+    // Strict - requires 2 char NID and one char NSS.
+
+    // NID must be ASCII
+    // NSS can be Unicode
+    // Components can be Unicode
+    // Components not checked.
     private static Pattern URN_PATTERN_ASSIGNED_NAME_STRICT = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,30}[a-zA-Z0-9]:.+");
 
     // More generous.
     // NID, can be one char and can be "X-" (RFC 2141)
     // NSS, and it's colon can be absent. Base names can be <urn:nid:> but not <urn:nid>
+    //private static Pattern URN_PATTERN_ASSIGNED_NAME_LOOSE = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,31}:(?:.*)");
     private static Pattern URN_PATTERN_ASSIGNED_NAME_LOOSE = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,31}:(?:.*)");
+
     // Common bad cases : "urn:x:" and "urn:X-ABC:"
-    private static Pattern URN_PATTERN_BAD_NID_1 = Pattern.compile("^urn:(?:[a-zA-Z0-9])(?::(?:.*))?");
+    private static Pattern URN_PATTERN_BAD_NID_1 = Pattern.compile("^urn:(?:\\p{Alnum})(?::(?:.*))?");
     private static Pattern URN_PATTERN_BAD_NID_2 = Pattern.compile("^urn:X-:");
-    // Bad NSS (empty string) is tested for in checkUUID.
+    // Bad NSS (empty string) is tested for in checkURN
 
     /**
      * <a href="https://datatracker.ietf.org/doc/html/rfc8141">RFC 8141</a>.
@@ -1645,8 +1664,6 @@ public class IRI3986 implements IRI {
      * {@link #checkURN_UUID(String)}.
      */
     private void checkURN() {
-        String schemeName = "urn";
-
         checkSchemeName(URIScheme.URN);
 
         // Does not check query string or fragment.
@@ -1682,19 +1699,18 @@ public class IRI3986 implements IRI {
         }
     }
 
+    // Whether to allow Unicode in URN components.
     private void urnCharCheck(String uriName, String urnName, String string) {
-        for ( int i = 0 ; i < string.length() ; i++ ) {
-            char ch = string.charAt(i);
-            if ( ch > 0x7F )
-                schemeReport(this, Issue.urn_non_ascii_character, URIScheme.URN, "Non-ASCII character in " + urnName + " of URN");
-        }
+//        if ( ! isASCII(string) )
+//            schemeReport(this, Issue.urn_non_ascii_character, URIScheme.URN, "Non-ASCII character in " + urnName + " of URN");
     }
 
     /*
      * Both "urn:uuid:" and the unofficial "uuid:"
-     * URN r-component, q-component and f-component not allowed.
+     * URN r-component(?=), q-component(?+) and f-component(#) not allowed.
      */
-    private static String URN_COMPONENTS_ASCII = "(?:?\\+[0-9a-z]+)?(?:?=[0-9a-z]+)?(?:#[0-9a-z]*)";
+    private static String  URN_COMPONENTS_ASCII = "(?:?\\+[0-9a-z]+)?(?:?=[0-9a-z]+)?(?:#[0-9a-z]*)";
+    //Fix: private static String  URN_COMPONENTS_UTF8  = "(?:?\\+[0-9a-z]+)?(?:?=[0-9a-z]+)?(?:#[0-9a-z]*)";
     private static Pattern UUID_PATTERN_LC = Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
     private static Pattern UUID_PATTERN_UC = Pattern.compile("^(?:urn:uuid|uuid):[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$");
 
