@@ -76,8 +76,8 @@ public class TestRFC3986_Scheme {
 
     @Test public void parse_urn_unicode_bad_01() { schemeViolation("urn:αβγ:xyz"); }
 
-    // Wrong order of r- and q-
-    @Test public void parse_urn_components_bad_01() { schemeViolation("urn:ns:xyz?+qComp?=rComp"); }
+    // Not an r- or q- component.
+    @Test public void parse_urn_components_bad_01() { schemeViolation("urn:ns:xyz?notAComponent"); }
 
     // --- urn:uuid:
 
@@ -166,7 +166,7 @@ public class TestRFC3986_Scheme {
         schemeViolation("urn:uuid:" + testUUID + "#αβγ");
     }
 
-    @Test public void parse_uuid_bad_8141_152() {
+    @Test public void parse_uuid_bad_8141_15() {
         schemeViolation("urn:uuid:" + testUUID + "#");
     }
 

@@ -18,28 +18,5 @@
 
 package org.seaborne.rfc3986;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    TestParseIRIComponents.class,
-    TestRFC3986_Syntax.class,
-    TestRFC3986_Scheme.class,
-    TestRFC3986_Features.class,
-    TestResolve.class,
-    TestNormalize.class,
-    TestRelative.class,
-    TestRelative2.class,
-    TestRelative3.class,
-    TestBuild.class,
-    TestParseIPv4Address.class,
-    TestParseIPv6Address.class,
-    TestParseDNS.class,
-    TestParseURNComponents.class,
-    TestParseDID.class,
-    TestParseOID.class,
-    TestSystem3986.class
-} )
-
-public class TS_iri4ld { }
+// Without markers ?+, ?=, #
+public record URNComponents(String rComponent, String qComponent, String fComponent) {}

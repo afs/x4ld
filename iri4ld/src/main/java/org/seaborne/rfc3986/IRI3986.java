@@ -33,6 +33,8 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.seaborne.rfc3986.URNComponentParser.URNComponentException;
+
 /**
  * Implementation of RFC 3986 (URI), RFC 3987 (IRI). As is common, these are referred
  * to as "3986" regardless, just as {@code java.net.URI} covers IRIs. This provides a
@@ -1693,7 +1695,7 @@ public class IRI3986 implements IRI {
         if ( hasQuery() ) {
             String qs = query();
             if ( !qs.startsWith("+") && !qs.startsWith("=") )
-                schemeReport(this, Issue.urn_bad_query, URIScheme.URN,
+                schemeReport(this, Issue.urn_bad_components, URIScheme.URN,
                         "Improper start to components of a URN (must be '?+...' or '?=...').");
             urnCharCheck("query", "q-component", qs);
         }
@@ -1711,46 +1713,77 @@ public class IRI3986 implements IRI {
      */
     private static String  URN_COMPONENTS_ASCII = "(?:?\\+[0-9a-z]+)?(?:?=[0-9a-z]+)?(?:#[0-9a-z]*)";
     //Fix: private static String  URN_COMPONENTS_UTF8  = "(?:?\\+[0-9a-z]+)?(?:?=[0-9a-z]+)?(?:#[0-9a-z]*)";
-    private static Pattern UUID_PATTERN_LC = Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
-    private static Pattern UUID_PATTERN_UC = Pattern.compile("^(?:urn:uuid|uuid):[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$");
 
+    // Unregistered
+    private static Pattern UUID_PATTERN_LC = Pattern.compile("^uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
+    private static Pattern UUID_PATTERN_UC = Pattern.compile("^uuid:[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$");
+
+    // Correct URN.
+    private static Pattern URN_UUID_PATTERN_LC = Pattern.compile("^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
+    private static Pattern URN_UUID_PATTERN_UC = Pattern.compile("^urn:uuid:[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$");
+
+    // General either scheme, any case.
     private static Pattern UUID_PATTERN_AnyCase =
             Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", Pattern.CASE_INSENSITIVE);
 
+    private final int UUID_length = 36;
+    private final int UUID_scheme_length = "uuid:".length();
+    private final int URN_UUID_scheme_length = "urn:uuid:".length();
+
     /**
      * <a href="https://datatracker.ietf.org/doc/html/rfc4122">RFC4122</a>
+     * <p>
+     * {@code <urn:uuid:...>} This is the correct way to have UUIDs as URIs.
      */
     private void checkURN_UUID() {
         checkSchemeName(URIScheme.URN_UUID);
-        boolean matches = UUID_PATTERN_LC.matcher(iriStr).matches();
+        boolean matches = URN_UUID_PATTERN_LC.matcher(iriStr).matches();
         if ( matches )
-            // Fast path - no string manipulation
+            // Fast path - no string manipulation, lower case
             return;
-        checkUUID(URIScheme.URN_UUID, iriStr);
+        checkUUID(URIScheme.URN_UUID, iriStr, URN_UUID_scheme_length);
+        checkURNComponents();
     }
 
+    // URN r-component(?=), q-component(?+) and f-component(#)
+    private void checkURNComponents() {
+        if ( ! hasQuery() && ! hasFragment() )
+            return;
+        // Include the "?" at the start
+        int idx = (this.query0 >= 0) ? (this.query0-1) : this.fragment0;
+        try {
+            URNComponents components = URNComponentParser.parseURNcomponents(iriStr, idx);
+            if ( components == null )
+                schemeReport(this, Issue.urn_bad_components, URIScheme.UUID, "Bad URN components");
+        } catch (URNComponentException ex) {
+            schemeReport(this, Issue.urn_bad_components, URIScheme.UUID, ex.getMessage());
+        }
+    }
+
+    /**
+     * {@code <uuid:...>} was never registered. The correct form is {@code <urn:uuid:...>}.
+     * <p>
+     * We allow the non-registered form, disallowing URN components.
+     */
     private void checkUUID() {
         checkSchemeName(URIScheme.UUID);
         schemeReport(this, Issue.uuid_scheme_not_registered, URIScheme.UUID, "Use urn:uuid: -  'uuid:' is not a registered URI scheme.");
-        // Warning? uuid: is not registered.
-        // Checks for "urn:uuid:" and "uuid:"
         boolean matches = UUID_PATTERN_LC.matcher(iriStr).matches();
         if ( matches )
-            // Fast path - no string manipulation
+            // Fast path - no string manipulation, lower case
             return;
-
-        checkUUID(URIScheme.UUID, iriStr);
-
-        // Specific "uuid:..." tests
+        // No query string, no URN components.
         if ( hasQuery() )
             schemeReport(this, Issue.uuid_has_query, URIScheme.UUID, "query component not allowed");
         if ( hasFragment() )
             schemeReport(this, Issue.uuid_has_fragment, URIScheme.UUID, "fragment not allowed");
+        checkUUID(URIScheme.UUID, iriStr, UUID_scheme_length);
     }
 
-    // Check for both cases.
-    private void checkUUID(URIScheme scheme, String iriStr) {
+    // Checks for both urn:uuid: and uuid:
+    private void checkUUID(URIScheme scheme, String iriStr,int schemeLength) {
         // It did not pass the fast-path regular expression.
+        // The UUID is the URI path component.
         boolean warningIssued = false;
         // 36 if uuid:, 41 is urn:uuid:
         int uuidPathLen;

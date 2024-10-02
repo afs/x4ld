@@ -48,8 +48,8 @@ public enum Issue {
     urn_bad_pattern,
     urn_bad_nid,
     urn_bad_nss,
-    urn_bad_query,
-    urn_bad_fragment,
+    urn_bad_components,
+
     // file
     file_bad_form,
     file_relative_path,
