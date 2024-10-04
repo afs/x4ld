@@ -24,6 +24,7 @@ public enum Issue {
     // General
     iri_percent_not_uppercase,
     iri_host_not_lowercase,
+    iri_user_info_present,
     // Scheme
     iri_scheme_name_is_not_lowercase,
     iri_scheme_expected,

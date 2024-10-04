@@ -1473,12 +1473,24 @@ public class IRI3986 implements IRI {
         // General RFC 3986 warnings.
         // * userinfo
         // // Error in http? Check.
-        // if ( hasUserInfo() ) // getAuthority().contains("@") )
-        // warning("URI", "userinfo (e.g. user:password) in authority section");
 
-        // * empty port.
-        // if ( hasPort() && (port0 == port1) ) //getPort().isEmpty()
-        // warning("http", "port is empty");
+//        iri_percent_not_uppercase,
+//        iri_host_not_lowercase,
+
+        // Done HTTP/HTTPS
+//        if ( hasHost() ) {
+//            String host = host();
+//            if ( containsUppercase(host) ) {
+//                schemeReport(this, Issue.iri_host_not_lowercase, URIScheme.GENERAL, "Host name includes uppcase characters: '"+host+"'");
+//            }
+//        }
+
+        // Done HTTP/HTTPS
+//        if ( hasUserInfo() ) {
+//            schemeReport(this, Issue.iri_user_info_present, URIScheme.GENERAL, "userinfo (e.g. user:password) in authority section");
+//            if ( userInfo().contains(":") )
+//                schemeReport(this, Issue.iri_user_password, scheme, "userinfo contains password in authority section");
+//        }
 
         // ***
         // lower case scheme
@@ -1496,7 +1508,17 @@ public class IRI3986 implements IRI {
         /* If two URIs differ only in the case of hexadecimal digits used in
          * percent-encoded octets, they are equivalent. For consistency, URI
          * producers and normalizers should use uppercase hexadecimal digits for all
-         * percent- encodings. */
+         * percent- encodings.
+         */
+    }
+
+    private boolean containsUppercase(String string) {
+        for ( int i = 0 ; i < string.length() ; i++ ) {
+            char ch = string.charAt(i);
+            if ( Character.isUpperCase(ch) )
+                return true;
+        }
+        return false;
     }
 
     private void checkHTTP() {
@@ -1724,7 +1746,7 @@ public class IRI3986 implements IRI {
 
     // General either scheme, any case.
     private static Pattern UUID_PATTERN_AnyCase =
-            Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}.*$", Pattern.CASE_INSENSITIVE);
 
     private final int UUID_length = 36;
     private final int UUID_scheme_length = "uuid:".length();
@@ -1750,7 +1772,7 @@ public class IRI3986 implements IRI {
         if ( ! hasQuery() && ! hasFragment() )
             return;
         // Include the "?" at the start
-        int idx = (this.query0 >= 0) ? (this.query0-1) : this.fragment0;
+        int idx = (this.query0 >= 0) ? (this.query0-1) : (this.fragment0-1);
         try {
             URNComponents components = URNComponentParser.parseURNcomponents(iriStr, idx);
             if ( components == null )
@@ -1768,7 +1790,7 @@ public class IRI3986 implements IRI {
     private void checkUUID() {
         checkSchemeName(URIScheme.UUID);
         schemeReport(this, Issue.uuid_scheme_not_registered, URIScheme.UUID, "Use urn:uuid: -  'uuid:' is not a registered URI scheme.");
-        boolean matches = UUID_PATTERN_LC.matcher(iriStr).matches();
+        boolean matches = URN_UUID_PATTERN_LC.matcher(iriStr).matches();
         if ( matches )
             // Fast path - no string manipulation, lower case
             return;

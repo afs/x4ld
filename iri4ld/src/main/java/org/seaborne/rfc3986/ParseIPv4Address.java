@@ -23,7 +23,7 @@ import static org.seaborne.rfc3986.ParseErrorIRI3986.parseError;
 
 
 /**
-<pre>
+ * Parse IPv4 addresses
  */
 
 public class ParseIPv4Address {

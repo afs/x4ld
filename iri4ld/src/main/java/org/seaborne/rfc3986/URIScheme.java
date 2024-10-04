@@ -26,6 +26,9 @@ package org.seaborne.rfc3986;
  * </ul>
  */
 public enum URIScheme {
+
+    // Violations of general URI forms, not syntax errors
+    GENERAL("RFC3986"),
     // "scheme" is resolved for URI general parse conditions.
     HTTP("http"),
     HTTPS("https"),
@@ -37,10 +40,14 @@ public enum URIScheme {
     FILE("file"),
     DID("did"),
     URN_OID("urn:oid"),
+    // https://www.rfc-editor.org/rfc/rfc6963
+    URN_EXAMPLE("urn:example"),
+
     // It's not officially registered but may be found in the wild.
     OID("oid"),
     // RFC 7595 and registered.
-    EXAMPLE("example")
+    // https://www.rfc-editor.org/rfc/rfc7595.html#section-8
+    EXAMPLE("example"),
     ;
 
     private final String name;

@@ -62,6 +62,7 @@ public class Violations {
         // General
         SeverityMap.setSeverity(severityMap, Issue.iri_percent_not_uppercase,         Severity.WARNING);
         SeverityMap.setSeverity(severityMap, Issue.iri_host_not_lowercase,            Severity.WARNING);
+        SeverityMap.setSeverity(severityMap, Issue.iri_user_info_present,             Severity.WARNING);
 
         // Scheme
         SeverityMap.setSeverity(severityMap, Issue.iri_scheme_name_is_not_lowercase,  Severity.WARNING);

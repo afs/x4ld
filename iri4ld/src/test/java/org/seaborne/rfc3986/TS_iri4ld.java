@@ -25,7 +25,10 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses( {
     TestParseIRIComponents.class,
     TestRFC3986_Syntax.class,
-    TestRFC3986_Scheme.class,
+
+    Test_X_RFC3986_Scheme_Full.class,
+    Test_X_RFC3986_Full.class,
+
     TestRFC3986_Features.class,
     TestResolve.class,
     TestNormalize.class,

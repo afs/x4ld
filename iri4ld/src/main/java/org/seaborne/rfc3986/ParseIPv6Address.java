@@ -21,6 +21,11 @@ package org.seaborne.rfc3986;
 import static org.seaborne.rfc3986.Chars3986.charAt;
 
 /**
+ * Parse IPv6 addresses
+ */
+
+public class ParseIPv6Address {
+    /*
 <pre>
     IP-literal    = "[" ( IPv6address / IPvFuture  ) "]"
 
@@ -39,10 +44,9 @@ import static org.seaborne.rfc3986.Chars3986.charAt;
     h16           = 1*4HEXDIG
     ls32          = ( h16 ":" h16 ) / IPv4address
 </pre>
-    HEXDIG is '0' to '9 , 'A' to 'F' together with lower case, (RFC3986 - the normalized form is uppercase).
- */
+    "HEXDIG" is '0' to '9 , 'A' to 'F' together with lower case, (RFC3986 - the normalized form is uppercase).
+     */
 
-public class ParseIPv6Address {
     // We parse an IPv6 by
     //   look for repeated "(h16 ':')",
     //   look for another ":",

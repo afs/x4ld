@@ -18,6 +18,7 @@
 
 package org.seaborne.rfc3986;
 
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,11 +36,12 @@ public class URNComponentParser {
         @Override public URNComponentException fillInStackTrace() { return this; }
     }
 
-    private int AnyIChar = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS | Pattern.UNICODE_CASE;
-    // Non-collecting
-    private static Pattern pattern = Pattern.compile("^(?:\\?\\+[0-9a-z]+)?(?:\\?=[0-9a-z]+)?(?:#[0-9a-z]*)?$", Pattern.CASE_INSENSITIVE);
-    // Collecting
-    private static Pattern patternComponents = Pattern.compile("^(\\?\\+[0-9a-z]+)?(\\?=[0-9a-z]+)?(#[0-9a-z]*)?$", Pattern.CASE_INSENSITIVE);
+    private static int AnyIChar = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CHARACTER_CLASS | Pattern.UNICODE_CASE;
+    private static int AnyASCIIChar = Pattern.CASE_INSENSITIVE;
+    // Non-collecting (?: ... ) is a non-binding regex group
+    private static Pattern pattern = Pattern.compile("^(?:\\?\\+[0-9a-z]+)?(?:\\?=[0-9a-z]+)?(?:#[0-9a-z]*)?$", AnyIChar);
+    // Collecting - the group is the inner component part without the marker ?+,?=, #
+    private static Pattern patternComponents = Pattern.compile("^(?:\\?\\+([0-9a-z]+))?(?:\\?=([0-9a-z]+))?(?:#([0-9a-z]*))?$", AnyIChar);
 
     public static URNComponents parseURNcomponents(String componentsString) {
         return parseURNcomponents(componentsString, 0);
@@ -47,111 +49,136 @@ public class URNComponentParser {
 
     static URNComponents parseURNcomponentsRegex(String componentsString) {
         Matcher m = patternComponents.matcher(componentsString);
-        if ( ! m.matches() ) {
-            System.out.println("No match: "+componentsString);
+        if ( ! m.matches() )
             return null;
-        }
         String r = m.group(1);
         String q = m.group(2);
         String f = m.group(3);
         return new URNComponents(r, q, f);
     }
 
-    /*
-     * namestring    = assigned-name
-     *                  [ rq-components ]
-     *                  [ "#" f-component ]
-     * assigned-name = "urn" ":" NID ":" NSS
-     * NID           = (alphanum) 0*30(ldh) (alphanum)
-     * ldh           = alphanum / "-"
-     * NSS           = pchar *(pchar / "/")
-     * rq-components = [ "?+" r-component ]
-     *                 [ "?=" q-component ]
-     * r-component   = pchar *( pchar / "/" / "?" )
-     * q-component   = pchar *( pchar / "/" / "?" )
-     * f-component   = fragment
-    */
+    private static String trimQuery(String r) {
+        return null;
+    }
 
-    static URNComponents parseURNcomponents(String componentsString, int startIdx) {
+    public static final char CH_QMARK    = '?' ;
+    public static final char CH_HASH     = '#' ;
+    public static final char CH_EQUALS   = '=' ;
+    public static final char CH_PLUS     = '+' ;
+
+    public static final String R_STR     = "?+";
+    public static final String Q_STR     = "?=";
+    public static final String F_STR     = "#";
+    static URNComponents parseURNComponents(IRI3986 iri) {
+        return parseURNComponents(iri.query(), iri.fragment());
+    }
+
+    // Parse by URI components.
+    static URNComponents parseURNComponents(String rqString, String fString) {
+        if ( rqString == null || fString == null )
+            return null;
+        if ( rqString == null ) {
+            String f = adjustLeading(fString, F_STR);
+            return new URNComponents(null, null, f);
+        }
+        // Parse the r- and q- components
+        URNComponents rqComponents = parseRQ(rqString, 0, rqString.length());
+        String rComponent = rqComponents.rComponent();
+        String qComponent = rqComponents.qComponent();
+        String fComponent = adjustLeading(fString, F_STR);
+        // Return all three.
+        return new URNComponents(rComponent, qComponent, fComponent);
+    }
+
+    // Trim leading chars
+    private static String adjustLeading(String str, String prefix) {
+        if ( str == null )
+            return null;
+        if ( str.startsWith(prefix) )
+            return str.substring(prefix.length());
+        return str;
+    }
+
+    // Parse the string between start (inclusive) and finish (exclusive) as
+    // rq-components = [ "?+" r-component ] [ "?=" q-component ]
+    private static URNComponents parseRQ(String rqString, int start, int finish) {
+        Objects.requireNonNull(rqString);
+        if ( start < 0 )
+            throw new IllegalArgumentException("Start index must be positive");
+        if ( finish < start )
+            throw new IllegalArgumentException("Finish index must be greater than start");
+
+        int strLength = rqString.length();
+        if ( start > strLength )
+            throw new IllegalArgumentException("Start index("+start+") out of range("+strLength+")");
+        if ( finish > strLength )
+            throw new IllegalArgumentException("End index("+start+") out of range("+strLength+")");
+
+        int limit = finish;
+        int x = start;
+        // Find the indexes
+        int rCompStart = -1;    // Index after the '+' in ?+
+        int rCompFinish = -1;
+        int qCompStart = -1;    // Index after the '=' in ?=
+        int qCompFinish = -1;
+
+        if ( rqString.startsWith(R_STR, x) ) {
+            x += R_STR.length();
+            rCompStart = x;
+        }
+
+        int idx = rqString.indexOf(Q_STR, x);
+        if ( idx < 0 ) {
+            // No q-component
+            if ( rCompStart < 0 ) {
+                // Nothing.
+                return null;
+            }
+            // Remainder of string.
+            String rComp = rqString.substring(rCompStart, limit);
+            return new URNComponents(rComp, null, null);
+        }
+        // q-component.
+        if ( rCompStart < 0 ) {
+            // No r-component.
+            String qComp = rqString.substring(idx+2, limit);
+            return new URNComponents(null, qComp , null);
+        }
+
+        String rComp = rqString.substring(rCompStart, idx);
+        String qComp = rqString.substring(idx+2, limit);
+        return new URNComponents(rComp, qComp , null);
+    }
+
+    private static boolean xlookingAt(String string, int loc, String substr) {
+        return string.startsWith(substr, loc);
+    }
+
+    // Parse all three components from the tail of a string.
+    public static URNComponents parseURNcomponents(String componentsString, int startIdx) {
+        if ( componentsString == null )
+            return null;
         int N = componentsString.length();
         int x = startIdx;
-        // Find the indexes
-        int rCompStart = -1;    // Index of the '+' in ?+
-        int rCompFinish = -1;
-        int qCompStart = -1;
-        int qCompFinish = -1;
-        int fCompStart = -1;
-        int fCompFinish = -1;
+        if ( x < 0 )
+            throw new IllegalArgumentException("Start index must be positive");
+        if ( x > N )
+            throw new IllegalArgumentException("Start index greater than string length");
 
-        // May, or may not, start with "?"
-        // IRI components strings do not. The 'query' production is chars after the '?'.
-
-        if ( x < N && componentsString.charAt(x) == '?' ) {
-            x++;
-        }
-
-        if ( x >= N ) {
-            // zero length string.
-            throw new URNComponentException("Zero-length URN component string");
-        }
-
-        char ch = componentsString.charAt(x);
-        if ( ch == '+' ) {
-            rCompStart = x+1 ;
-            x++;
-            // At least one char in the component tested later.
-        }
-
-        if ( rCompStart == -1 ) {
-            char ch2 = componentsString.charAt(x);
-            if ( ch2 == '=' ) {
-                qCompStart = x+1 ;
-                x++;
+        int fStart = componentsString.indexOf(CH_HASH, x);
+        if ( fStart > 0 ) {
+            if ( fStart == x+1 ) {
+                // Check for illegal ?#frag
+                return null;
             }
-        } else {
-            // q-component ?
-            int idx = componentsString.indexOf("?=", x);
-            if ( idx > 0 ) {
-                x = idx+2;
-                qCompStart = x;
-                if ( rCompStart >= 0 )
-                    rCompFinish = idx;
-                // At least one char
-            }
+            String fComp = componentsString.substring(fStart+1);
+            URNComponents rq = parseRQ(componentsString, startIdx, fStart);
+            if ( rq == null )
+                return new URNComponents(null, null, fComp);
+            return new URNComponents(rq.rComponent(), rq.qComponent(), fComp);
         }
 
-        int fStart = componentsString.indexOf("#", x);
-        if ( fStart < 0 ) {
-            // No f-component.
-            if ( qCompStart >= 0 )
-                qCompFinish = N;
-            else if ( rCompStart >= 0 )
-                rCompFinish = N;
-        } else {
-            fCompStart = fStart+1;
-            fCompFinish = N;
-            if ( qCompStart >= 0 )
-                qCompFinish = fStart;
-            else if ( rCompStart >= 0 )
-                rCompFinish = N;
-        }
-        if ( rCompStart > 0 ) {
-            if ( rCompFinish - rCompStart <= 1 ) {
-                throw new URNComponentException("r-component must be one or more characters");
-            }
-
-        }
-        if ( qCompStart > 0 ) {
-            if ( qCompFinish - qCompStart <= 1 ) {
-                throw new URNComponentException("q-component must be one or more characters");
-            }
-        }
-
-        String r = rCompStart < 0 ? null : componentsString.substring(rCompStart, rCompFinish);
-        String q = qCompStart < 0 ? null : componentsString.substring(qCompStart, qCompFinish);
-        String f = fCompStart < 0 ? null : componentsString.substring(fCompStart);
-        if ( r == null && q == null && r == null )
-            return null;
-        return new URNComponents(r, q, f);
+        URNComponents rq = parseRQ(componentsString, startIdx, N);
+        return rq;
     }
 }

@@ -58,9 +58,17 @@ public class TestParseURNComponents {
 
     private void testURNComponentsBad(String compStr) {
         URNComponents components = URNComponentParser.parseURNcomponents(compStr);
-        if ( components != null ) {
-            fail(format("Different: Expected=null, Actual=(%s,%s, %s)\n",
-                        components.rComponent(), components.qComponent(), components.fComponent()));
+        URNComponents components2 = URNComponentParser.parseURNcomponentsRegex(compStr);
+        if ( components == null ) {
+            if ( components2 == null ) {
+                return;
+            }
+            fail(format("Regex Different: Expected=null, Actual=(%s,%s, %s)\n",
+                        components2.rComponent(), components2.qComponent(), components2.fComponent()));
+
         }
+        fail(format("Different: Expected=null, Actual=(%s,%s, %s)\n",
+                    components.rComponent(), components.qComponent(), components.fComponent()));
     }
 }
+

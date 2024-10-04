@@ -18,11 +18,15 @@
 
 package org.seaborne.rfc3986;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+
+import org.apache.jena.iri.IRI;
 
 /**
  * Scheme specific tests
@@ -31,7 +35,7 @@ import org.junit.runners.MethodSorters;
  * @see TestRFC3986_Features
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestRFC3986_Scheme {
+public class Test_X_RFC3986_Scheme_Full {
 
     // HTTP scheme specific rules.
     @Test public void parse_http_01()   { schemeViolation("http:///file/name.txt"); }
@@ -179,8 +183,38 @@ public class TestRFC3986_Scheme {
         schemeViolation("oid:1.2.3");
     }
 
+    private void good(String string) {
+        IRI3986 iri = RFC3986.create(string);
+        if ( true ) {
+            IRI iri1 = JenaIRI.iriFactory().create(string);
+            if ( ! iri.hasViolations() && iri1.hasViolation(true) ) {
+                iri1.violations(true).forEachRemaining(v-> System.err.println("IRI = "+string + " :: "+v.getLongMessage()));
+                fail("Violations "+string);
+            }
+        }
+        // Check parses by JDK.
+        java.net.URI javaURI = java.net.URI.create(string);
+        assertEquals(string, iri.rebuild());
+        assertEquals(string, iri.str());
+
+        IRI3986 iriByRegex = RFC3986.createByRegex(string);
+        assertTrue("Identical: ", iri.identical(iriByRegex, false));
+        assertTrue(iri.identical(iriByRegex, true));
+    }
+
     private void schemeViolation(String string) {
-        IRI3986 iri = IRI3986.createAny(string);
+        // Parses and processes scheme.
+        // Throws an exception if the RFC3986 syntax parsing fails.
+        // Resumes an object with violations if scheme-specifc checks failed.
+        IRI3986 iri = IRI3986.create(string);
+        int x = countViolations(iri);
         assertTrue("Expected a scheme-specific warning or error: '"+string+"'", iri.hasViolations());
+    }
+
+    private int countViolations(IRI3986 iri) {
+        //class Ref { int vCount = 0;  }
+        var x = new Object() { int vCount = 0;  };
+        iri.forEachViolation(a->x.vCount++);
+        return x.vCount;
     }
 }
