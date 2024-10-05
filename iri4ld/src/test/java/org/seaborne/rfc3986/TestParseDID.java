@@ -18,13 +18,11 @@
 
 package org.seaborne.rfc3986;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.StringJoiner;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 import org.junit.Test;
+
+import org.seaborne.rfc3986.ParseDID.DIDParseException;
 
 /** Test the class ParseDID */
 public class TestParseDID {
@@ -36,8 +34,6 @@ public class TestParseDID {
 
     @Test public void parseDID_06() { goodDID("did:method:abc%41"); }   // %41 == uppercase 'A'
 
-    // [DID] More tests
-
     @Test public void parseDID_bad_01() { badDID("did::specific"); }
     @Test public void parseDID_bad_02() { badDID("did:method:"); }
     @Test public void parseDID_bad_03() { badDID("did::"); }
@@ -47,35 +43,14 @@ public class TestParseDID {
     @Test public void parseDID_bad_07() { badDID("did:method:specifc:"); }
     @Test public void parseDID_bad_08() { badDID("did:method:1:2:"); }
 
-    @Test public void parseDID_bad_09() { badDID("urn:%6b:NSS"); } // %61 == lowercase 'a'
+    @Test public void parseDID_bad_09() { badDID("urn:%61:NSS"); } // %61 == lowercase 'a'
     @Test public void parseDID_bad_20() { badDID("urn:NID:NSS"); }
-
-    @Test public void parse_IRI3986_DID_01() { test3986("did:method:specific", true); }
-    @Test public void parse_IRI3986_DID_02() { test3986("did::", false); }
 
     private void goodDID(String string) {
         ParseDID.parse(string, false);
     }
 
     private void badDID(String string) {
-        try {
-            ParseDID.parse(string, false);
-            fail("Expected a parse exception: '"+string+"'");
-        } catch (IRIParseException ex) {}
-    }
-
-    static IRI3986 test3986(String iristr, boolean valid) {
-        IRI3986 iri = IRI3986.create(iristr);
-        if ( valid ) {
-            StringJoiner sj = new StringJoiner("\n");
-            if ( iri.hasViolations() ) {
-                iri.forEachViolation(v->sj.add(v.message()));
-                String all = sj.toString();
-                System.err.println(all);
-            }
-            assertFalse("Has violations", iri.hasViolations());
-        } else
-            assertTrue("Expected violations", iri.hasViolations());
-        return iri;
+        assertThrowsExactly(DIDParseException.class, ()->ParseDID.parse(string, false));
     }
 }

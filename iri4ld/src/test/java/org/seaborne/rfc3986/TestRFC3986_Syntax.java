@@ -19,7 +19,8 @@
 package org.seaborne.rfc3986;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.seaborne.rfc3986.LibTestURI.badSyntax;
+import static org.seaborne.rfc3986.LibTestURI.goodSyntax;
 
 import java.util.Locale;
 
@@ -76,24 +77,24 @@ public class TestRFC3986_Syntax {
 
     // == Internationalization
     @Test public void parse_i1() { good("http://αβγδ/ŸŽ?a=Ž#Ÿ", "http", "αβγδ", null, "/ŸŽ", "a=Ž", "Ÿ"); }
-    @Test public void parse_i2() { bad("αβγδ://host/"); }
+    @Test public void parse_i2() { badSyntax("αβγδ://host/"); }
 
     // == Relative
     @Test public void parse_rel_1() { good("/abcde", null, null, null, "/abcde", null, null); }
-    @Test public void parse_rel_2() { good("."); }
-    @Test public void parse_rel_3() { good(".."); }
+    @Test public void parse_rel_2() { good(".", null, null, null, ".", null, null); }
+    @Test public void parse_rel_3() { good("..", null, null, null, "..", null, null); }
 
     // == % encoding
     // %XX in host added at RFC 3986.
-    @Test public void parse_enc_1() { good("http://ab%AAdef/xyzβ/abc"); }
-    @Test public void parse_enc_2() { good("/ab%ffdef"); }
+    @Test public void parse_enc_1() { goodSyntax("http://ab%AAdef/xyzβ/abc"); }
+    @Test public void parse_enc_2() { goodSyntax("/ab%ffdef"); }
 
     // Bad %-encoded
-    @Test public void bad_encode_1() { bad("http://example/xyz%"); }
-    @Test public void bad_encode_2() { bad("http://example/xyz%A"); }
-    @Test public void bad_encode_3() { bad("http://example/xyz%A?"); }
-    @Test public void bad_encode_4() { bad("http://example/xyz%ZZ?"); }
-    @Test public void bad_encode_5() { bad("http://example/xyz%AZ?"); }
+    @Test public void bad_encode_1() { badSyntax("http://example/xyz%"); }
+    @Test public void bad_encode_2() { badSyntax("http://example/xyz%A"); }
+    @Test public void bad_encode_3() { badSyntax("http://example/xyz%A?"); }
+    @Test public void bad_encode_4() { badSyntax("http://example/xyz%ZZ?"); }
+    @Test public void bad_encode_5() { badSyntax("http://example/xyz%AZ?"); }
 
     // == IP v4 and v6
     @Test public void parse_addr_v6_1() { good("http://[::1]/abc", "http", "[::1]", null, "/abc", null, null); }
@@ -107,13 +108,13 @@ public class TestRFC3986_Syntax {
     //   IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
     @Test public void parse_addr_vFuture() { good("http://[vF.abc]/", "http", "[vF.abc]", null, "/", null, null); }
     // Bad IPv6
-    @Test public void bad_ipv6_1() { bad("http://[::80/xyz"); }
-    @Test public void bad_ipv6_2() { bad("http://host]/xyz"); }
-    @Test public void bad_ipv6_3() { bad("http://[]/xyz"); }
+    @Test public void bad_ipv6_1() { badSyntax("http://[::80/xyz"); }
+    @Test public void bad_ipv6_2() { badSyntax("http://host]/xyz"); }
+    @Test public void bad_ipv6_3() { badSyntax("http://[]/xyz"); }
 
     // == bad and weird
-    @Test public void parse_bad_01() { bad("https://host/ /path"); }
-    @Test public void parse_bad_02() { bad("http://abcdef:80:/xyz"); }
+    @Test public void parse_bad_01() { badSyntax("https://host/ /path"); }
+    @Test public void parse_bad_02() { badSyntax("http://abcdef:80:/xyz"); }
 
     // XXX More bad and weird
     // ------------------------
@@ -122,23 +123,23 @@ public class TestRFC3986_Syntax {
     @Test public void parse_weird_03() { good("http://?user/def", "http", "", null, "", "user/def", null); }
 
     // XLink not valid unencoded in a fragment.
-    @Test public void bad_frag_1() { bad("http://eg.com/test.txt#xpointer(/unit[5])"); }
-    @Test public void bad_frag_2() { bad("http:///def#frag#frag"); }
+    @Test public void bad_frag_1() { badSyntax("http://eg.com/test.txt#xpointer(/unit[5])"); }
+    @Test public void bad_frag_2() { badSyntax("http:///def#frag#frag"); }
 
     // == Bad scheme
-    @Test public void bad_uri_scheme_1() { bad(":segment"); }
-    @Test public void bad_uri_scheme_3() { bad("1://host/xyz"); }
-    @Test public void bad_uri_scheme_4() { bad("a~b://host/xyz"); }
-    @Test public void bad_uri_scheme_5() { bad("aβ://host/xyz"); }
-    @Test public void bad_uri_scheme_6() { bad("_:xyz"); }
-    @Test public void bad_uri_scheme_7() { bad("a_b:xyz"); }
+    @Test public void bad_uri_scheme_1() { badSyntax(":segment"); }
+    @Test public void bad_uri_scheme_3() { badSyntax("1://host/xyz"); }
+    @Test public void bad_uri_scheme_4() { badSyntax("a~b://host/xyz"); }
+    @Test public void bad_uri_scheme_5() { badSyntax("aβ://host/xyz"); }
+    @Test public void bad_uri_scheme_6() { badSyntax("_:xyz"); }
+    @Test public void bad_uri_scheme_7() { badSyntax("a_b:xyz"); }
 
     // ------------------------
 
     // == Authority
-    @Test public void bad_authority_1() { bad("ftp://abc@def@host/abc"); }
+    @Test public void bad_authority_1() { badSyntax("ftp://abc@def@host/abc"); }
     // Multiple colon in authority
-    @Test public void bad_authority_2() { bad("http://abc:def:80/abc"); }
+    @Test public void bad_authority_2() { badSyntax("http://abc:def:80/abc"); }
 
     // Schemes - light checks, RDF 3986 syntax only. Full checks in TestURISchemes
 
@@ -164,7 +165,7 @@ public class TestRFC3986_Syntax {
 
     // == urn:
     @Test public void parse_urn_01()  { good("urn:x-local:abc/def", "urn", null, null, "x-local:abc/def", null, null); }
-    @Test public void parse_urn_02()  { good("urn:abc0:def"); }
+    @Test public void parse_urn_02()  { goodSyntax("urn:abc0:def"); }
 
     // With queryString not components.
 
@@ -184,16 +185,16 @@ public class TestRFC3986_Syntax {
     // == urn:uuid: , uuid:
     private static final String testUUID = "326f63ea-7447-11ee-b715-0be26fda5b37";
 
-    @Test public void parse_uuid_01()   { good("uuid:"+testUUID); }
-    @Test public void parse_uuid_02()   { good("uuid:"+(testUUID.toUpperCase(Locale.ROOT))); }
-    @Test public void parse_uuid_03()   { good("UUID:"+testUUID); }
+    @Test public void parse_uuid_01()   { goodSyntax("uuid:"+testUUID); }
+    @Test public void parse_uuid_02()   { goodSyntax("uuid:"+(testUUID.toUpperCase(Locale.ROOT))); }
+    @Test public void parse_uuid_03()   { goodSyntax("UUID:"+testUUID); }
 
-    @Test public void parse_urn_uuid_01()   { good("urn:uuid:"+testUUID); }
-    @Test public void parse_urn_uuid_02()   { good("urn:uuid:"+(testUUID.toUpperCase(Locale.ROOT))); }
-    @Test public void parse_urn_uuid_03()   { good("URN:UUID:"+testUUID); }
-    @Test public void parse_urn_uuid_04()   { good("URN:UUID:"+testUUID+"?=abc"); }
-    @Test public void parse_urn_uuid_05()   { good("URN:UUID:"+testUUID+"?=αβγ"); }
-    @Test public void parse_urn_uuid_06()   { good("URN:UUID:"+testUUID+"+=α?=β#γ"); }
+    @Test public void parse_urn_uuid_01()   { goodSyntax("urn:uuid:"+testUUID); }
+    @Test public void parse_urn_uuid_02()   { goodSyntax("urn:uuid:"+(testUUID.toUpperCase(Locale.ROOT))); }
+    @Test public void parse_urn_uuid_03()   { goodSyntax("URN:UUID:"+testUUID); }
+    @Test public void parse_urn_uuid_04()   { goodSyntax("URN:UUID:"+testUUID+"?=abc"); }
+    @Test public void parse_urn_uuid_05()   { goodSyntax("URN:UUID:"+testUUID+"?=αβγ"); }
+    @Test public void parse_urn_uuid_06()   { goodSyntax("URN:UUID:"+testUUID+"+=α?=β#γ"); }
 
     // == urn:oid:
     // Good by URI syntax, bad by oid: scheme.
@@ -208,14 +209,10 @@ public class TestRFC3986_Syntax {
     @Test public void parse_urn_example_01()   { good("urn:example:abc", "urn", null, null, "example:abc", null, null); }
 
     //==  ftp:
-    @Test public void parse_ftp_01()    { good("ftp://user@host:3333/abc/def?qs=ghi#jkl"); }
-    @Test public void parse_ftp_02()    { good("ftp://[::1]/abc/def?qs=ghi#jkl"); }
+    @Test public void parse_ftp_01()    { goodSyntax("ftp://user@host:3333/abc/def?qs=ghi#jkl"); }
+    @Test public void parse_ftp_02()    { goodSyntax("ftp://[::1]/abc/def?qs=ghi#jkl"); }
 
     // ----
-
-    private void good(String string) {
-        RFC3986.checkSyntax(string);
-    }
 
     // Check legal RFC 3986/7 syntax and check the corresponding parts.
     // All parts except authority and user
@@ -251,13 +248,5 @@ public class TestRFC3986_Syntax {
         assertEquals("fragment --",   fragment,   iri.fragment());
         IRI3986 iri2 = RFC3986.createByRegex(iristr);
         assertEquals(iri, iri2);
-    }
-
-    // Expect an IRIParseException
-    private void bad(String string) {
-        try {
-            RFC3986.checkSyntax(string);
-            fail("Did not fail: "+string);
-        } catch (IRIParseException ex) {}
     }
 }

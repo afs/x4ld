@@ -21,6 +21,6 @@ package org.seaborne.rfc3986;
 public record Violation (String iriStr, URIScheme scheme, Issue issue, String message) {
     @Override
     public String toString() {
-        return String.format("<%s> %s -- %s", iriStr, scheme.getPrefix(), message);
+        return String.format("<%s> [%s, %s] %s", iriStr, scheme.getPrefix(), issue, message);
     }
 }
