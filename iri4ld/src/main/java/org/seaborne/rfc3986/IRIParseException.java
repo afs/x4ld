@@ -33,6 +33,6 @@ public class IRIParseException extends RuntimeException {
     // Must gave a message.
     public IRIParseException(String message) {super(message); }
 
-    // Where in the parser, the exception comes from is not relevant.
+    // Where in a parser, the exception comes from is not relevant.
     @Override public Throwable fillInStackTrace() { return this ; }
 }

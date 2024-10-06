@@ -18,10 +18,11 @@
 
 package org.seaborne.rfc3986;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
 
 import org.apache.jena.iri.IRI;
-import org.junit.Test;
 
 public class TestResolve {
 

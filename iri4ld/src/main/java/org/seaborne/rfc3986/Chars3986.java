@@ -69,6 +69,10 @@ public class Chars3986 {
         return range(ch, 'a', 'z') || range(ch, 'A', 'Z');
     }
 
+    public static boolean isAlphaNum(char ch) {
+        return isAlpha(ch) || isDigit(ch);
+    }
+
     /** RFC3987: International alphabetic. */
     public static boolean isIAlpha(char ch) {
         return isAlpha(ch) || isUcsChar(ch);

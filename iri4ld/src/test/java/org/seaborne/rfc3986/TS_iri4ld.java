@@ -23,13 +23,17 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
-    TestParseIRIComponents.class,
-    TestRFC3986_Syntax.class,
+    TestRFC3986Syntax.class,
+    TestIRI3986.class,
 
+    // Old material - these will removed
+    // jena-iri comparision - alignment now incorporated into the other tests.
     Test_X_RFC3986_Scheme_Full.class,
     Test_X_RFC3986_Full.class,
+    // Duplicated by TestRFC3986_Syntax
+    Test_X_ParseIRIComponents.class,
 
-    TestRFC3986_Features.class,
+    TestURISchemes.class,
     TestResolve.class,
     TestNormalize.class,
     TestRelative.class,
@@ -38,9 +42,9 @@ import org.junit.runners.Suite;
     TestBuild.class,
     TestParseIPv4Address.class,
     TestParseIPv6Address.class,
+    TestParseDID.class,
     TestParseDNS.class,
     TestParseURNComponents.class,
-    TestParseDID.class,
     TestParseOID.class,
     TestSystem3986.class
 } )

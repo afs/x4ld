@@ -29,11 +29,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.seaborne.rfc3986.URNComponentParser.URNComponentException;
 
 /**
  * Implementation of RFC 3986 (URI), RFC 3987 (IRI). As is common, these are referred
@@ -1343,7 +1342,7 @@ public class IRI3986 implements IRI {
     /** String.charAt except with an EOF character, not an exception. */
     private char charAt(int x) {
         if ( x < 0 )
-            System.err.println("BUG");
+            throw new IllegalArgumentException("Negative index");
         if ( x >= length )
             return EOF;
         return iriStr.charAt(x);
@@ -1436,31 +1435,31 @@ public class IRI3986 implements IRI {
             // no scheme, no checks.
             return this;
 
-        // Scheme is not necessarily lowercase.
+        // Scheme is not necessarily lower case.
         // We could do dispatch twice, once fast path (assumes lower case) with a
         // switch statement.
         // Check accumulate errors and warnings.
 
-        if ( matches(iriStr, HTTPS) )
+        if ( fromScheme(iriStr, HTTPS) )
             checkHTTPS();
-        else if ( matches(iriStr, HTTP) )
+        else if ( fromScheme(iriStr, HTTP) )
             checkHTTP();
-        else if ( matches(iriStr, URN_UUID) )
+        else if ( fromScheme(iriStr, URN_UUID) )
             checkURN_UUID();
-        else if ( matches(iriStr, URN_OID) )
+        else if ( fromScheme(iriStr, URN_OID) )
             checkURN_OID();
         // "urn" namespaces must go before this test.
-        else if ( matches(iriStr, URN) )
+        else if ( fromScheme(iriStr, URN) )
             checkURN();
-        else if ( matches(iriStr, FILE) )
+        else if ( fromScheme(iriStr, FILE) )
             checkFILE();
-        else if ( matches(iriStr, UUID) )
+        else if ( fromScheme(iriStr, UUID) )
             checkUUID();
-        else if ( matches(iriStr, DID) )
+        else if ( fromScheme(iriStr, DID) )
             checkDID();
-        else if ( matches(iriStr, OID) )
+        else if ( fromScheme(iriStr, OID) )
             checkOID();
-        else if ( matches(iriStr, EXAMPLE) )
+        else if ( fromScheme(iriStr, EXAMPLE) )
             checkExample();
 
         return this;
@@ -1609,22 +1608,27 @@ public class IRI3986 implements IRI {
 
         // Must have authority and it must be empty. i.e. file:///
         if ( !hasAuthority() ) {
+            // No authority means it does not start "//"
+
             if ( path().startsWith("/") )
                 schemeReport(this, Issue.file_bad_form, URIScheme.FILE, "file: URLs are of the form file:///path/...");
             else
                 schemeReport(this, Issue.file_relative_path, URIScheme.FILE,
                              "file: URLs are of the form file:///path/..., not file:filename");
+        } else {
+            // hasAuthority
+            // We do not support file:// because file://path1/path2/ makes the host
+            // "path1" (which is then ignored!)
+            if ( authority0 != authority1 ) {
+                // file://path1/path2/..., so path becomes the "authority"
+                schemeReport(this, Issue.file_bad_form, URIScheme.FILE, "file: URLs are of the form file:///path/..., not file://path");
+            } else {
+                if ( path0 == path1 ) {
+                    // Zerolength path;.IRI3986 It's "file://"
+                    schemeReport(this, Issue.file_bad_form, URIScheme.FILE, "file: URLs are of the form file:///path/..., not file://path");
+                }
+            }
         }
-
-        // We do not support file:// because file://path1/path2/ makes the host
-        // "path1" (which is then ignored!)
-        if ( hasAuthority() && authority0 != authority1 ) {
-            // file://path1/path2/..., so path becomes the "authority"
-            schemeReport(this, Issue.file_bad_form, URIScheme.FILE, "file: URLs are of the form file:///path/..., not file://path");
-        }
-
-        if ( this.length < 8 )
-            schemeReport(this, Issue.file_relative_path, URIScheme.FILE, "file: URLs are of the form file:///path/...");
     }
 
     // RFC 8141
@@ -1646,9 +1650,9 @@ public class IRI3986 implements IRI {
     /*
      * alphanum, fragment, and pchar from RFC 3986
      *
-    // pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
-       alphanum       | ALPHA / DIGIT
-       fragment    = *( pchar / "/" / "?" )
+       pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+       alphanum      = ALPHA / DIGIT
+       fragment      = *( pchar / "/" / "?" )
 
        pct-encoded   = "%" HEXDIG HEXDIG
        unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
@@ -1659,49 +1663,52 @@ public class IRI3986 implements IRI {
     */
     // @formatter:on
 
-    // UNICODE_CHARACTER_CLASS -- regex flag for converting POSIX character classes - \p{...}
-
-    // Without specifically testing for rq-components and "#" f-component
-    // Strict - requires 2 char NID and one char NSS.
-
+    // Strictly - requires 2 char NID and one char NSS.
     // NID must be ASCII
-    // NSS can be Unicode
-    // Components can be Unicode
-    // Components not checked.
-    private static Pattern URN_PATTERN_ASSIGNED_NAME_STRICT = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,30}[a-zA-Z0-9]:.+");
+    // We allow NSS and components to include Unicode
+    // Patterns called *PREFIX start with ^ and should be used with Matcher.find.
 
-    // More generous.
-    // NID, can be one char and can be "X-" (RFC 2141)
-    // NSS, and it's colon can be absent. Base names can be <urn:nid:> but not <urn:nid>
-    //private static Pattern URN_PATTERN_ASSIGNED_NAME_LOOSE = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,31}:(?:.*)");
-    private static Pattern URN_PATTERN_ASSIGNED_NAME_LOOSE = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,31}:(?:.*)");
+    // urn : NID :
+    private static Pattern URN_PATTERN_NID_PREFIX = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,30}[a-zA-Z0-9]:");
 
     // Common bad cases : "urn:x:" and "urn:X-ABC:"
-    private static Pattern URN_PATTERN_BAD_NID_1 = Pattern.compile("^urn:(?:\\p{Alnum})(?::(?:.*))?");
-    private static Pattern URN_PATTERN_BAD_NID_2 = Pattern.compile("^urn:X-:");
-    // Bad NSS (empty string) is tested for in checkURN
+    private static Pattern URN_PATTERN_BAD_NID_1_PREFIX = Pattern.compile("^urn:\\p{Alnum}:");
+    // private static Pattern URN_PATTERN_BAD_NID_2_PREFIX = Pattern.compile("^urn:X-:");
 
     /**
      * <a href="https://datatracker.ietf.org/doc/html/rfc8141">RFC 8141</a>.
      *
-     * Check "urn:". Additional check for "urn:uuid:" available in
+     * Check "urn:". Additional checks for "urn:uuid:" available in
      * {@link #checkURN_UUID(String)}.
      */
     private void checkURN() {
         checkSchemeName(URIScheme.URN);
 
-        // Does not check query string or fragment.
-        Pattern pattern = URN_PATTERN_ASSIGNED_NAME_STRICT;
-        boolean matches = pattern.matcher(iriStr).matches();
+        if ( true ) {
+            BiConsumer<Issue, String> h = (issue, msg) -> schemeReport(this, issue, URIScheme.URN, msg);
+            // Index of the ':'
+            int finishNSS = ParseURN.analyseURN(iriStr, h);
+            if ( finishNSS >= 0 ) {
+                if ( path1 <= finishNSS+1 ) // + ':', and one char
+                    schemeReport(this, Issue.urn_bad_nss, URIScheme.URN, "NSS must be at least 1 character");
+            }
+        } else {
+            // Does not check query string or fragment.
+            Matcher m = URN_PATTERN_NID_PREFIX.matcher(iriStr);
+            boolean matches = m.find();
 
-        if ( !matches ) {
-            if ( URN_PATTERN_BAD_NID_1.matcher(iriStr).matches() )
-                schemeReport(this, Issue.urn_bad_nid, URIScheme.URN, "NID must be at least 2 characters");
-            else if ( path().endsWith(":") )
-                schemeReport(this, Issue.urn_bad_nss, URIScheme.URN, "NSS must be at least 1 character");
-            else
-                schemeReport(this, Issue.urn_bad_pattern, URIScheme.URN,
-                             "URI does not match the 'assigned-name' rule regular expression (\"urn\" \":\" NID \":\" NSS)");
+            if ( !matches ) {
+                if ( URN_PATTERN_BAD_NID_1_PREFIX.matcher(iriStr).find() )
+                    schemeReport(this, Issue.urn_bad_nid, URIScheme.URN, "NID must be at least 2 characters");
+                else
+                    schemeReport(this, Issue.urn_bad_nid, URIScheme.URN, "Bad namespace id ");
+            } else {
+                int posnColon = m.end();
+                //if ( path().endsWith(":") )
+                if ( path1 <= posnColon )
+                    schemeReport(this, Issue.urn_bad_nss, URIScheme.URN, "NSS must be at least 1 character");
+            }
+
         }
 
         urnQueryStringCheck();
@@ -1732,25 +1739,27 @@ public class IRI3986 implements IRI {
     /*
      * Both "urn:uuid:" and the unofficial "uuid:"
      * URN r-component(?=), q-component(?+) and f-component(#) not allowed.
+     *
+     * For "uuid:", don't allow URN components.
      */
-    private static String  URN_COMPONENTS_ASCII = "(?:?\\+[0-9a-z]+)?(?:?=[0-9a-z]+)?(?:#[0-9a-z]*)";
-    //Fix: private static String  URN_COMPONENTS_UTF8  = "(?:?\\+[0-9a-z]+)?(?:?=[0-9a-z]+)?(?:#[0-9a-z]*)";
-
     // Unregistered
     private static Pattern UUID_PATTERN_LC = Pattern.compile("^uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
-    private static Pattern UUID_PATTERN_UC = Pattern.compile("^uuid:[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$");
+    //private static Pattern UUID_PATTERN_UC_PREFIX = Pattern.compile("^uuid:[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$");
 
     // Correct URN.
     private static Pattern URN_UUID_PATTERN_LC = Pattern.compile("^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
-    private static Pattern URN_UUID_PATTERN_UC = Pattern.compile("^urn:uuid:[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$");
+    //private static Pattern URN_UUID_PATTERN_UC = Pattern.compile("^urn:uuid:[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$");
 
-    // General either scheme, any case.
-    private static Pattern UUID_PATTERN_AnyCase =
-            Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}.*$", Pattern.CASE_INSENSITIVE);
+    // General shape of a UUID: either scheme, any case. No length check.
+    private static Pattern UUID_PATTERN_AnyCase_PREFIX =
+            Pattern.compile("^(?:urn:uuid|uuid):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", Pattern.CASE_INSENSITIVE);
 
     private final int UUID_length = 36;
-    private final int UUID_scheme_length = "uuid:".length();
-    private final int URN_UUID_scheme_length = "urn:uuid:".length();
+    // "uuid" is the scheme,the URI path is the 36 character of the UUID.
+    private final int UUID_scheme_path_length = UUID_length;
+
+    // "urn" is the scheme, the URI path is "uuid:" and the 36 character of the UUID.
+    private final int URN_UUID_scheme_path_length = UUID_length+"uuid:".length();
 
     /**
      * <a href="https://datatracker.ietf.org/doc/html/rfc4122">RFC4122</a>
@@ -1761,25 +1770,26 @@ public class IRI3986 implements IRI {
         checkSchemeName(URIScheme.URN_UUID);
         boolean matches = URN_UUID_PATTERN_LC.matcher(iriStr).matches();
         if ( matches )
-            // Fast path - no string manipulation, lower case
+            // Fast path - no string manipulation, lower case, no components.
             return;
-        checkUUID(URIScheme.URN_UUID, iriStr, URN_UUID_scheme_length);
-        checkURNComponents();
+        checkUUID(URIScheme.URN_UUID, iriStr, URN_UUID_scheme_path_length);
+        checkURNComponents(URIScheme.URN_UUID);
     }
 
     // URN r-component(?=), q-component(?+) and f-component(#)
-    private void checkURNComponents() {
+    private void checkURNComponents(URIScheme scheme) {
         if ( ! hasQuery() && ! hasFragment() )
             return;
-        // Include the "?" at the start
-        int idx = (this.query0 >= 0) ? (this.query0-1) : (this.fragment0-1);
-        try {
-            URNComponents components = URNComponentParser.parseURNcomponents(iriStr, idx);
-            if ( components == null )
-                schemeReport(this, Issue.urn_bad_components, URIScheme.UUID, "Bad URN components");
-        } catch (URNComponentException ex) {
-            schemeReport(this, Issue.urn_bad_components, URIScheme.UUID, ex.getMessage());
+        if ( ! hasQuery() ) {
+            // Fragment, not query string.
+            return;
         }
+        // Query string, maybe fragment.
+        // Include the "?" at the start
+        int idx = this.query0-1;
+        URNComponents rqComponents = URNComponentParser.parseRQ(iriStr, idx, this.query1);
+        if ( rqComponents == null || ( rqComponents.rComponent() == null && rqComponents.qComponent() == null) )
+            schemeReport(this, Issue.urn_bad_components, scheme, "Bad URN components");
     }
 
     /**
@@ -1790,48 +1800,55 @@ public class IRI3986 implements IRI {
     private void checkUUID() {
         checkSchemeName(URIScheme.UUID);
         schemeReport(this, Issue.uuid_scheme_not_registered, URIScheme.UUID, "Use urn:uuid: -  'uuid:' is not a registered URI scheme.");
-        boolean matches = URN_UUID_PATTERN_LC.matcher(iriStr).matches();
+        boolean matches = UUID_PATTERN_LC.matcher(iriStr).matches();
         if ( matches )
             // Fast path - no string manipulation, lower case
             return;
+        checkUUID(URIScheme.UUID, iriStr, UUID_scheme_path_length);
         // No query string, no URN components.
         if ( hasQuery() )
             schemeReport(this, Issue.uuid_has_query, URIScheme.UUID, "query component not allowed");
         if ( hasFragment() )
             schemeReport(this, Issue.uuid_has_fragment, URIScheme.UUID, "fragment not allowed");
-        checkUUID(URIScheme.UUID, iriStr, UUID_scheme_length);
     }
 
     // Checks for both urn:uuid: and uuid:
-    private void checkUUID(URIScheme scheme, String iriStr,int schemeLength) {
+    private void checkUUID(URIScheme scheme, String iriStr, int uriPathLen) {
+        // uuidPathLen : whole URI path : : 36 if uuid: ("uuid:" is the scheme), 41 is urn:uuid: (path is uuid:....)
         // It did not pass the fast-path regular expression.
-        // The UUID is the URI path component.
-        boolean warningIssued = false;
-        // 36 if uuid:, 41 is urn:uuid:
-        int uuidPathLen;
-        if ( scheme == URIScheme.UUID ) {
-            // "uuid:...."
-            uuidPathLen = 36;
-        } else {
-            // "urn:uuid:..."
-            // The URI path is string from "uuid:...."
-            uuidPathLen = 41;
-        }
 
         int actualPathLen = path1-path0;
-        if (actualPathLen != uuidPathLen ) {
+        if (actualPathLen != uriPathLen ) {
             schemeReport(this, Issue.uuid_bad_pattern, scheme, "Bad UUID string (wrong length)");
-            warningIssued = true;
+            return;
         }
 
-        boolean matchesAnyCase = UUID_PATTERN_AnyCase.matcher(iriStr).matches();
-        if ( matchesAnyCase ) {
-            schemeReport(this, Issue.uuid_not_lowercase, scheme, "Lowercase recommended for UUID string");
-            warningIssued = true;
+        if ( scheme == URIScheme.URN_UUID ) {
+            if ( containsHexUC(iriStr, path0, path0+"uuid".length()) )
+                schemeReport(this, Issue.uuid_not_lowercase, scheme, "Lowercase recommended for urn UUID namspace");
         }
-        if ( !warningIssued )
-            // Didn't match UUID_PATTERN_LC or UUID_PATTERN_AnyCase
-            schemeReport(this, Issue.uuid_bad_pattern, scheme, "Not a valid UUID string");
+
+        boolean matchesAnyCase = UUID_PATTERN_AnyCase_PREFIX.matcher(iriStr).find();
+        if ( ! matchesAnyCase ) {
+            // Didn't match as a UUID
+            schemeReport(this, Issue.uuid_bad_pattern , scheme, "Not a valid UUID string");
+            return;
+        }
+        // We know it is the right length, right shape so:
+        int uuidStart = path1 - UUID_length;
+        int uuidFinish = path1;
+        if ( containsHexUC(iriStr,uuidStart, uuidFinish) )
+            schemeReport(this, Issue.uuid_not_lowercase, scheme, "Lowercase recommended for UUID string");
+    }
+
+    private boolean containsHexUC(String iriStr2, int uuidStart, int uuidFinish) {
+        for ( int i = uuidStart ; i < uuidFinish ; i++ ) {
+            char ch = charAt(i);
+            if ( Chars3986.range(ch, 'A', 'F') ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void checkDID() {
@@ -1871,8 +1888,11 @@ public class IRI3986 implements IRI {
         checkSchemeName(URIScheme.EXAMPLE);
     }
 
+    /**
+     * Check scheme name.
+     */
     private void checkSchemeName(URIScheme scheme) {
-        String correctSchemeName = scheme.getName();
+        String correctSchemeName = scheme.getSchemeName();
 
         if ( !hasScheme() ) {
             schemeReport(this, Issue.iri_scheme_expected, scheme, "No scheme name");
@@ -1880,7 +1900,7 @@ public class IRI3986 implements IRI {
         }
 
         if ( !URIScheme.matchesExact(iriStr, scheme) ) {
-            if ( URIScheme.matches(iriStr, scheme) )
+            if ( URIScheme.matchesIgnoreCase(iriStr, scheme) )
                 schemeReport(this, Issue.iri_scheme_name_is_not_lowercase, scheme, "Scheme name should be lowercase");
             else
                 schemeReport(this, Issue.iri_scheme_unexpected, scheme, "Scheme name should be '" + correctSchemeName + "'");

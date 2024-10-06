@@ -18,24 +18,24 @@
 
 package org.seaborne.rfc3986;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.TestMethodOrder;
+
 
 import java.util.function.Predicate;
 
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.Test;
 
 /**
  * Other tests of IRIs : tests for features
+ * @see TestRFC3986Syntax
  * @see TestNormalize
  * @see TestResolve
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestRFC3986_Features {
+@TestMethodOrder(MethodOrderer.MethodName.class)
+public class TestIRI3986 {
 
     @Test public void absolute1() {
         isTrue("http://example/foo", IRI3986::isAbsolute);

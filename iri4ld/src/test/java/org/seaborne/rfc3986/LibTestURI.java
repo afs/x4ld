@@ -53,7 +53,7 @@ class LibTestURI {
     }
 
     /**
-     * Parse the IRI string 9expected to be valid) and execute
+     * Parse the IRI string (expected to be valid) and execute
      * the scheme specific rules, then test the outcome.
      * If {@code expectedUriScheme}is null, don't check the scheme in the violation.
      */
@@ -62,7 +62,7 @@ class LibTestURI {
 
         IRI3986 iri = RFC3986.create(iriStr);
         if ( false || expectedCount == 0 ) {
-            // Develop helper.
+            // Development helper.
             showViolations(iri);
         }
 
@@ -70,7 +70,7 @@ class LibTestURI {
             assertNotNull(iri.scheme());
             String expectedName = expectedUriScheme.getName();
             String actualName = iri.str().substring(0, expectedName.length());
-            boolean matches = actualName.regionMatches(true, 0, expectedName, 0, expectedName.length());
+            boolean matches = expectedName.equalsIgnoreCase(actualName);
             assertTrue(matches, ()->String.format("Expected=%s, actual=%s", expectedName, actualName));
         }
 
@@ -95,6 +95,16 @@ class LibTestURI {
 //
 //        assertEquals(actualSet.size(), actual.size(), "Duplicates -- "+actual);
 //        assertEquals(expectedSet, actualSet, "Issues -- ");
+    }
+
+    /**
+     * Parse the IRI string (expected to be valid) and execute
+     * the scheme specific rules, then print then print violations.
+     * This is only for development.
+     */
+    static void schemeViolation(String iriStr) {
+        IRI3986 iri = RFC3986.create(iriStr);
+        showViolations(iri);
     }
 
     private static final boolean printViolations = false;

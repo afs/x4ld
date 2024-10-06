@@ -18,6 +18,8 @@
 
 package org.seaborne.rfc3986;
 
+import static org.seaborne.rfc3986.Chars3986.charAt;
+
 import java.util.regex.Pattern;
 
 public class ParseDID {
@@ -134,12 +136,5 @@ public class ParseDID {
 
     private static void error(String didString, String msg) {
         throw new DIDParseException(didString, msg);
-    }
-
-    /** String.charAt except with an EOF character, not an exception. */
-    private static char charAt(String str, int x) {
-        if ( x >= str.length() )
-            return EOF;
-        return str.charAt(x);
     }
 }

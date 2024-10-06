@@ -18,7 +18,7 @@
 
 package org.seaborne.rfc3986;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 import org.junit.Test;
 
@@ -48,9 +48,6 @@ public class TestParseIPv4Address {
     }
 
     private void bad4(String string) {
-        try {
-            ParseIPv4Address.checkIPv4(string);
-            fail("Expected a parse exception: '"+string+"'");
-        } catch (IRIParseException ex) {}
+        assertThrowsExactly(IRIParseException.class, ()->ParseIPv4Address.checkIPv4(string));
     }
 }

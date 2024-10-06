@@ -19,10 +19,10 @@
 package org.seaborne.rfc3986;
 
 import static java.lang.String.format;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TestParseURNComponents {
 
@@ -39,9 +39,18 @@ public class TestParseURNComponents {
     // Corner case: there is a q-component and it includes the out-of-place r-component character.
     @Test public void urn_components_06() { testURNComponents("?=abc?+def", null, "abc?+def", null); }
 
+    @Test public void urn_components_07() { testURNComponents("#", null, null, ""); }
+    @Test public void urn_components_08() { testURNComponents("#frag", null, null, "frag"); }
+
     @Test public void urn_components_bad_01() { testURNComponentsBad("?not_urn"); }
 
     @Test public void urn_components_bad_02() { testURNComponentsBad("?#frag"); }
+
+    @Test public void urn_components_bad_03() { testURNComponentsBad("?+"); }
+    @Test public void urn_components_bad_04() { testURNComponentsBad("?+#frag"); }
+    @Test public void urn_components_bad_05() { testURNComponentsBad("?+abc?="); }
+    @Test public void urn_components_bad_06() { testURNComponentsBad("?+abc?=#frag"); }
+    @Test public void urn_components_bad_07() { testURNComponentsBad("?="); }
 
     private static void testURNComponents(String compStr, String rComp, String qComp, String fComp) {
         URNComponents components = URNComponentParser.parseURNcomponents(compStr);
@@ -53,7 +62,7 @@ public class TestParseURNComponents {
     private static void testComponent(String componentName, String expected, String actual) {
         if ( expected == null && actual == null )
             return;
-        assertEquals(componentName, expected, actual);
+        assertEquals(expected, actual, componentName);
     }
 
     private void testURNComponentsBad(String compStr) {

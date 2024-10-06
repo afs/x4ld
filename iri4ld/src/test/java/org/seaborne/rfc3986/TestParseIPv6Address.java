@@ -18,9 +18,9 @@
 
 package org.seaborne.rfc3986;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TestParseIPv6Address {
     @Test public void addr_ipv6_01() { good6("[0001:0002:0003:0004:0005:0006:0007:0008]"); }
@@ -103,9 +103,6 @@ public class TestParseIPv6Address {
     }
 
     private void bad6(String string) {
-        try {
-            ParseIPv6Address.checkIPv6(string);
-            fail("Expected a parse exception: '"+string+"'");
-        } catch (IRIParseException ex) {}
+        assertThrows(IRIParseException.class, ()->ParseIPv6Address.checkIPv6(string));
     }
 }

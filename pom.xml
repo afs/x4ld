@@ -50,7 +50,6 @@
     <ver.commons-codec>1.17.1</ver.commons-codec>
     <!-- Testing only -->
     <ver.jena-iri>5.1.0</ver.jena-iri>  
-    <ver.junit4>4.13.2</ver.junit4>
     <ver.junit5>5.11.2</ver.junit5>
     <ver.junit5-platform>1.10.2</ver.junit5-platform>
  
@@ -86,15 +85,6 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-
-      <!--
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>${ver.junit4}</version>
-        <scope>test</scope>
-      </dependency>
-      -->
 
       <dependency>
         <groupId>org.slf4j</groupId>
