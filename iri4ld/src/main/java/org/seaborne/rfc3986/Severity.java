@@ -18,4 +18,12 @@
 
 package org.seaborne.rfc3986;
 
-public enum Severity { IGNORE, ERROR, WARNING, INVALID }
+/**
+ * Setting for reporting issues 
+ */
+public enum Severity {
+    IGNORE,         // Ignore the issue
+    WARNING,        // Scheme-specific issue; valid RDF3986 syntax OK
+    ERROR,          // Scheme-specific issue; valid RDF3986 syntax OK
+    INVALID         // Treat as "can't continue" e.g. RFC3986 parse error. 
+    }

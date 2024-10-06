@@ -41,7 +41,8 @@
  * <li>Scheme specific rules for Linked Data HTTP and URNs.
  * </ul>
  * HTTP IRIs forbid the "user@" part which is strongly discouraged in IRIs.<br/>
- * Some additional check for RFC 8141 for URNs are included such as being of the form {@code urn:NID:NSS}.
+ * Some additional checks for <a href="https://tools.ietf.org/html/rfc8141">RFC 8141</a>
+ * for URNs are included such as being of the form {@code urn:NID:NSS}.
  *
  * Restrictions and limitations:
  * <ul>

@@ -18,7 +18,7 @@
 
 package org.seaborne.rfc3986;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.Test;
 
@@ -37,7 +37,6 @@ public class TestBuild {
         IRI3986 iri =
             RFC3986.newBuilder()
                 .scheme("http")
-                .authority("AUTH")
                 .host("host")
                 .path("/abc")
                 .build();
@@ -48,13 +47,39 @@ public class TestBuild {
         IRI3986 iri =
             RFC3986.newBuilder()
                 .scheme("http")
-                .authority("AUTH")
+                .authority("AUTH")  // Replaced.
                 .host("host")
                 .port(8080)
                 .path("/abc")
                 .build();
         assertEquals("http://host:8080/abc", iri.toString());
     }
+
+    @Test public void build_05() {
+        IRI3986 iri =
+            RFC3986.newBuilder()
+                .scheme("http")
+                .host("host")
+                .port(8080)
+                .authority("AUTH")
+                .path("/abc")
+                .build();
+        assertEquals("http://AUTH/abc", iri.toString());
+    }
+
+    @Test public void build_06() {
+        IRI3986 iri =
+            RFC3986.newBuilder()
+                .scheme("http")
+                .authority("AUTH")
+                .path("/abc")
+                .query("a=b")
+                .fragment("frag")
+                .build();
+        assertEquals("http://AUTH/abc?a=b#frag", iri.toString());
+    }
+
+
 
     private void testBuild(String expected, String scheme, String authority, String path, String query, String fragment) {
         // All parts

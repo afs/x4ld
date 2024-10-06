@@ -27,7 +27,7 @@ import org.junit.Test;
  * <p>
  * Detailed testing IPv6 parsing is in {@link TestParseIPv6Address}.
  */
-public class TestParseIRIComponents {
+public class Test_X_ParseIRIComponents {
     @Test public void components_http_01() {
         testComponents("http://user@host:8081/abc/def?qs=ghi#jkl", "http", "user@host:8081", "/abc/def", "qs=ghi", "jkl");
     }

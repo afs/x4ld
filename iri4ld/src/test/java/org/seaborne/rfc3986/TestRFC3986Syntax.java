@@ -18,23 +18,23 @@
 
 package org.seaborne.rfc3986;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.seaborne.rfc3986.LibTestURI.badSyntax;
 import static org.seaborne.rfc3986.LibTestURI.goodSyntax;
 
 import java.util.Locale;
 
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 /**
  * General parsing of URIs, not scheme specific rules.
  * @see TestURISchemes
- * @see TestRFC3986_Features
+ * @see TestIRI3986
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestRFC3986_Syntax {
+@TestMethodOrder(MethodOrderer.MethodName.class)
+public class TestRFC3986Syntax {
 
     // XXX Check vs jena-iri (IRIFactory.create + check for parse errors.
 
@@ -67,13 +67,17 @@ public class TestRFC3986_Syntax {
     @Test public void parse_partial_01() { good("https://?qs", "https", "", null, "", "qs", null); }
     @Test public void parse_partial_02() { good("https:/?qs", "https", null, null, "/", "qs", null); }
     @Test public void parse_partial_03() { good("https:?qs", "https", null, null, "", "qs", null); }
-    @Test public void parse_partial_04() { good("//host/", null, "host", null, "/", null, null); }
-    @Test public void parse_partial_05() { good("//host", null, "host", null, "", null, null); }
-    @Test public void parse_partial_06() { good("/path", null, null, null, "/path", null, null); }
-    @Test public void parse_partial_07() { good("?qs=value", null, null, null, "", "qs=value", null); }
-    @Test public void parse_partial_08() { good("#frag", null, null, null, "", null, "frag"); }
-    @Test public void parse_partial_09() { good("#", null, null, null, "", null, ""); }
-    @Test public void parse_partial_10() { good("", null, null, null, "", null, null); }
+    @Test public void parse_partial_04() { good("http:/abc/def", "http", null, null, "/abc/def", null, null); }
+    @Test public void parse_partial_05() { good("http:/abc", "http", null, null, "/abc", null, null); }
+    @Test public void parse_partial_06() { good("http:abc", "http", null, null, "abc", null, null); }
+
+    @Test public void parse_partial_07() { good("//host/", null, "host", null, "/", null, null); }
+    @Test public void parse_partial_08() { good("//host", null, "host", null, "", null, null); }
+    @Test public void parse_partial_09() { good("/path", null, null, null, "/path", null, null); }
+    @Test public void parse_partial_10() { good("?qs=value", null, null, null, "", "qs=value", null); }
+    @Test public void parse_partial_11() { good("#frag", null, null, null, "", null, "frag"); }
+    @Test public void parse_partial_12() { good("#", null, null, null, "", null, ""); }
+    @Test public void parse_partial_13() { good("", null, null, null, "", null, null); }
 
     // == Internationalization
     @Test public void parse_i1() { good("http://αβγδ/ŸŽ?a=Ž#Ÿ", "http", "αβγδ", null, "/ŸŽ", "a=Ž", "Ÿ"); }

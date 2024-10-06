@@ -30,7 +30,6 @@ import org.junit.runners.MethodSorters;
 /**
  * General parsing of URIs, not scheme specific rules.
  * @see Test_X_RFC3986_Scheme_Full
- * @see TestRFC3986_Features
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class Test_X_RFC3986_Full {
@@ -101,7 +100,8 @@ public class Test_X_RFC3986_Full {
     // This is legal by RFC 8089 (jena-iri, based on the original RFC 1738, fails this with missing authority).
     @Test public void parse_file_03() { goodNoIRICheck("file:/file/name.txt"); }
 
-    @Test public void parse_urn_01() { good("urn:x-local:abc/def"); }
+    // iri4ld tests the namespace id and "-" is illegal.
+    @Test public void parse_urn_01() { goodNoIRICheck("urn:x-local:abc/def"); }
 
     @Test public void parse_urn_02()        { good("urn:abc0:def"); }
 
@@ -117,10 +117,10 @@ public class Test_X_RFC3986_Full {
 
     // Allow Unicode in the NSS and components.
     // (Strictly, URNs are ASCII)
-    @Test public void parse_urn_unicode_01()        { good("urn:ns:αβγ"); }
-    @Test public void parse_urn_unicode_02()        { good("urn:ns:x?=αβγ"); }
-    @Test public void parse_urn_unicode_03()        { good("urn:ns:x?+α?=βγ"); }
-    @Test public void parse_urn_unicode_04()        { good("urn:ns:x?+α?=β#γ"); }
+    @Test public void parse_urn_unicode_01()        { goodNoIRICheck("urn:ns:αβγ"); }
+    @Test public void parse_urn_unicode_02()        { goodNoIRICheck("urn:ns:x?=αβγ"); }
+    @Test public void parse_urn_unicode_03()        { goodNoIRICheck("urn:ns:x?+α?=βγ"); }
+    @Test public void parse_urn_unicode_04()        { goodNoIRICheck("urn:ns:x?+α?=β#γ"); }
 
     private static final String testUUID = "326f63ea-7447-11ee-b715-0be26fda5b37";
 
@@ -231,8 +231,10 @@ public class Test_X_RFC3986_Full {
     private void good(String string) {
         RFC3986.checkSyntax(string);
         IRI3986 iri = RFC3986.create(string);
-        if ( iri.hasViolations() )
+        if ( iri.hasViolations() ) {
+            LibTestURI.showViolations(iri);
             fail("Violations "+string);
+        }
         else {
             // No IRI3986 violations
             IRI iri1 = JenaIRI.iriFactory().create(string);

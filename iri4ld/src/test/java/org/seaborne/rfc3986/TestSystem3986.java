@@ -18,11 +18,12 @@
 
 package org.seaborne.rfc3986;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.function.Consumer;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /** Test of machinery */
 public class TestSystem3986 {
@@ -31,14 +32,16 @@ public class TestSystem3986 {
         MarkerException(String msg) { super(msg); }
     }
 
-    @Test(expected = MarkerException.class)
+    @Test
     public void violations_01() {
-        // Warning as exception
-        IRI3986 iri = IRI3986.createAny("HTTP://host/path");
-        assertTrue(iri.hasViolations());
-        Consumer<String> x = (msg)-> { throw new MarkerException(msg); };
-        ErrorHandler eh = ErrorHandler.create(x, x);
-        SystemIRI3986.toHandler(iri, eh);
+        assertThrowsExactly(MarkerException.class,  ()->{
+            // Warning as exception
+            IRI3986 iri = IRI3986.createAny("HTTP://host/path");
+            assertTrue(iri.hasViolations());
+            Consumer<String> x = (msg)-> { throw new MarkerException(msg); };
+            ErrorHandler eh = ErrorHandler.create(x, x);
+            SystemIRI3986.toHandler(iri, eh);
+        });
     }
 
     @Test

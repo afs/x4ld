@@ -33,6 +33,10 @@ public class Builder{
     private String fragment = null;
     /*package*/ Builder() {}
 
+    static class IRIBuildException extends RuntimeException {
+        public IRIBuildException(String message) {super(message); }
+    }
+
     public String scheme() {
         return scheme;
     }
@@ -46,6 +50,7 @@ public class Builder{
         return authority;
     }
 
+    /** Set the "auhtority" part of an IRI - this clear previous host and port settings" */
     public Builder authority(String authority) {
         this.authority = authority;
         this.host = null;
@@ -68,6 +73,8 @@ public class Builder{
     }
 
     public Builder port(int port) {
+        if ( port < 0 )
+            throw new IRIBuildException("port is less than zero");
         this.authority = null;
         this.port = port;
         return this;

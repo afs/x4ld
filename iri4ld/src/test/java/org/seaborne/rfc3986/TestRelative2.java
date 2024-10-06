@@ -22,12 +22,13 @@ import static org.apache.jena.iri.IRIRelativize.ABSOLUTE;
 import static org.apache.jena.iri.IRIRelativize.CHILD;
 import static org.apache.jena.iri.IRIRelativize.PARENT;
 import static org.apache.jena.iri.IRIRelativize.SAMEDOCUMENT;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Objects;
 
+import org.junit.jupiter.api.Test;
+
 import org.apache.jena.iri.IRIFactory;
-import org.junit.Test;
 
 public class TestRelative2 {
     @Test public void relative_path_101() { test_relative(asIRI("/a"), asIRI("/a/b"),  "a/b"); }

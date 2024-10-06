@@ -79,7 +79,6 @@ public class Violations {
         SeverityMap.setSeverity(severityMap, Issue.http_omit_well_known_port,         Severity.ERROR);
 
         // urn:uuid and uuid
-        SeverityMap.setSeverity(severityMap, Issue.urn_uuid_bad_pattern,              Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.uuid_bad_pattern,                  Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.uuid_has_query,                    Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.uuid_has_fragment,                 Severity.ERROR);

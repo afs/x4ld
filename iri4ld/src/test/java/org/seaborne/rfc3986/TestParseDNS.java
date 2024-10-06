@@ -18,7 +18,7 @@
 
 package org.seaborne.rfc3986;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.Test;
 
@@ -54,28 +54,11 @@ public class TestParseDNS {
     @Test public void parseDNS_bad_08() { badDNS("%7Z"); }
     @Test public void parseDNS_bad_09() { badDNS("%Z7"); }
 
-
-
-//    public static void main(String[] args) {
-//        parseDNS("ab.cd.e.");
-//        parseDNS("ab.cd.e");
-//        parseDNS(".ab.cd");
-//        parseDNS("ab.c:d");
-//        //Bad.
-//        parseDNS(".ab.c:d");
-//        parseDNS("ab..cd");
-//        System.out.println("DONE");
-//    }
-
-
     private static void goodDNS(String string) {
         ParseDNS.parse(string);
     }
 
     private static void badDNS(String string) {
-        try {
-            ParseDNS.parse(string);
-            fail("Expected a parse exception: '"+string+"'");
-        } catch (IRIParseException ex) {}
+        assertThrows(IRIParseException.class, ()->ParseDNS.parse(string));
     }
 }

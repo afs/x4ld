@@ -38,7 +38,6 @@ public enum Issue {
     http_port_not_advised,
     http_omit_well_known_port,
     // urn:uuid and uuid
-    urn_uuid_bad_pattern,
     uuid_bad_pattern,
     uuid_has_query,
     uuid_has_fragment,

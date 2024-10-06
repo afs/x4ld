@@ -54,7 +54,7 @@ public class URNComponentParser {
         String r = m.group(1);
         String q = m.group(2);
         String f = m.group(3);
-        return new URNComponents(r, q, f);
+        return createValidURNComponents(r, q, f);
     }
 
     private static String trimQuery(String r) {
@@ -79,7 +79,7 @@ public class URNComponentParser {
             return null;
         if ( rqString == null ) {
             String f = adjustLeading(fString, F_STR);
-            return new URNComponents(null, null, f);
+            return createValidURNComponents(null, null, f);
         }
         // Parse the r- and q- components
         URNComponents rqComponents = parseRQ(rqString, 0, rqString.length());
@@ -87,7 +87,7 @@ public class URNComponentParser {
         String qComponent = rqComponents.qComponent();
         String fComponent = adjustLeading(fString, F_STR);
         // Return all three.
-        return new URNComponents(rComponent, qComponent, fComponent);
+        return createValidURNComponents(rComponent, qComponent, fComponent);
     }
 
     // Trim leading chars
@@ -136,22 +136,26 @@ public class URNComponentParser {
             }
             // Remainder of string.
             String rComp = rqString.substring(rCompStart, limit);
-            return new URNComponents(rComp, null, null);
+            return createValidURNComponents(rComp, null, null);
         }
         // q-component.
         if ( rCompStart < 0 ) {
             // No r-component.
             String qComp = rqString.substring(idx+2, limit);
-            return new URNComponents(null, qComp , null);
+            return createValidURNComponents(null, qComp , null);
         }
 
         String rComp = rqString.substring(rCompStart, idx);
         String qComp = rqString.substring(idx+2, limit);
-        return new URNComponents(rComp, qComp , null);
+        return createValidURNComponents(rComp, qComp , null);
     }
 
-    private static boolean xlookingAt(String string, int loc, String substr) {
-        return string.startsWith(substr, loc);
+    private static URNComponents createValidURNComponents(String rComp, String qComp, String fComp) {
+        if ( rComp != null && rComp.isEmpty() )
+            return null;
+        if ( qComp != null && qComp.isEmpty() )
+            return null;
+        return new URNComponents(rComp, qComp, fComp);
     }
 
     // Parse all three components from the tail of a string.
@@ -166,7 +170,7 @@ public class URNComponentParser {
             throw new IllegalArgumentException("Start index greater than string length");
 
         int fStart = componentsString.indexOf(CH_HASH, x);
-        if ( fStart > 0 ) {
+        if ( fStart >= 0 ) {
             if ( fStart == x+1 ) {
                 // Check for illegal ?#frag
                 return null;
@@ -174,8 +178,8 @@ public class URNComponentParser {
             String fComp = componentsString.substring(fStart+1);
             URNComponents rq = parseRQ(componentsString, startIdx, fStart);
             if ( rq == null )
-                return new URNComponents(null, null, fComp);
-            return new URNComponents(rq.rComponent(), rq.qComponent(), fComp);
+                return null;
+            return createValidURNComponents(rq.rComponent(), rq.qComponent(), fComp);
         }
 
         URNComponents rq = parseRQ(componentsString, startIdx, N);

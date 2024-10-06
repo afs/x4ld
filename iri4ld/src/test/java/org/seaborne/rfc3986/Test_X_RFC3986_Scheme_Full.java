@@ -31,8 +31,7 @@ import org.apache.jena.iri.IRI;
 /**
  * Scheme specific tests
  *
- * @see TestRFC3986_Syntax -- for parsing the URI grammar.
- * @see TestRFC3986_Features
+ * @see TestRFC3986Syntax -- for parsing the URI grammar.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class Test_X_RFC3986_Scheme_Full {
@@ -90,10 +89,6 @@ public class Test_X_RFC3986_Scheme_Full {
     }
 
     @Test public void parse_urn_uuid_bad_02() {
-        schemeViolation("urn:uuid:06e775ac-2c38-11b2-801c-8086f2cc00c9#frag");
-    }
-
-    @Test public void parse_urn_uuid_bad_03() {
         // Bad length
         schemeViolation("urn:uuid:06e775ac");
     }
@@ -125,53 +120,59 @@ public class Test_X_RFC3986_Scheme_Full {
     // It even permits retrospectively applying to older schemes,
     // However, the r- (?+"), p- ("?=") or f- (#) components do not play a part in URN equivalence.
 
+    // Choose policy
+    private void testComponentsWithUUID(String iriStr) {
+        good(iriStr);
+        //schemeViolation(iriStr);
+    }
+
     // RFC 4122 (uuid namespace definition) does not mention r- p- or f- component
-    @Test public void parse_uuid_bad_8141_01() {
-        schemeViolation("urn:uuid:" + testUUID + "#frag");
+    @Test public void parse_uuid_8141_01() {
+        testComponentsWithUUID("urn:uuid:" + testUUID + "#frag");
     }
 
     // RFC 8141 allows query string must be ?=<one+ char> or ?+<one+ char>
-    @Test public void parse_uuid_bad_8141_03() {
-        schemeViolation("urn:uuid:" + testUUID + "?+chars");
+    @Test public void parse_uuid_8141_03() {
+        testComponentsWithUUID("urn:uuid:" + testUUID + "?+chars");
     }
 
-    @Test public void parse_uuid_bad_8141_04() {
-        schemeViolation("urn:uuid:" + testUUID + "?=chars");
+    @Test public void parse_uuid_8141_04() {
+        testComponentsWithUUID("urn:uuid:" + testUUID + "?=chars");
     }
 
-    @Test public void parse_uuid_bad_8141_05() {
-        schemeViolation("urn:uuid:" + testUUID + "?+chars#frag");
+    @Test public void parse_uuid_8141_05() {
+        testComponentsWithUUID("urn:uuid:" + testUUID + "?+chars#frag");
     }
 
-    @Test public void parse_uuid_bad_8141_06() {
-        schemeViolation("urn:uuid:" + testUUID + "?=chars#frag");
+    @Test public void parse_uuid_8141_06() {
+        testComponentsWithUUID("urn:uuid:" + testUUID + "?=chars#frag");
     }
 
     // Always bad.
-    @Test public void parse_uuid_bad_8141_10() {
+    @Test public void parse_uuid_8141_10() {
         schemeViolation("urn:uuid:" + testUUID + "?abc");
     }
 
     // Always bad.
-    @Test public void parse_uuid_bad_8141_11() {
+    @Test public void parse_uuid_8141_11() {
         schemeViolation("urn:uuid:" + testUUID + "?");
     }
 
-    @Test public void parse_uuid_bad_8141_12() {
+    @Test public void parse_uuid_8141_12() {
         schemeViolation("urn:uuid:" + testUUID + "?+");
     }
 
-    @Test public void parse_uuid_bad_8141_13() {
+    @Test public void parse_uuid_8141_13() {
         schemeViolation("urn:uuid:" + testUUID + "?=");
     }
 
-    @Test public void parse_uuid_bad_8141_14() {
+    @Test public void parse_uuid_8141_14() {
         // Not ASCII
-        schemeViolation("urn:uuid:" + testUUID + "#αβγ");
+        testComponentsWithUUID("urn:uuid:" + testUUID + "#αβγ");
     }
 
-    @Test public void parse_uuid_bad_8141_15() {
-        schemeViolation("urn:uuid:" + testUUID + "#");
+    @Test public void parse_uuid_8141_15() {
+        testComponentsWithUUID("urn:uuid:" + testUUID + "#");
     }
 
     @Test public void parse_urn_oid_1() {
