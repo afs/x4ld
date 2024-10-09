@@ -25,13 +25,16 @@ public enum Issue {
     iri_percent_not_uppercase,
     iri_host_not_lowercase,
     iri_user_info_present,
+    iri_password,
+    iri_bad_ipv4_address,
+    iri_bad_ipv6_address,
     // Scheme
     iri_scheme_name_is_not_lowercase,
     iri_scheme_expected,
     iri_scheme_unexpected,
     // http/https
-    http_userinfo,
-    http_password,
+//    http_userinfo,
+//    http_password,
     http_no_host,
     http_empty_host,
     http_empty_port,
@@ -57,6 +60,6 @@ public enum Issue {
     did_bad_syntax,
     // urn:oid and oid:
     oid_bad_syntax,
-    oid_scheme_not_registered
+    oid_scheme_not_registered,
 }
 

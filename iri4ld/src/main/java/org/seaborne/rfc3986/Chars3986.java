@@ -216,4 +216,11 @@ public class Chars3986 {
         if ( range(ch, 'a', 'f' ) ) return ch-'a'+10;
         return -1;
     }
+
+    /** Test for 'a' to 'f' */
+    static boolean isHexDigitLC(char ch) {
+        return range(ch, 'a', 'f' )  ;
+    }
+
+
 }

@@ -18,30 +18,17 @@
 
 package org.seaborne.rfc3986;
 
-import org.junit.platform.suite.api.SelectClasses;
-import org.junit.platform.suite.api.Suite;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
-@Suite
-@SelectClasses( {
-    TestRFC3986Syntax.class,
-    TestIRI3986.class,
-
-    TestURISchemes.class,
-    TestResolve.class,
-    TestNormalize.class,
-    TestRelative.class,
-    TestRelative2.class,
-    TestRelative3.class,
-    TestBuild.class,
-    TestParseIPv4Address.class,
-    TestParseIPv6Address.class,
-    TestParseDID.class,
-    TestParseDNS.class,
-    TestParseURNComponents.class,
-    TestParseOID.class,
-    TestSystem3986.class,
-
-    TS_iri_X.class
+@RunWith(Suite.class)
+@Suite.SuiteClasses( {
+    // Old material - these will removed
+    // jena-iri comparision - alignment now incorporated into the other tests.
+    Test_X_RFC3986_Scheme_Full.class,
+    Test_X_RFC3986_Full.class,
+    // Duplicated by TestRFC3986_Syntax
+    Test_X_ParseIRIComponents.class,
 } )
 
-public class TS_iri4ld { }
+public class TS_iri_X { }

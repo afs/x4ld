@@ -91,9 +91,11 @@ public class Test_X_RFC3986_Full {
     @Test public void parse_31() { good("http://host/path?q=abc/def#abc/def"); }
     @Test public void parse_32() { good("http://host/path?q=abc/def#abc?def"); }
 
-    @Test public void parse_http_04()   { good("nothttp://users@host/file/name.txt"); }
+    // userinfo
+    @Test public void parse_http_04()   { goodSyntax("nothttp://users@host/file/name.txt"); }
 
-    @Test public void parse_http_05()   { good("nothttp://users@/file/name.txt"); }
+    // userinfo
+    @Test public void parse_http_05()   { goodSyntax("nothttp://users@/file/name.txt"); }
 
     @Test public void parse_file_01() { good("file:///file/name.txt"); }
 
@@ -144,7 +146,8 @@ public class Test_X_RFC3986_Full {
 
     @Test public void parse_oid_1()     { goodNoIRICheck("oid:1.2.3"); }
 
-    @Test public void parse_ftp_01()    { good("ftp://user@host:3333/abc/def?qs=ghi#jkl"); }
+    // bad by IRI3986 - discourage user info.
+    @Test public void parse_ftp_01()    { goodSyntax("ftp://user@host:3333/abc/def?qs=ghi#jkl"); }
 
     @Test public void parse_ftp_02()    { good("ftp://[::1]/abc/def?qs=ghi#jkl"); }
 
@@ -251,6 +254,13 @@ public class Test_X_RFC3986_Full {
         IRI3986 iriByRegex = RFC3986.createByRegex(string);
         assertTrue("Identical: ", iri.identical(iriByRegex, false));
         assertTrue(iri.identical(iriByRegex, true));
+    }
+
+    // Good RFC3986 syntax, may have violations.
+    private void goodSyntax(String string) {
+        RFC3986.checkSyntax(string);
+        IRI3986 iri = RFC3986.create(string);
+        IRI iri1 = JenaIRI.iriFactory().create(string);
     }
 
     private void goodNoIRICheck(String string) {
