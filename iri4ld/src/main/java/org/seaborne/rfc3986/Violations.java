@@ -63,6 +63,9 @@ public class Violations {
         SeverityMap.setSeverity(severityMap, Issue.iri_percent_not_uppercase,         Severity.WARNING);
         SeverityMap.setSeverity(severityMap, Issue.iri_host_not_lowercase,            Severity.WARNING);
         SeverityMap.setSeverity(severityMap, Issue.iri_user_info_present,             Severity.WARNING);
+        SeverityMap.setSeverity(severityMap, Issue.iri_password,                      Severity.ERROR);
+        SeverityMap.setSeverity(severityMap, Issue.iri_bad_ipv4_address,              Severity.WARNING);
+        SeverityMap.setSeverity(severityMap, Issue.iri_bad_ipv6_address,              Severity.WARNING);
 
         // Scheme
         SeverityMap.setSeverity(severityMap, Issue.iri_scheme_name_is_not_lowercase,  Severity.WARNING);
@@ -74,8 +77,6 @@ public class Violations {
         SeverityMap.setSeverity(severityMap, Issue.http_empty_host,                   Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.http_empty_port,                   Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.http_port_not_advised,             Severity.WARNING);
-        SeverityMap.setSeverity(severityMap, Issue.http_userinfo,                     Severity.ERROR);
-        SeverityMap.setSeverity(severityMap, Issue.http_password,                     Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.http_omit_well_known_port,         Severity.ERROR);
 
         // urn:uuid and uuid

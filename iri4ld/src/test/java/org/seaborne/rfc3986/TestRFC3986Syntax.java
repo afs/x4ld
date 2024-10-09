@@ -19,6 +19,7 @@
 package org.seaborne.rfc3986;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+//import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.seaborne.rfc3986.LibTestURI.badSyntax;
 import static org.seaborne.rfc3986.LibTestURI.goodSyntax;
 
@@ -35,8 +36,6 @@ import org.junit.jupiter.api.TestMethodOrder;
  */
 @TestMethodOrder(MethodOrderer.MethodName.class)
 public class TestRFC3986Syntax {
-
-    // XXX Check vs jena-iri (IRIFactory.create + check for parse errors.
 
     // Detailed testing IPv4 parsing is in {@link TestParseIPv4Address}
     // Detailed testing IPv6 parsing is in {@link TestParseIPv6Address}
@@ -120,8 +119,6 @@ public class TestRFC3986Syntax {
     @Test public void parse_bad_01() { badSyntax("https://host/ /path"); }
     @Test public void parse_bad_02() { badSyntax("http://abcdef:80:/xyz"); }
 
-    // XXX More bad and weird
-    // ------------------------
     @Test public void parse_weird_01() { good("a:b/c", "a", null, null, "b/c", null, null); }
     @Test public void parse_weird_02() { good("c:/directory", "c", null, null, "/directory", null, null); }
     @Test public void parse_weird_03() { good("http://?user/def", "http", "", null, "", "user/def", null); }
@@ -224,13 +221,13 @@ public class TestRFC3986Syntax {
                       String scheme, String host, String port,
                       String path, String query, String fragment) {
         IRI3986 iri = RFC3986.create(iristr);
-        assertEquals("string --",   iristr,   iri.str());
-        assertEquals("scheme --",   scheme,   iri.scheme());
-        assertEquals("host --",     host,     iri.host());
-        assertEquals("port --",     port,     iri.port());
-        assertEquals("path --",     path,     iri.path());
-        assertEquals("query --",    query,    iri.query());
-        assertEquals("fragment --", fragment, iri.fragment());
+        assertEquals(iristr,   iri.str(),      "string -- ");
+        assertEquals(scheme,   iri.scheme(),   "scheme -- ");
+        assertEquals(host,     iri.host(),     "host -- ");
+        assertEquals(port,     iri.port(),     "port -- ");
+        assertEquals(path,     iri.path(),     "path --");
+        assertEquals(query,    iri.query(),    "query -- ");
+        assertEquals(fragment, iri.fragment(), "fragment -- " );
 
         IRI3986 iri2 = RFC3986.createByRegex(iristr);
         assertEquals(iri, iri2);
@@ -241,15 +238,16 @@ public class TestRFC3986Syntax {
                          String scheme, String authority, String userInfo, String host, String port,
                          String path, String query, String fragment) {
         IRI3986 iri = RFC3986.create(iristr);
-        assertEquals("string --",     iristr,     iri.str());
-        assertEquals("scheme --",     scheme,     iri.scheme());
-        assertEquals("authority --",  authority,  iri.authority());
-        assertEquals("userInfo --",   userInfo,   iri.userInfo());
-        assertEquals("host --",       host,       iri.host());
-        assertEquals("port --",       port,       iri.port());
-        assertEquals("path --",       path,       iri.path());
-        assertEquals("query --",      query,      iri.query());
-        assertEquals("fragment --",   fragment,   iri.fragment());
+        assertEquals(iristr,   iri.str(),         "string -- ");
+        assertEquals(scheme,   iri.scheme(),      "scheme -- ");
+        assertEquals(authority,  iri.authority(), "authority --");
+        assertEquals(userInfo,   iri.userInfo(),  "userInfo --");
+        assertEquals(host,     iri.host(),        "host -- ");
+        assertEquals(port,     iri.port(),        "port -- ");
+        assertEquals(path,     iri.path(),        "path --");
+        assertEquals(query,    iri.query(),       "query -- ");
+        assertEquals(fragment, iri.fragment(),    "fragment -- " );
+
         IRI3986 iri2 = RFC3986.createByRegex(iristr);
         assertEquals(iri, iri2);
     }

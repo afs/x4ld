@@ -170,19 +170,26 @@ public class URNComponentParser {
             throw new IllegalArgumentException("Start index greater than string length");
 
         int fStart = componentsString.indexOf(CH_HASH, x);
-        if ( fStart >= 0 ) {
-            if ( fStart == x+1 ) {
-                // Check for illegal ?#frag
-                return null;
-            }
-            String fComp = componentsString.substring(fStart+1);
-            URNComponents rq = parseRQ(componentsString, startIdx, fStart);
-            if ( rq == null )
-                return createValidURNComponents(null, null, fComp);
-            return createValidURNComponents(rq.rComponent(), rq.qComponent(), fComp);
+        if ( fStart < 0 ) {
+            URNComponents rq = parseRQ(componentsString, startIdx, N);
+            return rq;
         }
 
-        URNComponents rq = parseRQ(componentsString, startIdx, N);
-        return rq;
+        if ( fStart == x+1 ) {
+            // '?#' or not starting ? at all.
+            return null;
+        }
+        // There is an f-component.
+        String fComp = componentsString.substring(fStart+1);
+        URNComponents rq = parseRQ(componentsString, startIdx, fStart);
+        if ( rq == null ) {
+            // Bad or absent? Can't tell from null.
+            int idxQuery = componentsString.indexOf('?');
+            if ( idxQuery >= 0 && idxQuery < fStart )
+                // There is query string part and so it must had test as bad.
+                return null;
+            return createValidURNComponents(null, null, fComp);
+        }
+        return createValidURNComponents(rq.rComponent(), rq.qComponent(), fComp);
     }
 }

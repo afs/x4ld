@@ -62,41 +62,19 @@ package org.seaborne.rfc3986;
         return string.charAt(x);
     }
 
-    /** Hex digits : upper case **/
-    final private static char[] hexDigitsUC = {
-        '0' , '1' , '2' , '3' , '4' , '5' , '6' , '7' , '8' ,
-        '9' , 'A' , 'B' , 'C' , 'D' , 'E' , 'F' } ;
-
     /** Case insensitive test of whether a string has a prefix. */
     static boolean caseInsensitivePrefix(String string, String prefix) {
         return caseInsensitiveRegion(string, 0 , prefix);
     }
 
-    /** Case insensitive test of whether a string has a prefix. */
+    /** Case insensitive test of whether a string contains a substring. */
     static boolean caseInsensitiveRegion(String string, int idx, String substr) {
         return string.regionMatches(true, idx, substr, 0, substr.length());
     }
 
-
-    /* package */ static void encodeAsHex(StringBuilder buff, char marker, char ch) {
-        if ( ch < 256 ) {
-            buff.append(marker);
-            int lo = ch & 0xF;
-            int hi = (ch >> 4) & 0xF;
-            buff.append(hexDigitsUC[hi]);
-            buff.append(hexDigitsUC[lo]);
-            return;
-        }
-        int n4 = ch & 0xF;
-        int n3 = (ch >> 4) & 0xF;
-        int n2 = (ch >> 8) & 0xF;
-        int n1 = (ch >> 12) & 0xF;
-        buff.append(marker);
-        buff.append(hexDigitsUC[n1]);
-        buff.append(hexDigitsUC[n2]);
-        buff.append(marker);
-        buff.append(hexDigitsUC[n3]);
-        buff.append(hexDigitsUC[n4]);
+    /** Case sensitive test of whether a string contains a substring at an index.. */
+    static boolean region(String string, int idx, String substr) {
+        return string.regionMatches(idx, substr, 0, substr.length());
     }
 
     // >> Copied from jena-iri for comparison.

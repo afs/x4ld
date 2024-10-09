@@ -131,11 +131,32 @@ public class ParseURN {
 
         if ( finishNamespace-startNamespace < 2 )
             handler.accept(Issue.urn_bad_nid, "Namespace id must be at least 2 characters");
-        // already done
-//        if ( x-startNamespace > 32 )
-//            throw new URNParseException(string, "Namespace id more than 3 characters");
-        return finishNamespace;
 
+        // RFC 8141 section 5.1
+        if ( LibParseIRI.caseInsensitiveRegion(string, startNamespace, "X-") )
+            handler.accept(Issue.urn_bad_nid, "Namespace id starts with 'X-'");
+
+        // RFC 8141 section 5.2 - Informal namespace. "urn-1234"
+        if ( LibParseIRI.caseInsensitiveRegion(string, startNamespace, "urn-") ) {
+            boolean seenNonZero = false;
+            for ( int i = startNamespace+"urn-".length() ; i < finishNamespace ; i++ ) {
+                char chx = charAt(string, i);
+                if ( !seenNonZero ) {
+                    if ( chx == '0' ) {
+                        handler.accept(Issue.urn_bad_nid, "Leading zero in an informal namepsace");
+                        break;
+                    } else
+                        seenNonZero = true;
+                }
+                // Allows leading zeros.
+                if ( ! Chars3986.isDigit(chx) ) {
+                    handler.accept(Issue.urn_bad_nid, "Bad informal namepsace");
+                    break;
+                }
+            }
+        }
+
+        return finishNamespace;
     }
 
     // LDH = letter-digit-hyphen

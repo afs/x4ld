@@ -130,6 +130,23 @@ public class IRI3986 implements IRI {
     }
 
     /**
+     * Create an {@code IRI3986} object or throw an exception if there is a syntax
+     * error.
+     * <p>
+     * This operation does not check conformance to the rules of IRI schemes.
+     * <p>
+     * Prefer {@link #create(String)} which records scheme-violations.
+     * <p>
+     * See {@link Violations} for the mapping from issue to a warning or an error.
+     * <p>
+     * See {@link Issue} for the scheme specific issues covered.
+     */
+    public static IRI3986 createSyntax(String iristr) {
+        IRI3986 iri = newAndParseAndCheck(iristr);
+        return iri;
+    }
+
+    /**
      * Create an {@code IRI3986} object; report errors and warnings. This operation
      * always returns an object; it does not throw an exception, nor return null.
      * <p>
@@ -214,7 +231,8 @@ public class IRI3986 implements IRI {
 
     private int userinfo0 = -1;
     private int userinfo1 = -1;
-    private String userinfo = null;
+    // Do not retain.
+    //private String userinfo = null;
 
     private int host0 = -1;
     private int host1 = -1;
@@ -341,9 +359,8 @@ public class IRI3986 implements IRI {
 
     @Override
     public String userInfo() {
-        if ( hasUserInfo() && userinfo == null )
-            userinfo = part(iriStr, userinfo0, userinfo1);
-        return userinfo;
+        // Do not retain.
+        return part(iriStr, userinfo0, userinfo1);
     }
 
     @Override
@@ -500,6 +517,18 @@ public class IRI3986 implements IRI {
     }
 
     /**
+     * Find a character in a substring. Return -1 if no present.
+     */
+    private static int contains(String str, char character, int start, int finish) {
+        for ( int i = start; i < finish; i++ ) {
+                char ch = str.charAt(i);
+                if ( ch == character )
+                    return i;
+        }
+        return -1;
+    }
+
+    /**
      * Return the first char in segment x0..x1 or EOF if the segment is not defined
      * or of zero length. x0 = start index, x1 index after segment. x1 = x0 means no
      * segment, x1 = x0+1 is zero length.
@@ -514,30 +543,10 @@ public class IRI3986 implements IRI {
         return charAt(x0);
     }
 
-
-    /** Test whether the IRIR is RFc 3986 compatible (i.e. ASCII). */
+    /** Test whether the IRI is RFC 3986 compatible;that is, has only ASCII characters. */
     public boolean isRFC3986() {
-        // The URI is valid so we just need to test for non-ASCII characters.
+        // The URI is valid syntax so we just need to test for non-ASCII characters.
         return isASCII(iriStr);
-    }
-    /** Encode RFC 3987 (IRI) as strict 3986 (URI) using %-encoding */
-    public IRI3986 asRFC3986() {
-        // The URI is valid so we just need to encode non-ASCII characters.
-        return isRFC3986() ? this : encode();
-    }
-
-    // The encoding work.
-    private IRI3986 encode() {
-        StringBuilder sb = new StringBuilder(iriStr.length() + 20);
-        for ( int i = 0 ; i < iriStr.length() ; i++ ) {
-            char ch = iriStr.charAt(i);
-            if ( ch <= 0x7F )
-                sb.append(ch);
-            else
-                LibParseIRI.encodeAsHex(sb, '%', ch);
-        }
-        String s = sb.toString();
-        return new IRI3986(s);
     }
 
     /**
@@ -877,7 +886,7 @@ public class IRI3986 implements IRI {
         // Unset values.
         iri.userinfo0 = -1;
         iri.userinfo1 = -1;
-        iri.userinfo = null;
+        //iri.userinfo = null;
 
         iri.host0 = -1;
         iri.host1 = -1;
@@ -915,7 +924,7 @@ public class IRI3986 implements IRI {
             Matcher m2 = authorityRegex.matcher(iri.authority);
             if ( m2.matches() ) {
                 // Move indexes by start of authority if set.
-                iri.userinfo = m2.group(userinfoGroup);
+                //iri.userinfo = m2.group(userinfoGroup);
                 iri.userinfo0 = offset(offset, m2.start(userinfoGroup));
                 iri.userinfo1 = offset(offset, m2.end(userinfoGroup));
 
@@ -1098,7 +1107,7 @@ public class IRI3986 implements IRI {
                 if ( endUserInfo != -1 )
                     throw parseError(iriStr, p + 1, "Bad authority segment - multiple '@'");
                 // Found userinfo end; reset counts and trackers.
-                // Check for IPv6 []
+                // Check for bad IPv6 []
                 if ( startIPv6 != -1 || endIPv6 != -1 )
                     throw parseError(iriStr, p + 1, "Bad authority segment - contains '[' or ']'");
                 endUserInfo = p;
@@ -1121,9 +1130,6 @@ public class IRI3986 implements IRI {
                 countColon = 0;
                 lastColon = -1;
             } else if ( !isIPChar(ch, p) ) {
-                // XXX Need to check for %-encoding.
-                // All the characters in an (i)authority section, regardless of
-                // correct use.
                 break;
             }
             p++;
@@ -1173,11 +1179,6 @@ public class IRI3986 implements IRI {
                 throw parseError(iriStr, -1, "Bad port");
         } else
             host1 = endAuthority;
-
-        // TODO
-        // IPv4 address or DNS name between host0 and host1.
-        // ParseIPv4Address.checkIPv4(iriStr, host0, host1);
-
         return endAuthority;
     }
 
@@ -1467,20 +1468,46 @@ public class IRI3986 implements IRI {
 
     private void checkGeneral() {
         // Compliance level per scheme
-        // Maybe check general last but push first
-        //
-        // General RFC 3986 warnings.
-        // * userinfo
-        // // Error in http? Check.
 
-//        iri_percent_not_uppercase,
-//        iri_host_not_lowercase,
+        // RFC 3986   section 3,2.1
+        // https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1
+        /*
+         * Use of the format "user:password" in the userinfo field is
+         * deprecated.  Applications should not render as clear text any data
+         * after the first colon (":") character found within a userinfo
+         * subcomponent unless the data after the colon is the empty string
+         * (indicating no password).  Applications may choose to ignore or
+         * reject such data when it is received as part of a reference and
+         * should reject the storage of such data in unencrypted form.
+         */
+        // See also rfc7230#section-2.7.1
+
+        if ( hasUserInfo() ) {
+            schemeReport(this,  Issue.iri_user_info_present, URIScheme.GENERAL, "Deprectaed; user info");
+            int idx = contains(iriStr, ':',  userinfo0, userinfo1);
+            if ( idx >= 0 && idx < userinfo1-1 )
+                schemeReport(this,  Issue.iri_password, URIScheme.GENERAL, "Non-empty password");
+        }
+
+        // RFC 3986   section 3,2.2
+        // https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.2
+        /*
+         * Although host is case-insensitive,
+         * case-insensitive, producers and normalizers should use lowercase
+         * for registered names and hexadecimal addresses for the sake of
+         * uniformity
+         */
+
+        if ( hasHost() ) {
+            if ( containsUppercase(iriStr, host0, host1) )
+                schemeReport(this, Issue.iri_host_not_lowercase, URIScheme.GENERAL, "Host name should be lowercase");
+        }
 
         // Done HTTP/HTTPS
 //        if ( hasHost() ) {
 //            String host = host();
 //            if ( containsUppercase(host) ) {
-//                schemeReport(this, Issue.iri_host_not_lowercase, URIScheme.GENERAL, "Host name includes uppcase characters: '"+host+"'");
+//                schemeReport(this, Issue.iri_host_not_lowercase, URIScheme.GENERAL, "Host name includes uppercase characters: '"+host+"'");
 //            }
 //        }
 
@@ -1491,28 +1518,67 @@ public class IRI3986 implements IRI {
 //                schemeReport(this, Issue.iri_user_password, scheme, "userinfo contains password in authority section");
 //        }
 
-        // ***
-        // lower case scheme
-        // uppercase %encoding.
-
-        // RFC 3986 section 3.1
-        /* Although schemes are case-insensitive, the canonical form is lowercase and
-         * documents that specify schemes must do so with lowercase letters. An
-         * implementation should accept uppercase letters as equivalent to lowercase
-         * in scheme names (e.g., allow "HTTP" as well as "http") for the sake of
-         * robustness but should only produce lowercase scheme names for
-         * consistency. */
-
         // RFC 3986 section 2.1
         /* If two URIs differ only in the case of hexadecimal digits used in
          * percent-encoded octets, they are equivalent. For consistency, URI
          * producers and normalizers should use uppercase hexadecimal digits for all
          * percent- encodings.
          */
+        checkPercent();
+
     }
 
-    private boolean containsUppercase(String string) {
-        for ( int i = 0 ; i < string.length() ; i++ ) {
+    private void checkPercent() {
+        // Path onwards (lower case in host)
+        // Legal syntax so percent encoded is hex.
+        if ( path0 < 0 )
+            return;
+        int N = iriStr.length();
+        for ( int i = path0 ; i < N ; i++ ) {
+            char ch = iriStr.charAt(i);
+            if ( ch == '%' ) {
+                if ( i+2 > N ) {
+                    // Too near the end.
+                }
+                char ch1 = iriStr.charAt(i+1);
+                char ch2 = iriStr.charAt(i+2);
+                if (Chars3986.isHexDigitLC(ch1) || Chars3986.isHexDigitLC(ch2) ) {
+                    schemeReport(this, Issue.iri_percent_not_uppercase, URIScheme.GENERAL, "Percent encoidng should be uppercase");
+                }
+                i += 2;
+            }
+        }
+    }
+
+    // RFC 3986 section 3.1
+    /* Although schemes are case-insensitive, the canonical form is lowercase and
+     * documents that specify schemes must do so with lowercase letters. An
+     * implementation should accept uppercase letters as equivalent to lowercase
+     * in scheme names (e.g., allow "HTTP" as well as "http") for the sake of
+     * robustness but should only produce lowercase scheme names for
+     * consistency. */
+
+    /**
+     * Check scheme name.
+     */
+    private void checkSchemeName(URIScheme scheme) {
+        String correctSchemeName = scheme.getSchemeName();
+
+        if ( !hasScheme() ) {
+            schemeReport(this, Issue.iri_scheme_expected, scheme, "No scheme name");
+            return;
+        }
+
+        if ( !URIScheme.matchesExact(iriStr, scheme) ) {
+            if ( URIScheme.matchesIgnoreCase(iriStr, scheme) )
+                schemeReport(this, Issue.iri_scheme_name_is_not_lowercase, scheme, "Scheme name should be lowercase");
+            else
+                schemeReport(this, Issue.iri_scheme_unexpected, scheme, "Scheme name should be '" + correctSchemeName + "'");
+        }
+    }
+
+    private boolean containsUppercase(String string, int start, int finish) {
+        for ( int i = start ; i < finish ; i++ ) {
             char ch = string.charAt(i);
             if ( Character.isUpperCase(ch) )
                 return true;
@@ -1576,22 +1642,27 @@ public class IRI3986 implements IRI {
             }
         }
 
-        /* https://tools.ietf.org/html/rfc7230#section-2.7.1
-         *
-         * A sender MUST NOT generate the userinfo subcomponent (and its "@"
-         * delimiter) when an "http" URI reference is generated within a message as a
-         * request target or header field value. Before making use of an "http" URI
-         * reference received from an untrusted source, a recipient SHOULD parse for
-         * userinfo and treat its presence as an error; it is likely being used to
-         * obscure the authority for the sake of phishing attacks.
-         *
-         * ---- And in linked data, any URI is a request target. */
+        // We generate a viollation for all use of
 
-        if ( hasUserInfo() ) {
-            schemeReport(this, Issue.http_userinfo, scheme, "userinfo (e.g. user:password) in authority section");
-            if ( userInfo().contains(":") )
-                schemeReport(this, Issue.http_password, scheme, "userinfo contains password in authority section");
-        }
+//        /* https://tools.ietf.org/html/rfc7230#section-2.7.1
+//         *
+//         * http scheme: (not https)
+//         * A sender MUST NOT generate the userinfo subcomponent (and its "@"
+//         * delimiter) when an "http" URI reference is generated within a message as a
+//         * request target or header field value. Before making use of an "http" URI
+//         * reference received from an untrusted source, a recipient SHOULD parse for
+//         * userinfo and treat its presence as an error; it is likely being used to
+//         * obscure the authority for the sake of phishing attacks.
+//         *
+//         * ---- And in linked data, any URI is a request target.
+//         * Also treat is as a violation for https for linked data URIs.
+//         */
+//
+//        if ( hasUserInfo() ) {
+//            schemeReport(this, Issue.http_userinfo, scheme, "userinfo (e.g. user:password) in authority section");
+//            if ( userInfo().contains(":") )
+//                schemeReport(this, Issue.http_password, scheme, "userinfo contains password in authority section");
+//        }
     }
 
     // URN specific.
@@ -1668,13 +1739,6 @@ public class IRI3986 implements IRI {
     // We allow NSS and components to include Unicode
     // Patterns called *PREFIX start with ^ and should be used with Matcher.find.
 
-    // urn : NID :
-    private static Pattern URN_PATTERN_NID_PREFIX = Pattern.compile("^urn:[a-zA-Z0-9][-a-zA-Z0-9]{0,30}[a-zA-Z0-9]:");
-
-    // Common bad cases : "urn:x:" and "urn:X-ABC:"
-    private static Pattern URN_PATTERN_BAD_NID_1_PREFIX = Pattern.compile("^urn:\\p{Alnum}:");
-    // private static Pattern URN_PATTERN_BAD_NID_2_PREFIX = Pattern.compile("^urn:X-:");
-
     /**
      * <a href="https://datatracker.ietf.org/doc/html/rfc8141">RFC 8141</a>.
      *
@@ -1684,33 +1748,15 @@ public class IRI3986 implements IRI {
     private void checkURN() {
         checkSchemeName(URIScheme.URN);
 
-        if ( true ) {
-            BiConsumer<Issue, String> h = (issue, msg) -> schemeReport(this, issue, URIScheme.URN, msg);
-            // Index of the ':'
-            int finishNSS = ParseURN.analyseURN(iriStr, h);
-            if ( finishNSS >= 0 ) {
-                if ( path1 <= finishNSS+1 ) // + ':', and one char
-                    schemeReport(this, Issue.urn_bad_nss, URIScheme.URN, "NSS must be at least 1 character");
-            }
-        } else {
-            // Does not check query string or fragment.
-            Matcher m = URN_PATTERN_NID_PREFIX.matcher(iriStr);
-            boolean matches = m.find();
-
-            if ( !matches ) {
-                if ( URN_PATTERN_BAD_NID_1_PREFIX.matcher(iriStr).find() )
-                    schemeReport(this, Issue.urn_bad_nid, URIScheme.URN, "NID must be at least 2 characters");
-                else
-                    schemeReport(this, Issue.urn_bad_nid, URIScheme.URN, "Bad namespace id ");
-            } else {
-                int posnColon = m.end();
-                //if ( path().endsWith(":") )
-                if ( path1 <= posnColon )
-                    schemeReport(this, Issue.urn_bad_nss, URIScheme.URN, "NSS must be at least 1 character");
-            }
-
+        BiConsumer<Issue, String> h = (issue, msg) -> schemeReport(this, issue, URIScheme.URN, msg);
+        // Includes RFC 8141 section 5.1 (X-)
+        // Includes RFC 8141 section 5.2 (urn-)
+        int finishNSS = ParseURN.analyseURN(iriStr, h);
+        // Index of the ':'
+        if ( finishNSS >= 0 ) {
+            if ( path1 <= finishNSS+1 ) // After the NID finishes, there must be at least a ':' and one char.
+                schemeReport(this, Issue.urn_bad_nss, URIScheme.URN, "NSS must be at least 1 character");
         }
-
         urnQueryStringCheck();
         urnFragmentCheck();
     }
@@ -1886,25 +1932,6 @@ public class IRI3986 implements IRI {
      */
     private void checkExample() {
         checkSchemeName(URIScheme.EXAMPLE);
-    }
-
-    /**
-     * Check scheme name.
-     */
-    private void checkSchemeName(URIScheme scheme) {
-        String correctSchemeName = scheme.getSchemeName();
-
-        if ( !hasScheme() ) {
-            schemeReport(this, Issue.iri_scheme_expected, scheme, "No scheme name");
-            return;
-        }
-
-        if ( !URIScheme.matchesExact(iriStr, scheme) ) {
-            if ( URIScheme.matchesIgnoreCase(iriStr, scheme) )
-                schemeReport(this, Issue.iri_scheme_name_is_not_lowercase, scheme, "Scheme name should be lowercase");
-            else
-                schemeReport(this, Issue.iri_scheme_unexpected, scheme, "Scheme name should be '" + correctSchemeName + "'");
-        }
     }
 
     /**
