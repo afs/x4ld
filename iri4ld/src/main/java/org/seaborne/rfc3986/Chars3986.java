@@ -18,8 +18,6 @@
 
 package org.seaborne.rfc3986;
 
-import static org.seaborne.rfc3986.ParseErrorIRI3986.parseError;
-
 /** Characters and character classes */
 public class Chars3986 {
     // See Also RiotChars - SPARQL and Turtle parsing.
@@ -51,7 +49,7 @@ public class Chars3986 {
 
     /**
      * Test whether the character at location 'x' is percent-encoded. This operation
-     * needs to Looks at next two characters if and only if ch is '%'
+     * needs to look at next two characters if and only if ch is '%'.
      * <p>
      * This function looks ahead 2 characters which will be parsed but likely they
      * are in the L1 or L2 cache and the alternative is more complex logic (return
@@ -179,11 +177,14 @@ public class Chars3986 {
     }
 
     private static boolean percentCheck(int idx, char ch1, char ch2) {
-        if ( ch1 == EOF || ch2 == EOF )
-            throw parseError(null, idx+1, "Incomplete %-encoded character");
+        if ( ch1 == EOF || ch2 == EOF ) {
+            parseError(null, idx+1, "Incomplete %-encoded character");
+            return false;
+        }
         if ( isHexDigit(ch1) && isHexDigit(ch2) )
             return true;
-        throw parseError(null, idx+1, "Bad %-encoded character ["+displayChar(ch1)+" "+displayChar(ch2)+"]");
+        parseError(null, idx+1, "Bad %-encoded character ["+displayChar(ch1)+" "+displayChar(ch2)+"]");
+        return false;
     }
 
     /** String.charAt except with an EOF character, not an exception. */
@@ -217,10 +218,18 @@ public class Chars3986 {
         return -1;
     }
 
+    /** Test for 'A' to 'F' */
+    public static boolean isHexDigitUC(char ch) {
+        return range(ch, 'A', 'F' )  ;
+    }
+
     /** Test for 'a' to 'f' */
     static boolean isHexDigitLC(char ch) {
         return range(ch, 'a', 'f' )  ;
     }
 
-
+    // How to handle pare errors (percent encoding).
+    private static void parseError(String string, int posn, String msg) {
+        throw org.seaborne.rfc3986.ParseErrorIRI3986.parseError(string, posn, msg);
+    }
 }

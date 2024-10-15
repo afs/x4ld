@@ -1542,7 +1542,7 @@ public class IRI3986 implements IRI {
                 }
                 char ch1 = iriStr.charAt(i+1);
                 char ch2 = iriStr.charAt(i+2);
-                if (Chars3986.isHexDigitLC(ch1) || Chars3986.isHexDigitLC(ch2) ) {
+                if ( Chars3986.isHexDigitLC(ch1) || Chars3986.isHexDigitLC(ch2) ) {
                     schemeReport(this, Issue.iri_percent_not_uppercase, URIScheme.GENERAL, "Percent encoidng should be uppercase");
                 }
                 i += 2;
