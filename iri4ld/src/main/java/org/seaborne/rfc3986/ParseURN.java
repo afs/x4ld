@@ -249,7 +249,7 @@ public class ParseURN {
             return -1;
         }
 
-        // RFC 8141 section 5.1
+        // RFC 8141 section 5.1 (described in RFC 3406)
         if ( LibParseIRI.caseInsensitiveRegion(string, startNamespace, "X-") ) {
             String start = string.substring(0,2);
             handler.accept(Issue.urn_x_namespace, "Namespace id starts with '"+start+"'");

@@ -19,11 +19,25 @@
 package org.seaborne.rfc3986;
 
 /**
- * Setting for reporting issues 
+ * Setting for reporting issues
  */
 public enum Severity {
-    IGNORE,         // Ignore the issue
-    WARNING,        // Scheme-specific issue; valid RDF3986 syntax OK
-    ERROR,          // Scheme-specific issue; valid RDF3986 syntax OK
-    INVALID         // Treat as "can't continue" e.g. RFC3986 parse error. 
+    IGNORE(000),         // Ignore the issue
+    WARNING(100),        // Scheme-specific issue; valid RDF3986 syntax OK
+    ERROR(200),          // Scheme-specific issue; valid RDF3986 syntax OK
+    INVALID(300)         // Treat as "can't continue" e.g. RFC3986 parse error.
+    ;
+
+    private final int level;
+
+    Severity(int level) {
+        this.level = level;
     }
+
+    /**
+     * Return the severity level.
+     */
+    public int level() {
+        return level;
+    }
+}

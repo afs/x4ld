@@ -25,10 +25,7 @@ import static org.seaborne.rfc3986.ParseErrorIRI3986.parseError;
 import static org.seaborne.rfc3986.URIScheme.*;
 
 import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -278,37 +275,38 @@ public class IRI3986 implements IRI {
      * {@link IRIParseException}s (unless {@link #createAny} is used). In addition to
      * parsing, IRIs are checked for some of the scheme-specific issues in the
      * standards. See enum {@link Issue}.
-     * <ul>
-     * <li>{@code http:} IRi must not have an empty port (":" present but no port
-     * number)</li>
-     * <li>URN with name space (NID) "uuid" must have a namsespace specific part
-     * matchign the UUID string pattern.
-     * <li>URNs Must have at least two characters on the NID.
-     * <li>{@code file:} IRIs must start "///".
-     * </ul>
+     * <p>
      * These are recorded in the IRI object; they do not automatically cause
      * exceptions. See {@link Violations} for mapping issues to warnings and errors.
      */
     public boolean hasViolations() {
-        return reports != null && !reports.isEmpty();
+        return reports != null && ! reports.isEmpty();
     }
 
     /**
-     * Cal a consumer function for any violations recorded for this IRI.
+     * Return true if this IRI has any violations greater than (and not equal to) the severity argument.
+     */
+    public boolean hasViolations(Severity levelSeverity) {
+        if ( ! hasViolations() )
+            return false;
+        for ( var violation : reports ) {
+            Severity severity = Violations.getSeverity(violation.issue());
+            if ( severity.level() > levelSeverity.level() )
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Call a consumer function for any violations recorded for this IRI.
      * <p>
      * The normal way to create IRIs, {@link #create}, throws an
-     * {@link IRIParseException} if the IRI string does not match teh grammar of RFC
+     * {@link IRIParseException} if the IRI string does not match the grammar of RFC
      * 3986/3987 and other RFCs. In addition to parsing, IRIs are checked for
      * scheme-specific issues in the standards. See enum {@link Issue} for the issues
      * covered.
      * <p>
      * Issues are recorded as {@link Violations}.
-     * <ul>
-     * <li>{@code http:} IRI must not have an empty port (":" present but no port
-     * number)</li>
-     * <li>URNs Must have at least two characters on the NID.</li>
-     * <li>{@code file:} IRIs must start "///".</li>
-     * </ul>
      * These are recorded in the IRI object; they do not automatically cause
      * exceptions. See {@link Violations} for mapping issues to warnings and errors.
      * <p>
@@ -319,6 +317,16 @@ public class IRI3986 implements IRI {
         if ( reports == null )
             return;
         reports.forEach(action);
+    }
+
+    /**
+     * Return an immutable list of the violations for this IRI.
+     * @See {@link #forEachViolation(Consumer)}.
+     */
+    public List<Violation> violations() {
+        if ( reports == null )
+            return List.of();
+        return reports;
     }
 
     /** Human-readable appearance. Use {@link #str()} to a string to use in code. */
@@ -1463,12 +1471,14 @@ public class IRI3986 implements IRI {
         else if ( fromScheme(iriStr, EXAMPLE) )
             checkExample();
 
+        if ( reports != null )
+            // Immutable.
+            reports = List.copyOf(reports);
+
         return this;
     }
 
     private void checkGeneral() {
-        // Compliance level per scheme
-
         // RFC 3986   section 3,2.1
         // https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1
         /*
@@ -1525,7 +1535,6 @@ public class IRI3986 implements IRI {
          * percent- encodings.
          */
         checkPercent();
-
     }
 
     private void checkPercent() {
@@ -1543,7 +1552,7 @@ public class IRI3986 implements IRI {
                 char ch1 = iriStr.charAt(i+1);
                 char ch2 = iriStr.charAt(i+2);
                 if ( Chars3986.isHexDigitLC(ch1) || Chars3986.isHexDigitLC(ch2) ) {
-                    schemeReport(this, Issue.iri_percent_not_uppercase, URIScheme.GENERAL, "Percent encoidng should be uppercase");
+                    schemeReport(this, Issue.iri_percent_not_uppercase, URIScheme.GENERAL, "Percent encoding should be uppercase");
                 }
                 i += 2;
             }
