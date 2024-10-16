@@ -52,6 +52,8 @@ public enum Issue {
     urn_bad_nid,
     urn_bad_nss,
     urn_bad_components,
+    urn_x_namespace,
+    urn_bad_informal_namespace,
 
     // file
     file_bad_form,

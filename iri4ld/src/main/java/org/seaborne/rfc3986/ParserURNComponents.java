@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
  * [ "?+" r-component ] [ "?=" q-component ] [ "#" f-component ]
  * </pre>
  */
-public class URNComponentParser {
+public class ParserURNComponents {
 
     static class URNComponentException extends RuntimeException {
         URNComponentException(String msg) { super(msg); }

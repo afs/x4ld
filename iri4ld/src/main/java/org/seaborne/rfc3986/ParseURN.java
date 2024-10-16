@@ -23,7 +23,6 @@ import static org.seaborne.rfc3986.Chars3986.charAt;
 import static org.seaborne.rfc3986.LibParseIRI.caseInsensitivePrefix;
 
 import java.util.function.BiConsumer;
-import java.util.regex.Pattern;
 
 public class ParseURN {
     // RFC 8141
@@ -43,7 +42,7 @@ public class ParseURN {
      * f-component   = fragment
      */
     /*
-     * InformalNamespaceName = "urn-" Number
+     *  InformalNamespaceName = "urn-" Number
      *  Number                = DigitNonZero 0*Digit
      *  DigitNonZero          = "1"/ "2" / "3" / "4"/ "5"
      *                        / "6" / "7" / "8" / "9"
@@ -61,32 +60,147 @@ public class ParseURN {
        reserved      = gen-delims / sub-delims
        gen-delims    = ":" / "/" / "?" / "#" / "[" / "]" / "@"
        sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
-                           / "*" / "+" / "," / ";" / "="
-    */
+     */
+    /*
+     * The NID rules:
+     * + At last one character
+     * Disallow "X-"
+     * "urn-" which are not informal names: "urn-NNN"
+     */
     // @formatter:on
 
-    public record AssignedName(String scheme, String NID, String NSS) {}
+    /**
+     * URN structure.
+     * The {@code URNComponents} may be null, indicating "none".
+     * URN elements as written (e.g. "URN:").
+     */
+    public record URN8141(String scheme, String NID, String NSS, URNComponents components) {
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(scheme);
+            sb.append(':');
+            sb.append(NID);
+            sb.append(':');
+            sb.append(NSS);
+            if ( components != null ) {
+                if ( components.rComponent() != null ) {
+                    sb.append("?+");
+                    sb.append(components.rComponent());
+                }
+                if ( components.qComponent() != null ) {
+                    sb.append("?=");
+                    sb.append(components.qComponent());
+                }
+                if ( components.fComponent() != null ) {
+                    sb.append("#");
+                    sb.append(components.fComponent());
+                }
+            }
+            return sb.toString();
+        }
+    }
+
+    // For use by handlers.
     public static class URNParseException extends IRIParseException {
         URNParseException(String entity, String msg) { super(entity, msg); }
     }
 
-    // V1 - regex bases
-    private static Pattern URN_NAMESPACE = Pattern.compile("^urn:[0-9-a-f]{2,31}:", Pattern.CASE_INSENSITIVE);
+    private static BiConsumer<Issue, String> noOpHandler = (x,y)->{};
 
     /**
-     * Check the scheme and the namespace identifier of an IRI string assumed to be valid RFC 3986 syntax.
-     * Return the start of the namespace specific string or -1 if failed to process the string.
-     * Call {@code handler} to pass back scheme-specific violations.
+     * Parse a string a a URN, Return null for invalid.
      */
-    static int analyseURN(String string, BiConsumer<Issue, String> handler) {
+    public static URN8141 parseURN(String string) {
+        return parseURN(string, noOpHandler);
+    }
+
+    /**
+     * Parse a URN, including URN components.
+     * Return a {@link URN8141}.
+     * Call {@code handler} to pass back scheme-specific violations. This is allowed to raise an exception.
+     * Return null on error if the handler returned.
+     */
+    public static URN8141 parseURN(String string, BiConsumer<Issue, String> handler) {
         int N = string.length();
-        boolean urnScheme = caseInsensitivePrefix(string, "urn:");
+
+        int startNamespace = findValidURNScheme(string, handler);
+        if ( startNamespace == -1 )
+            return null;
+
+        int finishNamespace = findValidNamespace(string, startNamespace, handler);
+        if ( finishNamespace == -1 ) {
+            // Handler already called.
+            //handler.accept(Issue.urn_bad_nid, "Failed find the URN scheme name");
+            return null;
+        }
+        String scheme = string.substring(0, 3);
+        int startNSS = finishNamespace+1;
+        int finishNSS = findValidNamespaceSpecificString(string, startNSS, handler);
+        if ( finishNSS == -1 )
+            return null;
+
+        URNComponents components = null;
+        if ( finishNSS < N )
+            components = ParserURNComponents.parseURNcomponents(string, finishNSS);
+
+        String namespace = string.substring(startNamespace, finishNamespace);
+        String nsSpecific = string.substring(startNSS, finishNSS);
+        return new URN8141(scheme, namespace, nsSpecific, components);
+    }
+
+    // Excluding components.
+    /**
+     * Validate a URN, NID and NSS, <em>not</em> including URN components.
+     * Return the index (exclusive) of the end of NSS.
+     * Call {@code handler} to pass back scheme-specific violations. This is allowed to raise an exception.
+     */
+    public static int validateAssignedName(String string, BiConsumer<Issue, String> handler) {
+        int N = string.length();
+
+        int startNID = findValidURNScheme(string, handler);
+        if ( startNID == -1 )
+            return -1;
+
+        int finishNID = findValidNamespace(string, startNID, handler);
+        if ( finishNID == -1 )
+            return -1;
+        int startNSS = finishNID+1;
+
+        int finishNSS = findValidNamespaceSpecificString(string, startNSS, handler);
+        if ( finishNSS == -1 )
+            return -1;
+        return finishNSS;
+    }
+
+    /**
+     * Check the scheme.
+     * Return the start of the namespace specific string or -1 if the schema or namespace is invalid.
+     * Call {@code handler} to pass back scheme-specific violations. This is allowed to raise an exception.
+     * Return -1 on error if the handler returned.
+     */
+    private static int findValidURNScheme(String string, BiConsumer<Issue, String> handler) {
+        //findValidURNScheme()
+        // Avoid creating intermediate objects.
+        final String urnSchemeStr = "urn:";
+        boolean urnScheme = caseInsensitivePrefix(string, urnSchemeStr);
         if ( ! urnScheme ) {
             handler.accept(Issue.urn_bad_pattern, "Failed find the URN scheme name");
             return -1;
         }
+        return urnSchemeStr.length();
+    }
+
+    /**
+     * Check the namespace identifier of an IRI string assumed to be valid RFC 3986 syntax.
+     * Return the start of the namespace specific string at ":".
+     * (Therefore, the NID is characters 4 ("urn:") to return int-1.)
+     * Call {@code handler} to pass back scheme-specific violations. This is allowed to raise an exception.
+     * Return -1 on error if the handler returned.
+     */
+    private static int findValidNamespace(String string, int startNamespace, BiConsumer<Issue, String> handler) {
+        int N = string.length();
         // Start of namespace id
-        int startNamespace = 4;
         int x = startNamespace;
         // First character, alpha.
         char ch = charAt(string, x);
@@ -100,13 +214,14 @@ public class ParseURN {
         }
         x++;
         char prevChar = EOF;
+        // Scan for the terminating ":"
         while(x < N ) {
             prevChar = ch;
             ch = charAt(string, x);
             if ( ch == ':' ) {
                 if ( prevChar == '-' ) {
                     // Can't end in hyphen
-                    handler.accept(Issue.urn_bad_nid, "Namespace id end in '-'");
+                    handler.accept(Issue.urn_bad_nid, "Namespace id ends in '-'");
                     return -1;
                 }
                 break;
@@ -115,26 +230,31 @@ public class ParseURN {
                 handler.accept(Issue.urn_bad_nid, "Bad character in Namespace id");
                 return -1;
             }
-            if ( x-startNamespace > 31 ) {
+            x++;
+            if ( x-startNamespace > 32 ) {
                 handler.accept(Issue.urn_bad_nid, "Namespace id more than 32 characters");
                 return -1;
             }
-            x++;
         }
-        int finishNamespace = x;
 
+        int finishNamespace = x;
         if ( ch != ':' ) {
             handler.accept(Issue.urn_bad_nid, "Namespace not terminated by ':'");
             return -1;
         }
         x++;
 
-        if ( finishNamespace-startNamespace < 2 )
+        if ( finishNamespace-startNamespace < 2 ) {
             handler.accept(Issue.urn_bad_nid, "Namespace id must be at least 2 characters");
+            return -1;
+        }
 
         // RFC 8141 section 5.1
-        if ( LibParseIRI.caseInsensitiveRegion(string, startNamespace, "X-") )
-            handler.accept(Issue.urn_bad_nid, "Namespace id starts with 'X-'");
+        if ( LibParseIRI.caseInsensitiveRegion(string, startNamespace, "X-") ) {
+            String start = string.substring(0,2);
+            handler.accept(Issue.urn_x_namespace, "Namespace id starts with '"+start+"'");
+            return -1;
+        }
 
         // RFC 8141 section 5.2 - Informal namespace. "urn-1234"
         if ( LibParseIRI.caseInsensitiveRegion(string, startNamespace, "urn-") ) {
@@ -144,103 +264,52 @@ public class ParseURN {
                 if ( !seenNonZero ) {
                     if ( chx == '0' ) {
                         handler.accept(Issue.urn_bad_nid, "Leading zero in an informal namepsace");
-                        break;
+                        return -1;
                     } else
                         seenNonZero = true;
                 }
                 // Allows leading zeros.
                 if ( ! Chars3986.isDigit(chx) ) {
                     handler.accept(Issue.urn_bad_nid, "Bad informal namepsace");
-                    break;
+                    return -1;
                 }
             }
         }
-
         return finishNamespace;
     }
 
+    /**
+     * Find the NSS - Namespace Specific String - starting at 'start', the index after the ':' ending the NID.
+     * The NSS ends at end of string or at '?' or '#' if there are URN components,
+     * Return the index of the end of the NSS (exclusive).
+     * Call {@code handler} to pass back scheme-specific violations. This is allowed to raise an exception.
+     * Return -1 on error if the handler returned.
+     */
+    private static int findValidNamespaceSpecificString(String string, int startNSS, BiConsumer<Issue, String> handler) {
+        int idx = startNSS;
+        int N = string.length();
+        int finishNSS = N;
+        for ( ; idx < N ; idx++ ) {
+            char ch = string.charAt(idx);
+            if ( ch == '?' || ch == '#' ) {
+                finishNSS = idx;
+                break;
+            }
+        }
+
+        if ( finishNSS-startNSS < 1) {
+            handler.accept(Issue.urn_bad_nss, "Namespace specific string must be at least one character");
+            return -1;
+        }
+        return finishNSS;
+    }
+
     // LDH = letter-digit-hyphen
-    static boolean isLDH(char ch) {
+    private static boolean isLDH(char ch) {
         return Chars3986.isAlphaNum(ch) || ch == '-';
     }
 
-    static
-    public void parse(String string) {
-        int N = string.length();
-        // fast path - correct
-        boolean urnScheme = caseInsensitivePrefix(string, "urn:");
-        if ( ! urnScheme )
-            throw new URNParseException(string, "Does not start 'urn:'");
-
-        // Start of namespace id
-        int startNamespace = 4;
-        int x = startNamespace;
-
-        // First character, alpha.
-        char ch = charAt(string, x);
-        if ( ch == EOF )
-            throw new URNParseException(string, "No namespace id");
-
-        if ( ! Chars3986.isAlpha(ch) )
-            throw new URNParseException(string, "Namespace id does no start with an alphabetic ASCII character");
-        x++;
-
-        while(x < N ) {
-            ch = charAt(string, x);
-            if ( ! Chars3986.isAlphaNum(ch) )
-                break;
-            if ( x-startNamespace > 32 )
-                throw new URNParseException(string, "Namespace id more than 3 characaters");
-            x++;
-        }
-
-        int finishNamespace = x;
-        if ( x-startNamespace < 2 )
-            throw new URNParseException(string, "Namepsace id must be at least 2 characters");
-        // already done
-//        if ( x-startNamespace > 32 )
-//            throw new URNParseException(string, "Namespace id more than 3 characters");
-
-
-        if ( ch != ':' )
-            throw new URNParseException(string, "Namespace not termninated by ':'");
-        x++;
-        if ( x >= N )
-            throw new URNParseException(string, "Zero-length namespace specific string");
-
-        // Allow international chars
-        int startNSS = x;
-        // First character
-
-        ch = charAt(string, x);
-        if ( ! Chars3986.isPChar(ch, string, x) )
-            throw new URNParseException(string, "First character of NSS is not a pChar");
-        x++;
-
-        while(x < N ) {
-            ch = charAt(string, x);
-            if ( ! Chars3986.isPChar(ch, string, x) && ( ch != '/') )
-                break;
-            x++;
-        }
-        int finishNSS = x;
-
-
-        String scheme = string.substring(0, 3);
-        String namespace = string.substring(startNamespace, finishNamespace);
-        String nsSpecific = string.substring(startNSS, finishNSS);
-
-        System.out.printf("  %s:%s:%s\n", scheme, namespace, nsSpecific);
-    }
-
-
-    static
-    public void parseRegex(String string) {
-//      boolean schemeNamepace = URN_NAMESPACE.matcher(string).matches();
-//      if ( ! schemeNamepace )
-//          throw new URNParseException(string, "Does not match scheme-namespaceid grammar - may not be a URN");
-
-
-    }
-
+//    public static void parseRegex(String string) {
+//      boolean urnMatches = URN_REGEX.matcher(string).matches();
+//    }
 }

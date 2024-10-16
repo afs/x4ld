@@ -1747,16 +1747,13 @@ public class IRI3986 implements IRI {
      */
     private void checkURN() {
         checkSchemeName(URIScheme.URN);
-
         BiConsumer<Issue, String> h = (issue, msg) -> schemeReport(this, issue, URIScheme.URN, msg);
+
         // Includes RFC 8141 section 5.1 (X-)
         // Includes RFC 8141 section 5.2 (urn-)
-        int finishNSS = ParseURN.analyseURN(iriStr, h);
-        // Index of the ':'
-        if ( finishNSS >= 0 ) {
-            if ( path1 <= finishNSS+1 ) // After the NID finishes, there must be at least a ':' and one char.
-                schemeReport(this, Issue.urn_bad_nss, URIScheme.URN, "NSS must be at least 1 character");
-        }
+        int finishURN = ParseURN.validateAssignedName(iriStr, h);
+        if ( finishURN == -1 )
+            return;
         urnQueryStringCheck();
         urnFragmentCheck();
     }
@@ -1767,6 +1764,7 @@ public class IRI3986 implements IRI {
     }
 
     private void urnQueryStringCheck() {
+        // IRI checking only.
         if ( hasQuery() ) {
             String qs = query();
             if ( !qs.startsWith("+") && !qs.startsWith("=") )
@@ -1833,7 +1831,7 @@ public class IRI3986 implements IRI {
         // Query string, maybe fragment.
         // Include the "?" at the start
         int idx = this.query0-1;
-        URNComponents rqComponents = URNComponentParser.parseRQ(iriStr, idx, this.query1);
+        URNComponents rqComponents = ParserURNComponents.parseRQ(iriStr, idx, this.query1);
         if ( rqComponents == null || ( rqComponents.rComponent() == null && rqComponents.qComponent() == null) )
             schemeReport(this, Issue.urn_bad_components, scheme, "Bad URN components");
     }

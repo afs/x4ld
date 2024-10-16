@@ -92,6 +92,8 @@ public class Violations {
         SeverityMap.setSeverity(severityMap, Issue.urn_bad_nss,                       Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.urn_bad_components,                Severity.ERROR);
         SeverityMap.setSeverity(severityMap, Issue.urn_non_ascii_character,           Severity.ERROR);
+        SeverityMap.setSeverity(severityMap, Issue.urn_x_namespace,                   Severity.WARNING);
+        SeverityMap.setSeverity(severityMap, Issue.urn_bad_informal_namespace,        Severity.WARNING);
 
         // file
         SeverityMap.setSeverity(severityMap, Issue.file_bad_form,                     Severity.WARNING);
