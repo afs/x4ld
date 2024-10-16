@@ -53,10 +53,17 @@ public class TestParseURNComponents {
     @Test public void urn_components_bad_07() { testURNComponentsBad("?="); }
 
     private static void testURNComponents(String compStr, String rComp, String qComp, String fComp) {
-        URNComponents components = ParserURNComponents.parseURNcomponents(compStr);
+        URNComponents components = ParserURNComponents.parseURNComponents(compStr);
         testComponent("r-component", rComp, components.rComponent());
         testComponent("q-component", qComp, components.qComponent());
         testComponent("f-component", fComp, components.fComponent());
+
+        URNComponents componentsRegex = ParserURNComponents.parseURNcomponentsRegex(compStr);
+        if ( componentsRegex == null )
+            fail("No match: "+compStr);
+        testComponent("r-component", rComp, componentsRegex.rComponent());
+        testComponent("q-component", qComp, componentsRegex.qComponent());
+        testComponent("f-component", fComp, componentsRegex.fComponent());
     }
 
     private static void testComponent(String componentName, String expected, String actual) {
@@ -66,7 +73,7 @@ public class TestParseURNComponents {
     }
 
     private void testURNComponentsBad(String compStr) {
-        URNComponents components = ParserURNComponents.parseURNcomponents(compStr);
+        URNComponents components = ParserURNComponents.parseURNComponents(compStr);
         URNComponents components2 = ParserURNComponents.parseURNcomponentsRegex(compStr);
         if ( components == null ) {
             if ( components2 == null ) {

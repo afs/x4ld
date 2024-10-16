@@ -53,7 +53,6 @@ public class TestParseURN {
 
     @Test public void parseURN_bad_08() { badURN("urn:123456789-123456789-123456789-123:nss"); }
 
-
     private void goodURN(String string, String nid, String nss) {
         URN8141 x = ParseURN.parseURN(string);
         assertNotNull(x);

@@ -111,7 +111,8 @@ public class TestURISchemes {
     @Test public void scheme_urn_uuid_02() { schemeViolation("urn:uuid:0000", URIScheme.URN_UUID, Issue.uuid_bad_pattern); }
     @Test public void scheme_urn_uuid_03() { schemeViolation("urn:UUID:06e775ac-2c38-11b2-801c-8086f2cc00c9", null, Issue.uuid_not_lowercase); }
     @Test public void scheme_urn_uuid_04() { schemeViolation("urn:UUID:06e775ac-2c38-11b2-801c-8086f2cc00c9?query=foo", null, Issue.urn_bad_components, Issue.uuid_not_lowercase); }
-    @Test public void scheme_urn_uuid_05() { schemeViolation("urn:uuid:06e775ac-2c38-11b2-ZZZZ-8086f2cc00c9?query=foo", URIScheme.URN_UUID, Issue.uuid_bad_pattern, Issue.urn_bad_components); }
+    @Test public void scheme_urn_uuid_05() { schemeViolation("urn:uuid:06e775ac-2c38-11b2-ZZZZ-8086f2cc00c9", URIScheme.URN_UUID, Issue.uuid_bad_pattern); }
+    @Test public void scheme_urn_uuid_06() { schemeViolation("urn:uuid:06e775ac-2c38-11b2-ZZZZ-8086f2cc00c9?query=foo", null, Issue.uuid_bad_pattern, Issue.urn_bad_components); }
 
     // == uuid:
 

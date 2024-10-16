@@ -25,10 +25,7 @@ import static org.seaborne.rfc3986.ParseErrorIRI3986.parseError;
 import static org.seaborne.rfc3986.URIScheme.*;
 
 import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -278,37 +275,38 @@ public class IRI3986 implements IRI {
      * {@link IRIParseException}s (unless {@link #createAny} is used). In addition to
      * parsing, IRIs are checked for some of the scheme-specific issues in the
      * standards. See enum {@link Issue}.
-     * <ul>
-     * <li>{@code http:} IRi must not have an empty port (":" present but no port
-     * number)</li>
-     * <li>URN with name space (NID) "uuid" must have a namsespace specific part
-     * matchign the UUID string pattern.
-     * <li>URNs Must have at least two characters on the NID.
-     * <li>{@code file:} IRIs must start "///".
-     * </ul>
+     * <p>
      * These are recorded in the IRI object; they do not automatically cause
      * exceptions. See {@link Violations} for mapping issues to warnings and errors.
      */
     public boolean hasViolations() {
-        return reports != null && !reports.isEmpty();
+        return reports != null && ! reports.isEmpty();
     }
 
     /**
-     * Cal a consumer function for any violations recorded for this IRI.
+     * Return true if this IRI has any violations greater than (and not equal to) the severity argument.
+     */
+    public boolean hasViolations(Severity levelSeverity) {
+        if ( ! hasViolations() )
+            return false;
+        for ( var violation : reports ) {
+            Severity severity = Violations.getSeverity(violation.issue());
+            if ( severity.level() > levelSeverity.level() )
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Call a consumer function for any violations recorded for this IRI.
      * <p>
      * The normal way to create IRIs, {@link #create}, throws an
-     * {@link IRIParseException} if the IRI string does not match teh grammar of RFC
+     * {@link IRIParseException} if the IRI string does not match the grammar of RFC
      * 3986/3987 and other RFCs. In addition to parsing, IRIs are checked for
      * scheme-specific issues in the standards. See enum {@link Issue} for the issues
      * covered.
      * <p>
      * Issues are recorded as {@link Violations}.
-     * <ul>
-     * <li>{@code http:} IRI must not have an empty port (":" present but no port
-     * number)</li>
-     * <li>URNs Must have at least two characters on the NID.</li>
-     * <li>{@code file:} IRIs must start "///".</li>
-     * </ul>
      * These are recorded in the IRI object; they do not automatically cause
      * exceptions. See {@link Violations} for mapping issues to warnings and errors.
      * <p>
@@ -319,6 +317,16 @@ public class IRI3986 implements IRI {
         if ( reports == null )
             return;
         reports.forEach(action);
+    }
+
+    /**
+     * Return an immutable list of the violations for this IRI.
+     * @See {@link #forEachViolation(Consumer)}.
+     */
+    public List<Violation> violations() {
+        if ( reports == null )
+            return List.of();
+        return reports;
     }
 
     /** Human-readable appearance. Use {@link #str()} to a string to use in code. */
@@ -546,7 +554,7 @@ public class IRI3986 implements IRI {
     /** Test whether the IRI is RFC 3986 compatible;that is, has only ASCII characters. */
     public boolean isRFC3986() {
         // The URI is valid syntax so we just need to test for non-ASCII characters.
-        return isASCII(iriStr);
+        return isASCII(iriStr, 0, iriStr.length());
     }
 
     /**
@@ -1418,8 +1426,8 @@ public class IRI3986 implements IRI {
         return -1;
     }
 
-    private boolean isASCII(String string) {
-        for ( int i = 0 ; i < string.length() ; i++ ) {
+    private static boolean isASCII(String string, int start,int finish) {
+        for ( int i = 0 ; i < finish ; i++ ) {
             char ch = string.charAt(i);
             if ( ch > 0x7F )
                 return false;
@@ -1463,12 +1471,14 @@ public class IRI3986 implements IRI {
         else if ( fromScheme(iriStr, EXAMPLE) )
             checkExample();
 
+        if ( reports != null )
+            // Immutable.
+            reports = List.copyOf(reports);
+
         return this;
     }
 
     private void checkGeneral() {
-        // Compliance level per scheme
-
         // RFC 3986   section 3,2.1
         // https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1
         /*
@@ -1525,7 +1535,6 @@ public class IRI3986 implements IRI {
          * percent- encodings.
          */
         checkPercent();
-
     }
 
     private void checkPercent() {
@@ -1543,7 +1552,7 @@ public class IRI3986 implements IRI {
                 char ch1 = iriStr.charAt(i+1);
                 char ch2 = iriStr.charAt(i+2);
                 if ( Chars3986.isHexDigitLC(ch1) || Chars3986.isHexDigitLC(ch2) ) {
-                    schemeReport(this, Issue.iri_percent_not_uppercase, URIScheme.GENERAL, "Percent encoidng should be uppercase");
+                    schemeReport(this, Issue.iri_percent_not_uppercase, URIScheme.GENERAL, "Percent encoding should be uppercase");
                 }
                 i += 2;
             }
@@ -1747,37 +1756,39 @@ public class IRI3986 implements IRI {
      */
     private void checkURN() {
         checkSchemeName(URIScheme.URN);
-        BiConsumer<Issue, String> h = (issue, msg) -> schemeReport(this, issue, URIScheme.URN, msg);
+        BiConsumer<Issue, String> handler = (issue, msg) -> schemeReport(this, issue, URIScheme.URN, msg);
 
         // Includes RFC 8141 section 5.1 (X-)
         // Includes RFC 8141 section 5.2 (urn-)
-        int finishURN = ParseURN.validateAssignedName(iriStr, h);
+        int finishURN = ParseURN.validateAssignedName(iriStr, handler);
         if ( finishURN == -1 )
             return;
-        urnQueryStringCheck();
-        urnFragmentCheck();
+        checkURNComponents(URIScheme.URN, handler);
+
+        if ( hasQuery() )
+            urnCharCheck("URN components", iriStr, this.query0, iriStr.length());
+        else if ( hasFragment() )
+            urnCharCheck("URN components", iriStr, this.fragment0, iriStr.length());
     }
 
-    private void urnFragmentCheck() {
-        if ( hasFragment() )
-            urnCharCheck("fragment", "f-component", fragment());
+    // Whether to allow Unicode in portions of URNs
+    private void urnCharCheck(String urnPart, String string, int start, int finish) {
+//        if ( ! isASCII(string, start, finish) )
+//            schemeReport(this, Issue.urn_non_ascii_character, URIScheme.URN, "Non-ASCII character in URN "+urnPart);
     }
 
-    private void urnQueryStringCheck() {
-        // IRI checking only.
-        if ( hasQuery() ) {
-            String qs = query();
-            if ( !qs.startsWith("+") && !qs.startsWith("=") )
-                schemeReport(this, Issue.urn_bad_components, URIScheme.URN,
-                        "Improper start to components of a URN (must be '?+...' or '?=...').");
-            urnCharCheck("query", "q-component", qs);
+    // URN r-component(?=), q-component(?+) and f-component(#)
+    private void checkURNComponents(URIScheme scheme, BiConsumer<Issue, String> handler) {
+        if ( ! hasQuery() && ! hasFragment() )
+            return;
+        if ( ! hasQuery() ) {
+            // Fragment, not query string.
+            return;
         }
-    }
-
-    // Whether to allow Unicode in URN components.
-    private void urnCharCheck(String uriName, String urnName, String string) {
-//        if ( ! isASCII(string) )
-//            schemeReport(this, Issue.urn_non_ascii_character, URIScheme.URN, "Non-ASCII character in " + urnName + " of URN");
+        // Query string, maybe fragment.
+        // Include the "?" at the start
+        int idx = this.query0-1;
+        ParserURNComponents.validateURNComponents(iriStr, idx, handler);
     }
 
     /*
@@ -1817,23 +1828,8 @@ public class IRI3986 implements IRI {
             // Fast path - no string manipulation, lower case, no components.
             return;
         checkUUID(URIScheme.URN_UUID, iriStr, URN_UUID_scheme_path_length);
-        checkURNComponents(URIScheme.URN_UUID);
-    }
-
-    // URN r-component(?=), q-component(?+) and f-component(#)
-    private void checkURNComponents(URIScheme scheme) {
-        if ( ! hasQuery() && ! hasFragment() )
-            return;
-        if ( ! hasQuery() ) {
-            // Fragment, not query string.
-            return;
-        }
-        // Query string, maybe fragment.
-        // Include the "?" at the start
-        int idx = this.query0-1;
-        URNComponents rqComponents = ParserURNComponents.parseRQ(iriStr, idx, this.query1);
-        if ( rqComponents == null || ( rqComponents.rComponent() == null && rqComponents.qComponent() == null) )
-            schemeReport(this, Issue.urn_bad_components, scheme, "Bad URN components");
+        BiConsumer<Issue, String> handler = (issue, msg) -> schemeReport(this, issue, URIScheme.URN, msg);
+        checkURNComponents(URIScheme.URN_UUID, handler);
     }
 
     /**

@@ -24,6 +24,14 @@ import static org.seaborne.rfc3986.LibParseIRI.caseInsensitivePrefix;
 
 import java.util.function.BiConsumer;
 
+/**
+ * Validate and parse URNs.
+ *
+ * @implNote
+ * Validation is a single pass over the string.
+ * Parsing is a a single pass over the string, followed by extracting slices of the string.
+ */
+
 public class ParseURN {
     // RFC 8141
     // @formatter:off
@@ -141,8 +149,11 @@ public class ParseURN {
             return null;
 
         URNComponents components = null;
-        if ( finishNSS < N )
-            components = ParserURNComponents.parseURNcomponents(string, finishNSS);
+        if ( finishNSS < N ) {
+            components = ParserURNComponents.parseURNComponents(string, finishNSS, handler);
+            if ( components == null )
+                return null;
+        }
 
         String namespace = string.substring(startNamespace, finishNamespace);
         String nsSpecific = string.substring(startNSS, finishNSS);
@@ -249,7 +260,7 @@ public class ParseURN {
             return -1;
         }
 
-        // RFC 8141 section 5.1
+        // RFC 8141 section 5.1 (described in RFC 3406)
         if ( LibParseIRI.caseInsensitiveRegion(string, startNamespace, "X-") ) {
             String start = string.substring(0,2);
             handler.accept(Issue.urn_x_namespace, "Namespace id starts with '"+start+"'");
