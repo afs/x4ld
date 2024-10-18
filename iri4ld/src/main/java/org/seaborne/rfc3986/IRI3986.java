@@ -1788,7 +1788,7 @@ public class IRI3986 implements IRI {
         // Query string, maybe fragment.
         // Include the "?" at the start
         int idx = this.query0-1;
-        ParserURNComponents.validateURNComponents(iriStr, idx, handler);
+        ParseURNComponents.validateURNComponents(iriStr, idx, handler);
     }
 
     /*

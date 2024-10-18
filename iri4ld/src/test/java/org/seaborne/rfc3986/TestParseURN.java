@@ -28,7 +28,6 @@ import java.util.function.BiConsumer;
 
 import org.junit.jupiter.api.Test;
 
-import org.seaborne.rfc3986.ParseURN.URN8141;
 import org.seaborne.rfc3986.ParseURN.URNParseException;
 
 /** Test the class ParseDID */
@@ -54,7 +53,7 @@ public class TestParseURN {
     @Test public void parseURN_bad_08() { badURN("urn:123456789-123456789-123456789-123:nss"); }
 
     private void goodURN(String string, String nid, String nss) {
-        URN8141 x = ParseURN.parseURN(string);
+        URN x = ParseURN.parseURN(string);
         assertNotNull(x);
         assertEquals(nid, x.NID());
         assertEquals(nss, x.NSS());
@@ -62,7 +61,7 @@ public class TestParseURN {
     }
 
     private void goodURN(String string, String nid, String nss, String rComp, String qComp, String fComp) {
-        URN8141 x = ParseURN.parseURN(string);
+        URN x = ParseURN.parseURN(string);
         assertNotNull(x);
         assertEquals(nid, x.NID());
         assertEquals(nss, x.NSS());
@@ -72,7 +71,7 @@ public class TestParseURN {
     }
 
     private void badURN(String string) {
-        URN8141 x = ParseURN.parseURN(string);
+        URN x = ParseURN.parseURN(string);
         assertNull(x, "Not null: "+Objects.toString(x));
 
         // Again, with handler.

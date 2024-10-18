@@ -36,7 +36,7 @@ public interface IRI {
      * (Like java.lang.String where "same chars" means "equals".)
      * <p>
      * Specifically, if two IRI objects are parsed from the same string or return the same "str()"
-     * they are .equals and hence also have the same .hashCode.
+     * they are .equals and also have the same .hashCode.
      */
     @Override
     public boolean equals(Object obj);

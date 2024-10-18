@@ -30,10 +30,20 @@ import java.util.regex.Pattern;
  * </pre>
  * @implNote
  * Validation is a single pass over the string.
- * Parsing is a a single pass over the string, followed by extracting slices of the string.
+ * Parsing is a single pass over the string, followed by extracting slices of the string.
  */
-public class ParserURNComponents {
+/*package*/ class ParseURNComponents {
 
+    /*
+     * namestring    = assigned-name
+     *                  [ rq-components ]
+     *                  [ "#" f-component ]
+     * rq-components = [ "?+" r-component ]
+     *                 [ "?=" q-component ]
+     * r-component   = pchar *( pchar / "/" / "?" )
+     * q-component   = pchar *( pchar / "/" / "?" )
+     * f-component   = fragment
+     */
     static class URNComponentException extends RuntimeException {
         URNComponentException(String msg) { super(msg); }
         @Override public URNComponentException fillInStackTrace() { return this; }
@@ -54,7 +64,7 @@ public class ParserURNComponents {
      * and fString is a fragment (no leading #).
      * <p>
      */
-    public static URNComponents parseURNComponents(IRI3986 iri) {
+    public static URNComponents parseURNComponents(IRI iri) {
         String rqString = iri.query();
         String fString = iri.fragment();
 

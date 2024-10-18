@@ -25,12 +25,10 @@ package org.seaborne.rfc3986;
  * @see AlgRelativizeIRI
  */
 public class AlgIRI {
-    // Misc algorithms
-
     /**
      * Ensure an IRI is suitable for a base else return null.
      */
-    public static IRI3986 toBase(IRI3986 iri) {
+    public static IRI toBase(IRI iri) {
         if ( ! validBase(iri) )
             return null;
         return iri;

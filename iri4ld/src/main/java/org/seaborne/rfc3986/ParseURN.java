@@ -29,7 +29,7 @@ import java.util.function.BiConsumer;
  *
  * @implNote
  * Validation is a single pass over the string.
- * Parsing is a a single pass over the string, followed by extracting slices of the string.
+ * Parsing is a single pass over the string, followed by extracting slices of the string.
  */
 
 public class ParseURN {
@@ -77,38 +77,6 @@ public class ParseURN {
      */
     // @formatter:on
 
-    /**
-     * URN structure.
-     * The {@code URNComponents} may be null, indicating "none".
-     * URN elements as written (e.g. "URN:").
-     */
-    public record URN8141(String scheme, String NID, String NSS, URNComponents components) {
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append(scheme);
-            sb.append(':');
-            sb.append(NID);
-            sb.append(':');
-            sb.append(NSS);
-            if ( components != null ) {
-                if ( components.rComponent() != null ) {
-                    sb.append("?+");
-                    sb.append(components.rComponent());
-                }
-                if ( components.qComponent() != null ) {
-                    sb.append("?=");
-                    sb.append(components.qComponent());
-                }
-                if ( components.fComponent() != null ) {
-                    sb.append("#");
-                    sb.append(components.fComponent());
-                }
-            }
-            return sb.toString();
-        }
-    }
-
     // For use by handlers.
     public static class URNParseException extends IRIParseException {
         URNParseException(String entity, String msg) { super(entity, msg); }
@@ -119,17 +87,17 @@ public class ParseURN {
     /**
      * Parse a string a a URN, Return null for invalid.
      */
-    public static URN8141 parseURN(String string) {
+    public static URN parseURN(String string) {
         return parseURN(string, noOpHandler);
     }
 
     /**
      * Parse a URN, including URN components.
-     * Return a {@link URN8141}.
+     * Return a {@link URN}.
      * Call {@code handler} to pass back scheme-specific violations. This is allowed to raise an exception.
      * Return null on error if the handler returned.
      */
-    public static URN8141 parseURN(String string, BiConsumer<Issue, String> handler) {
+    public static URN parseURN(String string, BiConsumer<Issue, String> handler) {
         int N = string.length();
 
         int startNamespace = findValidURNScheme(string, handler);
@@ -150,19 +118,47 @@ public class ParseURN {
 
         URNComponents components = null;
         if ( finishNSS < N ) {
-            components = ParserURNComponents.parseURNComponents(string, finishNSS, handler);
+            components = ParseURNComponents.parseURNComponents(string, finishNSS, handler);
             if ( components == null )
                 return null;
         }
 
         String namespace = string.substring(startNamespace, finishNamespace);
         String nsSpecific = string.substring(startNSS, finishNSS);
-        return new URN8141(scheme, namespace, nsSpecific, components);
+        return new URN(scheme, namespace, nsSpecific, components);
+    }
+
+    /**
+     *  Parse the URN components of an IRI (query string and fragment)
+     */
+    public static URNComponents parseURNComponents(IRI iri) {
+        return ParseURNComponents.parseURNComponents(iri);
     }
 
     // Excluding components.
     /**
-     * Validate a URN, NID and NSS, <em>not</em> including URN components.
+     * Validate a URN, NID and NSS, <em>excluding</em> URN components.
+     * Return the index (exclusive) of the end of NSS.
+     * Call {@code handler} to pass back scheme-specific violations. This is allowed to raise an exception.
+     */
+    public static void validateURN(String string, BiConsumer<Issue, String> handler) {
+        int endNSS = validateAssignedName(string, handler);
+        if ( endNSS == -1 ) {
+            // Find end of NSS manually.
+            int idx = string.indexOf(ParseURNComponents.CH_QMARK);
+            if ( idx == -1 )
+                idx = string.indexOf(ParseURNComponents.CH_HASH);
+            if ( idx == -1 )
+                return;
+            endNSS = idx;
+        }
+        if ( endNSS == string.length() )
+            return;
+        ParseURNComponents.validateURNComponents(string, endNSS, handler);
+    }
+
+    /**
+     * Validate a URN, NID and NSS, <em>excluding</em> URN components.
      * Return the index (exclusive) of the end of NSS.
      * Call {@code handler} to pass back scheme-specific violations. This is allowed to raise an exception.
      */
