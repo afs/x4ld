@@ -51,6 +51,8 @@ public class TestParseDID {
     }
 
     private void badDID(String string) {
-        assertThrowsExactly(DIDParseException.class, ()->ParseDID.parse(string, false));
+        assertThrowsExactly(DIDParseException.class,
+                            ()->ParseDID.parse(string, false)
+                );
     }
 }

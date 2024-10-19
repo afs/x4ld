@@ -56,6 +56,8 @@ public class TestParseOID {
     }
 
     private void badOID(String string) {
-        assertThrowsExactly(OIDParseException.class, ()->ParseOID.parse(string));
+        assertThrowsExactly(OIDParseException.class,
+                            ()->ParseOID.parse(string)
+                );
     }
 }

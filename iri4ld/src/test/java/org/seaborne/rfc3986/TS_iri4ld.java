@@ -25,23 +25,25 @@ import org.junit.platform.suite.api.Suite;
 @SelectClasses( {
     TestRFC3986Syntax.class,
     TestIRI3986.class,
+    TestSystem3986.class,
 
-    TestURISchemes.class,
-    TestResolve.class,
+    TestBuild.class,
     TestNormalize.class,
     TestRelative.class,
     TestRelative2.class,
     TestRelative3.class,
-    TestBuild.class,
-    TestParseIPv4Address.class,
-    TestParseIPv6Address.class,
+    TestResolve.class,
+
     TestParseDID.class,
     TestParseDNS.class,
-    TestParseURNComponents.class,
-    TestParseOID.class,
-    TestSystem3986.class,
 
-    TS_iri_X.class
+    TestParseIPv4Address.class,
+    TestParseIPv6Address.class,
+    TestParseOID.class,
+    TestParseURN.class,
+    TestParseURNComponents.class,
+
+    TestURISchemes.class
 } )
 
 public class TS_iri4ld { }

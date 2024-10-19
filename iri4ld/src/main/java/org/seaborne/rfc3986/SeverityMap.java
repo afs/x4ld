@@ -29,13 +29,6 @@ public class SeverityMap {
     private final String severityMapName ;
     private final Map<Issue, Severity> map;
 
-    /** @deprecated SeverityMaps should have a name, Use {@link #create(String, Map)}. */
-    @Deprecated
-    public static SeverityMap create(Map<Issue, Severity> map) {
-        checkSeverityMappingComplete("unnamed", map);
-        return new SeverityMap(null, map);
-    }
-
     public static SeverityMap create(String name, Map<Issue, Severity> map) {
         checkSeverityMappingComplete(name, map);
         return new SeverityMap(name, map);

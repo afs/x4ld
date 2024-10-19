@@ -18,17 +18,29 @@
 
 package org.seaborne.rfc3986;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
 
-@RunWith(Suite.class)
-@Suite.SuiteClasses( {
-    // Old material - these will removed
-    // jena-iri comparision - alignment now incorporated into the other tests.
-    Test_X_RFC3986_Scheme_Full.class,
-    Test_X_RFC3986_Full.class,
-    // Duplicated by TestRFC3986_Syntax
-    Test_X_ParseIRIComponents.class,
-} )
+/**
+ * Collect validation issues
+ */
+class IssueCollector implements BiConsumer<Issue, String> {
+    List<Issue> issues = new ArrayList<>();
+    List<String> msgs = new ArrayList<>();
+    @Override
+    public void accept(Issue issue, String msg) {
+        issues.add(issue);
+        msgs.add(msg);
+    }
 
-public class TS_iri_X { }
+    public boolean isEmpty() {
+        return issues.isEmpty();
+    }
+
+    public void apply(BiConsumer<Issue, String> action) {
+        for ( int i = 0 ; i < issues.size() ; i++ ) {
+            action.accept(issues.get(i), msgs.get(i));
+        }
+    }
+}

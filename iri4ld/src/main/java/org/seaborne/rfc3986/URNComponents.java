@@ -18,5 +18,8 @@
 
 package org.seaborne.rfc3986;
 
-// Without markers ?+, ?=, #
+/**
+ * URN Components.
+ * <a href="https://datatracker.ietf.org/doc/html/rfc8141">RFC 8141</a>.
+ */
 public record URNComponents(String rComponent, String qComponent, String fComponent) {}
