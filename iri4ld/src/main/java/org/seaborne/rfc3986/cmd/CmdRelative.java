@@ -24,10 +24,10 @@ import static org.seaborne.rfc3986.cmd.CmdBase.print;
 
 import org.seaborne.rfc3986.IRI3986;
 
-public class CmdResolve {
+public class CmdRelative {
     public static void main(String... args) {
         if ( args.length != 2 ) {
-            System.err.println("Requires two arguments - base IRI and IRI to resolve.");
+            System.err.println("Requires two arguments - base IRI and IRI to make relative.");
             System.exit(1);
         }
 
@@ -35,17 +35,17 @@ public class CmdResolve {
         String relStr = fixup(args[1]);
 
         IRI3986 base = createOrExit(baseStr, "Bad base");
-        IRI3986 rel = createOrExit(baseStr, "Bad ");
+        IRI3986 target = createOrExit(relStr, "Bad");
 
         if ( ! base.isAbsolute() ) {
             System.err.println("Base must be an absolute IRI: '" +base+"'");
             System.exit(1);
         }
 
-        IRI3986 result = base.resolve(rel);
+        IRI3986 result = base.relativize(target);
         System.out.println("Base:     "+base);
-        System.out.println("IRI:      "+rel);
-        System.out.println("Resolved: "+result);
+        System.out.println("IRI:      "+target);
+        System.out.println("Relative: "+result);
 
         print(result);
     }

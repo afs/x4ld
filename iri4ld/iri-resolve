@@ -3,8 +3,8 @@
 
 H="$HOME/ASF/x4ld/iri4ld"
 
-CMD=org.seaborne.rfc3986.cmd.CmdResolve
+CMD=org.seaborne.rfc3986.cmd.CmdRelative
 
 java -cp $H/target/classes $CMD "$@"
 #java --module-path target/iri4ld-0.0.0-SNAPSHOT.jar \
-#     --module org.seaborne.rfc3986/iri.CmdIRI "$@"
+#     --module org.seaborne.rfc3986/iri.CmdResolve "$@"

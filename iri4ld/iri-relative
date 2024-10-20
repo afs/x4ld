@@ -1,0 +1,10 @@
+#!/bin/bash
+## Licensed under the terms of http://www.apache.org/licenses/LICENSE-2.0
+
+H="$HOME/ASF/x4ld/iri4ld"
+
+CMD=org.seaborne.rfc3986.cmd.CmdRelative
+
+java -cp $H/target/classes $CMD "$@"
+#java --module-path target/iri4ld-0.0.0-SNAPSHOT.jar \
+#     --module org.seaborne.rfc3986/iri.CmdRelative "$@"
