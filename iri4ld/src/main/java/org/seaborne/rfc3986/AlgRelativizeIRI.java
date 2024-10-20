@@ -28,11 +28,9 @@ import java.util.StringJoiner;
 public class AlgRelativizeIRI {
 
     // For compatibility with jena-iri ...
-    // Case 1: relativePath: when same path, no query string, with fragment, would be "#frag" which is "same document" but jena-iri/CHILD is abc#frag.
-    // Case 2: relativeScheme: when only the scheme with no "//", NETWORK does not abbreviate.
+    // Case : relativeScheme: when only the scheme with no "//", NETWORK does not abbreviate.
     //    Strict, illegal because if there is a scheme, there must be //
-    //private static final boolean legacyCompatibility = false;
-    static boolean legacyCompatibility = false;
+    /*package*/ static final boolean legacyCompatibility = false;
 
     /**
      * Calculate a "same scheme" relative URI, if possible.

@@ -24,80 +24,21 @@ import org.junit.jupiter.api.Test;
 
 public class TestNormalize {
 
-    @Test
-    public void normalize_01() {
-        testNormalize("http://host/a/b/c?q=1#2", "http://host/a/b/c?q=1#2");
-    }
-
-    @Test
-    public void normalize_02() {
-        testNormalize("HtTp://host/a/b/c?q=1#2", "http://host/a/b/c?q=1#2");
-    }
-
-    @Test
-    public void normalize_03() {
-        testNormalize("HTTP://HOST/a/b/c?q=1#2", "http://host/a/b/c?q=1#2");
-    }
-
-    @Test
-    public void normalize_04() {
-        testNormalize("HTTP://HOST:/a/b/c?q=1#2", "http://host/a/b/c?q=1#2");
-    }
-
-    @Test
-    public void normalize_05() {
-        testNormalize("HTTP://HOST:80/a/b/c?q=1#2", "http://host/a/b/c?q=1#2");
-    }
-
-    @Test
-    public void normalize_06() {
-        testNormalize("HTTPs://HOST:443/a/b/c?q=1#2", "https://host/a/b/c?q=1#2");
-    }
-
-    @Test
-    public void normalize_07() {
-        testNormalize("http://host", "http://host/");
-    }
-
-    @Test
-    public void normalize_08() {
-        testNormalize("http://host#frag", "http://host/#frag");
-    }
-
-    @Test
-    public void normalize_09() {
-        testNormalize("http://host?q=s", "http://host/?q=s");
-    }
-
-    @Test
-    public void normalize_10() {
-        testNormalize("http://host/?q=s", "http://host/?q=s");
-    }
-
-    @Test
-    public void normalize_11() {
-        testNormalize("http://host%20/?q=s", "http://host%20/?q=s");
-    }
-
-    @Test
-    public void normalize_12() {
-        testNormalize("http://hOSt%20/?q=s", "http://host%20/?q=s");
-    }
-
-    @Test
-    public void normalize_13() {
-        testNormalize("http://hOSt%20/foo%62ar?q=s", "http://host%20/foobar?q=s");
-    }
-
-    @Test
-    public void normalize_14() {
-        testNormalize("http://host/foobar?q=s%74", "http://host/foobar?q=st");
-    }
-
-    @Test
-    public void normalize_15() {
-        testNormalize("http://host/foobar#%7E", "http://host/foobar#~");
-    }
+    @Test public void normalize_01() { testNormalize("http://host/a/b/c?q=1#2", "http://host/a/b/c?q=1#2"); }
+    @Test public void normalize_02() { testNormalize("HtTp://host/a/b/c?q=1#2", "http://host/a/b/c?q=1#2"); }
+    @Test public void normalize_03() { testNormalize("HTTP://HOST/a/b/c?q=1#2", "http://host/a/b/c?q=1#2"); }
+    @Test public void normalize_04() { testNormalize("HTTP://HOST:/a/b/c?q=1#2", "http://host/a/b/c?q=1#2"); }
+    @Test public void normalize_05() { testNormalize("HTTP://HOST:80/a/b/c?q=1#2", "http://host/a/b/c?q=1#2"); }
+    @Test public void normalize_06() { testNormalize("HTTPs://HOST:443/a/b/c?q=1#2", "https://host/a/b/c?q=1#2"); }
+    @Test public void normalize_07() { testNormalize("http://host", "http://host/"); }
+    @Test public void normalize_08() { testNormalize("http://host#frag", "http://host/#frag"); }
+    @Test public void normalize_09() { testNormalize("http://host?q=s", "http://host/?q=s"); }
+    @Test public void normalize_10() { testNormalize("http://host/?q=s", "http://host/?q=s"); }
+    @Test public void normalize_11() { testNormalize("http://host%20/?q=s", "http://host%20/?q=s"); }
+    @Test public void normalize_12() { testNormalize("http://hOSt%20/?q=s", "http://host%20/?q=s"); }
+    @Test public void normalize_13() { testNormalize("http://hOSt%20/foo%62ar?q=s", "http://host%20/foobar?q=s"); }
+    @Test public void normalize_14() { testNormalize("http://host/foobar?q=s%74", "http://host/foobar?q=st"); }
+    @Test public void normalize_15() { testNormalize("http://host/foobar#%7E", "http://host/foobar#~"); }
 
     private void testNormalize(String input, String expected) {
         IRI3986 iri = RFC3986.create(input);

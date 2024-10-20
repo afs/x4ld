@@ -30,8 +30,8 @@ import org.junit.platform.suite.api.Suite;
     TestBuild.class,
     TestNormalize.class,
     TestRelative.class,
-    TestRelative2.class,
-    TestRelative3.class,
+    TestRelativePaths.class,
+    TestRelativeVariants.class,
     TestResolve.class,
 
     TestParseDID.class,
