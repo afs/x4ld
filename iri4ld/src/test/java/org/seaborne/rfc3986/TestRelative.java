@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Relativize tests - overall structure, not paths.
  * @See {@link TestRelativePaths}
+ * @See {@link TestRelativeVariants}
  */
 public class TestRelative {
     @Test

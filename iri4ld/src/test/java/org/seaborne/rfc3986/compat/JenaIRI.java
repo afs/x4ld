@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.seaborne.rfc3986;
+package org.seaborne.rfc3986.compat;
 
 import org.apache.jena.iri.IRIFactory;
 import org.apache.jena.iri.ViolationCodes;
@@ -24,7 +24,7 @@ import org.apache.jena.iri.ViolationCodes;
 // Copied from jena-arq. The Jena IRI settings.
 class JenaIRI {
 
-    public static IRIFactory iriFactory() { return iriFactoryInst; }
+    /*package*/ static IRIFactory iriFactory() { return iriFactoryInst; }
 
     // From jena RIOT org.apache.jena.riot.system.IRIResolver
     private static final IRIFactory iriFactoryInst = new IRIFactory();

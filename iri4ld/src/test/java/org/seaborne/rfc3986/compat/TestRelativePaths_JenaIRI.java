@@ -16,19 +16,25 @@
  * limitations under the License.
  */
 
-package org.seaborne.rfc3986;
+package org.seaborne.rfc3986.compat;
 
+import static org.apache.jena.iri.IRIRelativize.ABSOLUTE;
+import static org.apache.jena.iri.IRIRelativize.CHILD;
+import static org.apache.jena.iri.IRIRelativize.PARENT;
+import static org.apache.jena.iri.IRIRelativize.SAMEDOCUMENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
+import org.apache.jena.iri.IRIFactory;
+import org.seaborne.rfc3986.IRI3986;
+
 /**
  * Test relativization of paths
- * See {@link TestRelativeVariants}
  */
-public class TestRelativePaths {
+public class TestRelativePaths_JenaIRI {
     @Test public void relative_path_101() { test_relative_path("/a", "/a/b",  "a/b"); }
     @Test public void relative_path_102() { test_relative_path("/a", "/a/b/", "a/b/"); }
     @Test public void relative_path_103() { test_relative_path("/a", "/a", ""); }
@@ -127,19 +133,48 @@ public class TestRelativePaths {
         IRI3986 rel = base.relativize(target);
         String relStr = (rel != null ) ? rel.str() : null;
 
+        String jenairiRelative = calcJenaIRI(baseIRI, targetIRI);
+
         if ( ! Objects.equals(relStr, expected) ) {
-            System.out.printf("Fail: base=%-20s : iri=%-20s => got: %s, expected: %s\n", base, target, enclose(relStr), enclose(expected));
+
+            System.out.printf("Fail: base=%-20s : iri=%-20s => got: %s, expected: %s, alt:%s \n", base, target,
+                              enclose(relStr), enclose(expected), enclose(jenairiRelative));
             assertEquals(relStr, expected);
             return;
         }
-        // And back again.
+
+        // null to default.
+        String relStr2 = (relStr != null ) ? relStr : targetIRI;
+
+        // Check with jena-iri -- skip grandparent
+        //if ( ! jenairiRelative.startsWith("../..") )
+        {
+            if ( ! Objects.equals(relStr2, jenairiRelative) ) {
+                assertEquals(relStr2, jenairiRelative);
+                System.out.printf("Diff: base=%-20s : iri=%-20s => got: %s, jena-iri: %s\n", base, target, enclose(relStr2), enclose(jenairiRelative));
+            }
+        }
+
         IRI3986 iri = base.resolve(rel);
         assertEquals(iri, target);
+    }
+
+    private static int RelativizeFlags = ABSOLUTE | SAMEDOCUMENT | CHILD | PARENT; //| GRANDPARENT | NETWORK
+    /** Calculate the relative URI using using jena-iri. */
+    public static String calcJenaIRI(String basePath, String path) {
+        // jena-iri does not return null. It returns the target IRI if there is no appropriate relative IRI.
+        // Calculating using jena-iri. That needs the absolute "http://example" part.
+        // IRI.GRANDPARENT : jena-iri includes relativizing with leading "../..".
+        org.apache.jena.iri.IRI iriBase = IRIFactory.iriImplementation().create(basePath);
+        org.apache.jena.iri.IRI jenaIriRelativize = iriBase.relativize(path, RelativizeFlags);
+        String jenaIriRelativizeStr = jenaIriRelativize.toString();
+        return jenaIriRelativizeStr;
     }
 
     private static String asIRI(String path) {
         return "http://example"+path;
     }
+
 
     private static String enclose(String x) {
         if ( x == null )
