@@ -28,7 +28,7 @@ import java.util.StringJoiner;
 public class AlgRelativizeIRI {
 
     // For compatibility with jena-iri ...
-    // Case : relativeScheme: when only the scheme with no "//", NETWORK does not abbreviate.
+    // relativeScheme: when only the scheme with no "//", then NETWORK does not abbreviate.
     //    Strict, illegal because if there is a scheme, there must be //
     /*package*/ static final boolean legacyCompatibility = false;
 

@@ -16,13 +16,16 @@
  * limitations under the License.
  */
 
-package org.seaborne.rfc3986;
+package org.seaborne.rfc3986.compat;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-public class TestResolve {
+import org.apache.jena.iri.IRI;
+import org.seaborne.rfc3986.IRI3986;
+
+public class TestResolve_JenaIRI {
 
     @Test public void resolve_blank_ref_1() { testResolve("http://example/dir/", "", "http://example/dir/"); }
     @Test public void resolve_blank_ref_2() { testResolve("http://example/dir/x", "", "http://example/dir/x"); }
@@ -110,6 +113,12 @@ public class TestResolve {
         IRI3986 iri2 = baseiri.resolve(reliri);
         String s1 = iri2.str();
         assertEquals(expected, s1);
+
+        // Check the expected with jena-iri.
+        IRI baseJenaIRI = JenaIRI.iriFactory().create(base);
+        IRI resolvedJenaIRI = baseJenaIRI.resolve(rel);
+        String s2 = resolvedJenaIRI.toString();
+        assertEquals(expected, s2);
     }
 
     // Test, with additional normalization.
@@ -120,5 +129,12 @@ public class TestResolve {
         IRI3986 iri2 = baseiri.resolve(reliri).normalize();
         String s1 = iri2.str();
         assertEquals(expected, s1);
+
+        // Check the expected with jena-iri.
+        IRI baseJenaIRI = JenaIRI.iriFactory().create(base);
+        IRI resolvedJenaIRI = baseJenaIRI.resolve(rel);
+
+        String s2 = resolvedJenaIRI.toString();
+        assertEquals(expected, s2);
     }
 }

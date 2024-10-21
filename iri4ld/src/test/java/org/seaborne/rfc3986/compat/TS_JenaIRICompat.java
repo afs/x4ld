@@ -16,34 +16,17 @@
  * limitations under the License.
  */
 
-package org.seaborne.rfc3986;
+package org.seaborne.rfc3986.compat;
 
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
 @Suite
 @SelectClasses( {
-    TestRFC3986Syntax.class,
-    TestIRI3986.class,
-    TestSystem3986.class,
-
-    TestBuild.class,
-    TestNormalize.class,
-    TestRelative.class,
-    TestRelativePaths.class,
-    TestRelativeVariants.class,
-    TestResolve.class,
-
-    TestParseDID.class,
-    TestParseDNS.class,
-
-    TestParseIPv4Address.class,
-    TestParseIPv6Address.class,
-    TestParseOID.class,
-    TestParseURN.class,
-    TestParseURNComponents.class,
-
-    TestURISchemes.class,
+    // jena-iri compatibility checking.
+    TestRelativePaths_JenaIRI.class,
+    TestRelativeVariants_JenaIRI.class,
+    TestResolve_JenaIRI.class
 } )
 
-public class TS_iri4ld { }
+public class TS_JenaIRICompat { }
