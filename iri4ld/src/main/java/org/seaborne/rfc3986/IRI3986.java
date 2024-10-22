@@ -56,7 +56,7 @@ import java.util.regex.Pattern;
  * Some additional check for RFC 8141 for URNs are included such as being of the form
  * {@code urn:NID:NSS}. Restrictions and limitations:
  * <ul>
- * <li>No normal form C checking when checking (currently) See
+ * <li>No normal form C checking when checking (currently). See
  * {@link Normalizer#isNormalized(CharSequence, java.text.Normalizer.Form)}.
  * </ul>
  * Usage:<br/>
@@ -741,11 +741,13 @@ public class IRI3986 implements IRI {
         }
 //        if ( strictResolver && ! this.hasScheme() )
 //            return other;
-        // Be lax - don't require bas to have scheme.
+        // Be lax - don't require base to have scheme.
         // Rel path resolves against rel path.
         /* 5.2.2. Transform References */
         IRI3986 iri = AlgResolveIRI.resolve(this, other);
-        iri.schemeSpecificRulesInternal();
+        if ( iri != other )
+            // AlgResolveIRI.resolve only rebuilds to RFC 3986 syntax.
+            iri.schemeSpecificRulesInternal();
         return iri;
     }
 
@@ -1438,6 +1440,11 @@ public class IRI3986 implements IRI {
     // ==== Scheme specific checking.
 
     private IRI3986 schemeSpecificRulesInternal() {
+        if ( reports != null ) {
+            // Called on IRI that already has reports.
+            return this;
+        }
+
         checkGeneral();
 
         if ( !hasScheme() )

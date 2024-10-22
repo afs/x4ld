@@ -1,0 +1,31 @@
+#!/usr/bin/bash
+# Compare code here with code in Jena.
+
+if [ $# != 1 ]
+then
+    echo "Usage: $0 basename" 1>&2
+    exit 1
+fi
+
+FN="$1"
+
+DIR1=$HOME/ASF/jena5/jena-iri3986/src/main/java/org/apache/jena/rfc3986/
+DIR2=$HOME/ASF/x4ld/iri4ld/src/main/java/org/seaborne/rfc3986/
+
+FN1="$DIR1/$FN"
+FN2="$DIR2/$FN"
+
+if [ ! -e "$FN1" ]
+then
+    echo "No such file: $FN1" 1>&2
+    exit 1
+fi
+
+if [ ! -e "$FN2" ]
+then
+    echo "No such file: $FN2" 1>&2
+    exit 1
+fi
+
+echo "== Diff of $FN (jena<, iri4ld>)"
+diff "$FN1" "$FN2"
