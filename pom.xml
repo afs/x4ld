@@ -50,7 +50,7 @@
     <ver.commons-codec>1.17.1</ver.commons-codec>
     <!-- Testing only -->
     <ver.jena-iri>5.2.0</ver.jena-iri>  
-    <ver.junit5>5.11.2</ver.junit5>
+    <ver.junit5>5.11.3</ver.junit5>
     <ver.junit5-platform>1.10.2</ver.junit5-platform>
  
     <!-- Plugins -->
