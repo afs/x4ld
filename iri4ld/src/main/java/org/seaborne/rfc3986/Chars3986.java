@@ -228,8 +228,8 @@ public class Chars3986 {
         return range(ch, 'a', 'f' )  ;
     }
 
-    // How to handle pare errors (percent encoding).
+    // How to handle parse errors (percent encoding).
     private static void parseError(String string, int posn, String msg) {
-        throw org.seaborne.rfc3986.ParseErrorIRI3986.parseError(string, posn, msg);
+        throw ParseErrorIRI3986.parseError(string, posn, msg);
     }
 }
