@@ -85,14 +85,14 @@ import java.util.regex.Pattern;
  *
  * <pre>
  *     IRI3986 base = ...
- *     RFC3986 iri = RFC3986.create(string);
+ *     IRI3986 iri = RFC3986.create(string);
  *     IRI3986 iri2 = iri.resolve(base);
  * </pre>
  *
  * Normalize:
  *
  * <pre>
- *     RFC3986 base = ...
+ *     IRI3986 base = ...
  *     IRI3986 iri = RFC3986.create(string);
  *     IRI3986 iri2 = iri.normalize();
  * </pre>
@@ -1616,8 +1616,8 @@ public class IRI3986 implements IRI {
         // @formatter:off
 
         /*
-         * https://tools.ietf.org/html/rfc2616#section-3.2.2
-         * http_URL = "http:" "//" host [ ":" port ] [ abs_path [ "?" query ]]
+         * https://datatracker.ietf.org/doc/html/rfc7230#section-2.7.1
+         * http-URI = "http:" "//" authority path-abempty [ "?" query ] [ "#" fragment ]
          */
 
         /* https://tools.ietf.org/html/rfc7230#section-2.7.1
@@ -1658,7 +1658,7 @@ public class IRI3986 implements IRI {
             }
         }
 
-        // We generate a viollation for all use of
+        // We generate an IRI violation for all use of
 
 //        /* https://tools.ietf.org/html/rfc7230#section-2.7.1
 //         *
