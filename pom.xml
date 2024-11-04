@@ -60,7 +60,7 @@
     <ver.plugin.jar>3.4.2</ver.plugin.jar>
     <ver.plugin.assembly>3.5.0</ver.plugin.assembly>
     <ver.plugin.compiler>3.13.0</ver.plugin.compiler>
-    <ver.plugin.surefire>3.5.1</ver.plugin.surefire>
+    <ver.plugin.surefire>3.5.2</ver.plugin.surefire>
     <ver.plugin.javadoc>3.10.1</ver.plugin.javadoc>
 
     <ver.plugin.enforcer>3.5.0</ver.plugin.enforcer>
