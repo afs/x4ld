@@ -12,9 +12,6 @@ FN="$1"
 DIR1=$HOME/ASF/jena5/jena-iri3986/src/main/java/org/apache/jena/rfc3986/
 DIR2=$HOME/ASF/x4ld/iri4ld/src/main/java/org/seaborne/rfc3986/
 
-FN1="$DIR1/$FN"
-FN2="$DIR2/$FN"
-
 if [ ! -e "$DIR1" ]
 then
     echo "No such directory: $DIR1" 1>&2
