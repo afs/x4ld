@@ -237,7 +237,7 @@ public class Chars3986 {
     }
 
     // How to handle parse errors (percent encoding).
-    private static void parseError(String string, int posn, String msg) {
-        throw ParseErrorIRI3986.parseError(string, posn, msg);
+    private static void parseError(String source, int posn, String msg) {
+        throw ParseErrorIRI3986.parseError(source, posn, msg);
     }
 }
