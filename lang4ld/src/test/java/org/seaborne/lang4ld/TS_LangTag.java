@@ -23,8 +23,9 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
-    TestLangTagFormat.class
-    , TestLangTag.class
+    TestLangTag.class
+    , TestLangTagFormat.class
+    , TestLangTagsOps.class
 })
 
 public class TS_LangTag { }

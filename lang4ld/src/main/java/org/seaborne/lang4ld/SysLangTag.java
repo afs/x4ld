@@ -18,6 +18,29 @@
 
 package org.seaborne.lang4ld;
 
+/**
+ * See also {@link LangTagOps}.
+ */
 public class SysLangTag {
-    // Injectable error handling.
+
+    /**
+     * Create a {@link LangTag} using the system-wide default language tag parser,
+     * which is {@link LangTagRFC5646}.
+     *
+     */
+    public static LangTag create(String languageTag) {
+        return LangTagRFC5646.create(languageTag);
+    }
+
+    /**
+     * Format language tag.
+     * This is the system-wide policy for formatting language tags.
+     */
+    public static String formatLangTag(String input) {
+        if ( input == null )
+            return "";
+        if ( input.isEmpty() )
+            return input;
+        return LangTagOps.basicFormat(input);
+    }
 }

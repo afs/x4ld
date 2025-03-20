@@ -18,13 +18,67 @@
 
 package org.seaborne.lang4ld;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+import java.util.Objects;
 
 public class LangTagOps {
 
-    // Merge/replace LangTagLib.
+    /** Index of the language part */
+    public static final int  idxLanguage  = 0 ;
+    /** Index of the script part */
+    public static final int  idxScript    = 1 ;
+    /** Index of the region part */
+    public static final int  idxRegion    = 2 ;
+    /** Index of the variant part */
+    public static final int  idxVariant   = 3 ;
+    /** Index of all extensions */
+    public static final int  idxExtension = 4 ;
+
+    private static final int partsLength  = 5 ;
+
+    /** @deprecated Compatibility operation (the behaviour of Jena 5.3.0 and earlier). To be removed. */
+    @Deprecated(forRemoval = true)
+    public static String[] parse(String languageTag) {
+        try {
+            LangTag langTag = SysLangTag.create(languageTag);
+            if (langTag == null )
+                return null;
+            String result[] = new String[partsLength];
+
+            result[idxLanguage] = langTag.getLanguage();
+            result[idxScript] = langTag.getScript();
+            result[idxRegion] = langTag.getRegion();
+            result[idxVariant] = langTag.getVariant();
+            // Legacy compatible.
+            if ( langTag.getPrivateUse() == null )
+                result[idxExtension] = langTag.getExtension();
+            else if ( langTag.getExtension() == null )
+                result[idxExtension] = langTag.getPrivateUse();
+            else
+                result[idxExtension] = langTag.getExtension()+"-"+langTag.getPrivateUse();
+            return result;
+        } catch (LangTagException ex) {
+            return null;
+        }
+    }
+
+    /** Check a string is valid as a language tag. */
+    public static boolean check(String languageTag) {
+        try {
+            LangTag langTag = SysLangTag.create(languageTag);
+            return (langTag != null );
+        } catch (LangTagException ex) {
+            return false;
+        }
+    }
+
+    /**
+     * Format language tag.
+     * This is the system-wide policy for formatting language tags.
+     */
+    public static String formatLangTag(String input) {
+        return SysLangTag.formatLangTag(input);
+    }
 
     /** Base formatter following
      * <a href="https://datatracker.ietf.org/doc/html/rfc5646#section-2.1.1">RFC 5646 section 2.1.1</a>
@@ -36,10 +90,10 @@ public class LangTagOps {
             return null;
         if ( string.isEmpty() )
             return string;
-        List<String> strings = splitOnDash(string);
+        List<String> strings = InternalLangTag.splitOnDash(string);
         if ( strings == null ) {
             //return lowercase(string);
-            error("Bad language string: %s", string);
+            InternalLangTag.error("Bad language string: %s", string);
         }
         StringBuilder sb = new StringBuilder(string.length());
         boolean singleton = false;
@@ -48,7 +102,7 @@ public class LangTagOps {
         for ( String s : strings ) {
             if ( first ) {
                 // language
-                sb.append(lowercase(s));
+                sb.append(InternalLangTag.lowercase(s));
                 first = false;
                 continue;
             }
@@ -57,10 +111,10 @@ public class LangTagOps {
             sb.append('-');
             if ( singleton )
                 // Always lowercase
-                sb.append(lowercase(s));
+                sb.append(InternalLangTag.lowercase(s));
             else {
                 // case depends on ;length
-                sb.append(strcase(s));
+                sb.append(InternalLangTag.strcase(s));
                 if ( s.length() == 1 )
                     singleton = true;
             }
@@ -68,148 +122,24 @@ public class LangTagOps {
         return sb.toString();
     }
 
-    private static List<String> splitOnDash(String x) {
-        List<String> strings = new ArrayList<>(6);
-        // Split efficiently(?) based on [a-z][A-Z][0-9] units separated by "-"s
-        StringBuilder sb = new StringBuilder();
-
-        boolean start = true;
-        for ( int idx = 0; idx < x.length(); idx++ ) {
-            char ch = x.charAt(idx);
-            if ( isA2ZN(ch) ) {
-                sb.append(ch);
-                continue;
-            }
-            if ( ch == '-' ) {
-                String str = sb.toString();
-                strings.add(str);
-                sb.setLength(0);
-                continue;
-            }
-            error("Bad character: (0x%02X) '%c' index %d", (int)ch, str(ch), idx);
-        }
-        String strLast = sb.toString();
-        if ( strLast.isEmpty() ) {
-            return null;
-            //throw new LangTagException("Empty part: "+x);
-        }
-        strings.add(strLast);
-        return strings;
-    }
-
-    /*package*/ static String strcase(String string) {
-        if ( string == null )
-            return null;
-        if ( string.length() == 2 )
-            return uppercase(string);
-        if ( string.length() == 4 )
-            return titlecase(string);
-        return lowercase(string);
-    }
-
-    /*package*/static String lowercase(String string) {
-        if ( string == null )
-            return null;
-        return string.toLowerCase(Locale.ROOT);
-    }
-
-    /*package*/static String uppercase(String string) {
-        if ( string == null )
-            return null;
-        return string.toUpperCase(Locale.ROOT);
-    }
-
-    /*package*/static String titlecase(String string) {
-        if ( string == null )
-            return null;
-        char ch1 = string.charAt(0);
-        ch1 = Character.toUpperCase(ch1);
-        string = lowercase(string.substring(1));
-        return ch1 + string;
-    }
-
-    /** ASCII A-Z */
-    /*package*/ static boolean isA2Z(int ch) {
-        return range(ch, 'a', 'z') || range(ch, 'A', 'Z');
-    }
-
-    /** ASCII A-Z or 0-9 */
-    /*package*/ static boolean isA2ZN(int ch) {
-        return range(ch, 'a', 'z') || range(ch, 'A', 'Z') || range(ch, '0', '9');
-    }
-
-    static void checkDigits(String string, int N, int start, int end) {
-        for ( int i = start ; i < end ; i++ ) {
-            char ch = string.charAt(i);
-            if ( ! isNum(ch) )
-                error("Not a DIGIT (%s, posn = %s) in '%s'", str(ch), (i+1), string);
-        }
-    }
-
-    static void checkAlpha(String string, int N, int start, int end) {
-        for ( int i = start ; i < end ; i++ ) {
-            char ch = string.charAt(i);
-            if ( ! isAlpha(ch) )
-                // 1-based error message
-                error("Not an ALPHA (%s, posn = %s) in '%s'", str(ch), (i+1), string);
-        }
-    }
-
-    static boolean isAlpha(String string, int start, int end) {
-        for ( int i = start ; i < end ; i++ ) {
-            char ch = string.charAt(i);
-            if ( ! isAlpha(ch) )
-                return false;
-        }
+    /** Is @code{langTag1} the same as @code{langTag2}? */
+    public static boolean sameAs(LangTag langTag1, LangTag langTag2) {
+        Objects.requireNonNull(langTag1);
+        Objects.requireNonNull(langTag2);
+        if ( langTag1 == langTag2 )
+            return true;
+        if ( ! Objects.equals(langTag1.getLanguage(),langTag2.getLanguage()) )
+            return false;
+        if ( ! Objects.equals(langTag1.getScript(),langTag2.getScript()) )
+            return false;
+        if ( ! Objects.equals(langTag1.getRegion(),langTag2.getRegion()) )
+            return false;
+        if ( ! Objects.equals(langTag1.getVariant(), langTag2.getVariant()) )
+            return false;
+        if ( ! Objects.equals(langTag1.getExtension(), langTag2.getExtension()) )
+            return false;
+        if ( ! Objects.equals(langTag1.getPrivateUse(), langTag2.getPrivateUse()) )
+            return false;
         return true;
-    }
-
-    static void checkAlphaMinus(String string, int N, int start, int end) {
-        for ( int i = start ; i < end ; i++ ) {
-            char ch = string.charAt(i);
-            if ( ! isAlpha(ch) && ! isMinus(ch) )
-                error("Not an ALPHA or MINUS (%s, posn = %s) in '%s'", str(ch), (i+1), string);
-        }
-    }
-
-    static void checkAlphaNum(String string, int N, int start, int end) {
-        for ( int i = start ; i < end ; i++ ) {
-            char ch = string.charAt(i);
-            if ( ! isAlpha(ch) && ! isNum(ch) )
-                error("Not an ALPHA or DIGITS (%s, posn = %s) in '%s'", str(ch), (i+1), string);
-        }
-    }
-
-    static void checkAlphaNumMinus(String string, int N, int start, int end) {
-        for ( int i = start ; i < end ; i++ ) {
-            char ch = string.charAt(i);
-            if ( ! isAlpha(ch) && ! isNum(ch) && ! isMinus(ch) )
-                error("Not an ALPHA, DIGITS or MINUS (%s, posn = %s) in '%s'", str(ch), (i+1), string);
-        }
-    }
-
-    private static String str(char ch) {
-        return String.format("'%s' U+%04X", Character.valueOf(ch), (int)ch);
-    }
-
-    static boolean isAlpha(char ch) {
-        return ( ch >= 'a' && ch <= 'z' ) || ( ch >= 'A' && ch <= 'Z' );
-    }
-
-    static boolean isNum(char ch) {
-        return ( ch >= '0' && ch <= '9' );
-    }
-
-    static boolean isMinus(char ch) {
-        return ( ch == '-' );
-    }
-
-    /*package*/ static void error(String msg, Object...args) {
-        String x = String.format(msg, args);
-        throw new LangTagException(x);
-    }
-
-    private static boolean range(int ch, char a, char b) {
-        return (ch >= a && ch <= b);
     }
 }

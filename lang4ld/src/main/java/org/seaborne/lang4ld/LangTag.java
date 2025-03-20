@@ -45,15 +45,20 @@ import java.util.Locale;
  * <li><a href="https://tools.ietf.org/html/4234">RFC 4232</a> "Augmented BNF for Syntax Specifications: ABNF"
  * </ul>
  */
-public interface LangTag {
+public sealed interface LangTag permits LangTagJDK, LangTagRFC5646 {
+
+    /** Create a {@link LangTag} using the system default implementation. */
+    static public LangTag create(String string) {
+        return SysLangTag.create(string);
+    }
 
     /** Formatted according to the RFC 5646 rules */
-    String str();
+    public String str();
 
-    String getLanguage();
-    String getScript();
-    String getRegion();
-    String getVariant();
-    String getExtension();
-    String getPrivateUse();
+    public String getLanguage();
+    public String getScript();
+    public String getRegion();
+    public String getVariant();
+    public String getExtension();
+    public String getPrivateUse();
 }

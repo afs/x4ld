@@ -30,9 +30,9 @@ import java.util.Set;
  * {@link LangTag}.
  * <p>
  * This is not RFC 5646 compliant.
- * It's quite close -
+ * It's quite close.
  */
-public class LangTagJDK implements LangTag {
+public final class LangTagJDK implements LangTag {
     private final String fmtString;
     private final String lang;
     private final String script;
@@ -40,6 +40,18 @@ public class LangTagJDK implements LangTag {
     private final String variant;
     private final String extension;
     private final String privateUse;
+
+    private static Locale.Builder locBuild = new Locale.Builder();
+
+    public static LangTag create(String x) {
+        try {
+            locBuild.clear();
+            locBuild.setLanguageTag(x);
+            return asLangTag(locBuild);
+        } catch (IllformedLocaleException ex) {
+            return null;
+        }
+    }
 
     private LangTagJDK(String fmtString, String language, String script, String region, String variant, String extension, String privateUse) {
             this.fmtString  = Objects.requireNonNull(fmtString);
@@ -70,18 +82,6 @@ public class LangTagJDK implements LangTag {
     @Override public String getPrivateUse()
     { return privateUse; }
 
-    private static Locale.Builder locBuild = new Locale.Builder();
-
-    public static LangTag create(String x) {
-        try {
-            locBuild.clear();
-            locBuild.setLanguageTag(x);
-            return asLangTag(locBuild);
-        } catch (IllformedLocaleException ex) {
-            return null;
-        }
-    }
-
     public static String canonical(String str) {
         try {
             // Does not do conversion of language for ISO 639 codes that have changed.
@@ -92,12 +92,12 @@ public class LangTagJDK implements LangTag {
     }
 
     private static LangTag asLangTag(Locale.Builder locBuild) {
-        Locale lc = locBuild.build();
-        Set<Character> extkeys = lc.getExtensionKeys();
+        Locale locale = locBuild.build();
+        Set<Character> extkeys = locale.getExtensionKeys();
         StringBuilder sb = new StringBuilder();
         String privateUse = null;
         for ( Character k : extkeys ) {
-            String ext = lc.getExtension(k);
+            String ext = locale.getExtension(k);
             if ( sb.length() != 0 )
                 sb.append('-');
             sb.append(k);
@@ -105,11 +105,11 @@ public class LangTagJDK implements LangTag {
             sb.append(ext);
         }
         String extension = sb.toString();
-        return new LangTagJDK(lc.toLanguageTag(),
-                              lc.getLanguage(),
-                              lc.getScript(),
-                              lc.getCountry(),
-                              lc.getVariant(),
+        return new LangTagJDK(locale.toLanguageTag(),
+                              locale.getLanguage(),
+                              locale.getScript(),
+                              locale.getCountry(),
+                              locale.getVariant(),
                               extension,
                               privateUse);
     }

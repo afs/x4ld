@@ -99,23 +99,10 @@ public class TestLangTagFormat {
     @Test public void testBasicFormat49() { test("x-private", "x-private"); }
     @Test public void testBasicFormat50() { test("az-latn-x-latn", "az-Latn-x-latn"); }
 
+    @Test public void testBasicFormat51() { test("en-latn-X-DaTa", "en-Latn-x-data"); }
 
     private void test(String langString, String expected) {
         String result = formatter.apply(langString);
         assertEquals(formatterName+"("+langString+"): ", expected, result);
     }
-
-
-
-//    private static int counter = 20;
-//
-//    private void test(String langString, String expected) {
-//        System.out.printf("@Test public void testBasicFormat%02d() { test(\"%s\", \"%s\"); }\n",
-//                          (counter++), langString.toLowerCase(), expected);
-//
-//        // Formatting.
-//
-//        String result = formatter.apply(langString);
-//        assertEquals(formatterName+"("+langString+"): ", expected, result);
-//    }
 }
