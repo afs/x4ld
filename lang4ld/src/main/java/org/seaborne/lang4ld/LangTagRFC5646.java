@@ -30,8 +30,9 @@ import java.util.Set;
  * This implementation does not replace languages by their preferred form (e.g.
  * "i-klingon" has preferred form of "tlh", "zh-xiang" has a preferred form of "hsn").
  * </p>
- *
- * @spec <a href="https://www.rfc-editor.org/info/rfc5646">RFC 5646: Tags for Identifying Languages</a>
+ * <p>
+ * <a href="https://www.rfc-editor.org/info/rfc5646">RFC 5646: Tags for Identifying Languages</a>
+ * </p>
  */
 public final  class LangTagRFC5646 implements LangTag{
     // The language tag as given.
