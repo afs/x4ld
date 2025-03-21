@@ -18,4 +18,5 @@
 
 module org.seaborne.lang4ld {
     exports org.seaborne.lang4ld;
+    exports org.seaborne.lang4ld.cmd;
 }

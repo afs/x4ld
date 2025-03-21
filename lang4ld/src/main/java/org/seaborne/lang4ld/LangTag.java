@@ -45,7 +45,7 @@ import java.util.Locale;
  * <li><a href="https://tools.ietf.org/html/4234">RFC 4232</a> "Augmented BNF for Syntax Specifications: ABNF"
  * </ul>
  */
-public sealed interface LangTag permits LangTagJDK, LangTagRFC5646 {
+public sealed interface LangTag permits LangTagJDK, LangTagRFC5646, LangTagRE {
 
     /** Create a {@link LangTag} using the system default implementation. */
     static public LangTag create(String string) {

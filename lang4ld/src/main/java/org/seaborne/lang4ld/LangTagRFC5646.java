@@ -26,9 +26,12 @@ import java.util.Set;
 /**
  * An implementation of parsing and formatting.
  * <a href="https://datatracker.ietf.org/doc/html/rfc5646">RFC 5646</a>
+ * <p>
+ * This implementation does not replace languages by their preferred form (e.g.
+ * "i-klingon" has preferred form of "tlh", "zh-xiang" has a preferred form of "hsn").
+ * </p>
  *
- *  @spec https://www.rfc-editor.org/info/rfc5646
- *      RFC 5646: Tags for Identifying Languages
+ * @spec <a href="https://www.rfc-editor.org/info/rfc5646">RFC 5646: Tags for Identifying Languages</a>
  */
 public final  class LangTagRFC5646 implements LangTag{
     // The language tag as given.
@@ -302,7 +305,7 @@ public final  class LangTagRFC5646 implements LangTag{
         }
 
         if ( idx == idx2 )
-            InternalLangTag.error("Can't find the language: '%s'", string);
+            InternalLangTag.error("Can not find the language subtag: '%s'", string);
 
         if ( segLen < 2 || segLen > 4 )
             InternalLangTag.error("Language: '%s'", string);
@@ -310,13 +313,19 @@ public final  class LangTagRFC5646 implements LangTag{
         langtag.language0 = idx;
 
         if ( segLen == 2 || segLen == 3 ) {
+            // -- Language extension subtags/
+//            language      = 2*3ALPHA            ; shortest ISO 639 code
+//                            ["-" extlang]
+//            extlang       = 3ALPHA              ; selected ISO 639 codes
+//                            *2("-" 3ALPHA)      ; permanently reserved
             int extStart = idx+segLen;
             InternalLangTag.checkAlpha(string, N, langtag.language0, extStart);
             // Extensions are 1 to 3 3ALPHA subtags
             int extEnd = maybeSubtags(string, N, extStart, 3, 3);
-            if ( extEnd > extStart )
+            if ( extEnd > extStart ) {
                 idx2 = extEnd;
-            InternalLangTag.checkAlphaMinus(string, N, extStart, langtag.language1);
+                InternalLangTag.checkAlphaMinus(string, N, extStart, langtag.language1);
+            }
         } else if ( segLen > 8 ) {
             InternalLangTag.error("Language too long (2-3 characters, 4-8 reserved for future use)");
         }
@@ -437,6 +446,11 @@ public final  class LangTagRFC5646 implements LangTag{
             // 2*8 alphanum
             int idxExtStart = idx+segLen;
             int idxEndExtra = maybeSubtags(string, N, idxExtStart, 2, 8);
+
+            // Expecting at least one subtag.
+            if ( idxExtStart == idxEndExtra )
+                InternalLangTag.error("Ill-formed extension");
+
             if ( idxEndExtra > idxExtStart )
                 idx2 = idxEndExtra;
             langtag.extension1 = idx2;
@@ -447,6 +461,8 @@ public final  class LangTagRFC5646 implements LangTag{
             idx = segmentNextStart(N, idx, idx2);
             idx2 = segmentNextFinish(string, N, idx);
             segLen = segmentLength(N, idx, idx2);
+            if ( segLen == 0 )
+                InternalLangTag.error("Ill-formed extension. Trailing dash.");
         }
 
         // ---- private use
@@ -455,6 +471,11 @@ public final  class LangTagRFC5646 implements LangTag{
             // privateuse    = "x" 1*("-" (1*8alphanum))
             int idxPrivateUseStart = idx+segLen;
             int idxPrivateUseEnd = maybeSubtags(string, N, idxPrivateUseStart, 1, 8);
+
+            // Expecting at least one subtag.
+            if ( idxPrivateUseStart == idxPrivateUseEnd )
+                InternalLangTag.error("Ill-formed private use component");
+
             if ( idxPrivateUseEnd > idxPrivateUseStart )
                 idx2 = idxPrivateUseEnd;
             langtag.privateuse1 = idx2;
@@ -466,6 +487,8 @@ public final  class LangTagRFC5646 implements LangTag{
             idx = segmentNextStart(N, idx, idx2);
             idx2 = segmentNextFinish(string, N, idx);
             segLen = segmentLength(N, idx, idx2);
+            if ( segLen == 0 )
+                InternalLangTag.error("Ill-formed private use subtag. Trailing dash.");
         }
 
         // -- End extension and privateuse
@@ -511,7 +534,8 @@ public final  class LangTagRFC5646 implements LangTag{
         int numExt = 0;
         int count = 0;
         int x = idxStart;
-        while ( x >= 0 ) {
+        // Outer loop - each subtag segment, having read at the "-"
+        while ( x >= 0 && x < N ) {
             char ch = string.charAt(x);
             if ( ch != '-' )
                 break;
@@ -527,13 +551,19 @@ public final  class LangTagRFC5646 implements LangTag{
         return x;
     }
 
-    /** Peek for a segment that is */
+    /**
+     * Peek for a segment between min and max in length.
+     * The initial  "-" has been read.
+     */
     private static int maybeSubtag1(String string, int N, int idxStart, int min, int max) {
         int idx = idxStart;
         if ( idx >= N )
             return -1;
         int idx2 = segmentNextFinish(string, N, idx);
         int segLen = segmentLength(N, idx, idx2);
+        if ( segLen == 0 )
+            InternalLangTag.error("Bad langtag. Found '--'");
+
         if ( segLen < min || segLen > max )
             return -1;
         if ( ! InternalLangTag.isAlpha(string, idxStart, idxStart+segLen) )

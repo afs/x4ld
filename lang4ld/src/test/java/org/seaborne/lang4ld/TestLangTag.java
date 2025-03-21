@@ -38,12 +38,17 @@ public class TestLangTag {
     @Test public void test_lang_basic_05() { testRFC5646("en-1234", "en-1234", "en", null, null, "1234", null); }
     @Test public void test_lang_basic_06() { testRFC5646("en-latn", "en-Latn", "en", "Latn", null, null, null); }
     @Test public void test_lang_basic_07() { testRFC5646("en-latn-gb", "en-Latn-GB", "en", "Latn", "GB", null, null); }
-    @Test public void test_lang_basic_08() { testNotJDK("en-brs-xxx-latn-gb", "en-brs-xxx-Latn-GB", "en-brs-xxx", "Latn", "GB", null, null); }
+    // Language subtags
+    @Test public void test_lang_basic_08() { testNotJDK("en-brs-xxx-latn-gb", "en-brs-xxx-Latn-GB", "en-brs-xxx", "Latn", "GB", null, null, null); }
     @Test public void test_lang_basic_09() { testRFC5646("de-CH-w-extend", "de-CH-w-extend", "de", null, "CH", null, "w-extend"); }
-    @Test public void test_lang_basic_10() { testPrivateUse("de-CH-x-phonebk-morech", "de-CH-x-phonebk-morech", "de", null, "CH", null, null, "x-phonebk-morech"); }
+    @Test public void test_lang_basic_10() { testRFC5646("de-CH-w-extend-extend", "de-CH-w-extend-extend", "de", null, "CH", null, "w-extend-extend"); }
+
+    @Test public void test_lang_basic_20() { testPrivateUse("de-CH-x-phonebk-morech", "de-CH-x-phonebk-morech", "de", null, "CH", null, null, "x-phonebk-morech"); }
     // Private use language tag. No language!
-    @Test public void test_lang_basic_11() { testPrivateUse("x-private", "x-private", null, null, null, null, null, "x-private"); }
-    @Test public void test_lang_basic_12() { testPrivateUse("az-Latn-x-latn", "az-Latn-x-latn", "az", "Latn", null, null, null, "x-latn"); }
+    @Test public void test_lang_basic_21() { testPrivateUse("x-private", "x-private", null, null, null, null, null, "x-private"); }
+    @Test public void test_lang_basic_22() { testPrivateUse("az-Latn-x-latn", "az-Latn-x-latn", "az", "Latn", null, null, null, "x-latn"); }
+    @Test public void test_lang_basic_23() { testPrivateUse("sss-x-y", "sss-x-y", "sss", null, null, null, null, "x-y"); }
+
 
     @Test public void test_lang_bad_01() { testBad("123"); }
     @Test public void test_lang_bad_02() { testBad("abcdefghijklmn"); }
@@ -52,42 +57,58 @@ public class TestLangTag {
 
     @Test public void test_lang_bad_05() { testBad("a?"); }
     @Test public void test_lang_bad_06() { testBad("a b"); }
+    @Test public void test_lang_bad_07() { testBad("en--us"); }
+    @Test public void test_lang_bad_08() { testBad("-us"); }
+
+    // Wrong lengths
+    @Test public void test_lang_bad_10() { testBad("s"); }
+
+
+    // Bad extension
+    @Test public void test_lang_bad_11() { testBad("sss-d"); }
+    @Test public void test_lang_bad_12() { testBad("sss-d-"); }
+    @Test public void test_lang_bad_13() { testBad("sss-d-e"); }
+    @Test public void test_lang_bad_14() { testBad("sss-d-ext-"); }
+
+    // Bad private use
+    @Test public void test_lang_bad_15() { testBad("sss-x"); }
+    @Test public void test_lang_bad_16() { testBad("sss-x-"); }
+    @Test public void test_lang_bad_17() { testBad("sss-x-part-"); }
 
     @Test public void test_lang_bad_repeated_extension() {
         // "en-a-bbb-a-ccc" is invalid because the subtag 'a' appears twice.
         testBad("en-a-bbb-a-ccc");
     }
 
-    // Wikipedia but their private use tag is too long.
-    @Test public void test_lang_bad_10() { testBad("en-x-Q123456789"); }
+    // Wikipedia-like -- their private use subtags can be too long
+    @Test public void test_lang_bad_20() { testBad("en-x-Q123456789"); }
 
-    // Special cases. Grandfathered etc.
-    // A additional test for formatting. Tests above also do format testing.
+    // Special cases. "en-GB-oed" -- "oed" is variant even though it does not match the syntax rule.
     @Test public void test_langtag_special_01() { testFormatting("en-GB-oed", "en-GB-oed"); }
-    @Test public void test_langtag_special_02() { testNotJDK("en-GB-oed", "en-GB-oed", "en", null, "GB", "oed",  null); }
+    @Test public void test_langtag_special_02() { testNotJDK("en-GB-oed", "en-GB-oed", "en", null, "GB", "oed",  null, null); }
     @Test public void test_langtag_special_03() { testFormatting("EN-gb-OED", "en-GB-oed"); }
-    @Test public void test_langtag_special_04() { testNotJDK("EN-gb-OED", "en-GB-oed", "en", null, "GB", "oed",  null); }
+    @Test public void test_langtag_special_04() { testNotJDK("EN-gb-OED", "en-GB-oed", "en", null, "GB", "oed",  null, null); }
 
     // The examples from RFC 5646
     @Test public void test_lang_10() { testRFC5646("de", "de", "de", null, null, null, null); }
     @Test public void test_lang_11() { testRFC5646("fr", "fr", "fr", null, null, null, null); }
     @Test public void test_lang_12() { testRFC5646("ja", "ja", "ja", null, null, null, null); }
-    @Test public void test_lang_13() { testNotJDK("i-enochian", "i-enochian", "i-enochian", null, null, null, null); }
+    @Test public void test_lang_13() { testNotJDK("i-enochian", "i-enochian", "i-enochian", null, null, null, null, null); }
     @Test public void test_lang_14() { testRFC5646("zh-Hant", "zh-Hant", "zh", "Hant", null, null, null); }
     @Test public void test_lang_15() { testRFC5646("zh-Hans", "zh-Hans", "zh", "Hans", null, null, null); }
     @Test public void test_lang_16() { testRFC5646("sr-Cyrl", "sr-Cyrl", "sr", "Cyrl", null, null, null); }
     @Test public void test_lang_17() { testRFC5646("sr-Latn", "sr-Latn", "sr", "Latn", null, null, null); }
 
     // Extended language subtag (3 letter)
-    @Test public void test_lang_18() { testNotJDK("zh-cmn-Hans-CN", "zh-cmn-Hans-CN", "zh-cmn", "Hans", "CN", null, null); }
+    @Test public void test_lang_18() { testNotJDK("zh-cmn-Hans-CN", "zh-cmn-Hans-CN", "zh-cmn", "Hans", "CN", null, null, null); }
     @Test public void test_lang_19() { testRFC5646("cmn-Hans-CN", "cmn-Hans-CN", "cmn", "Hans", "CN", null, null); }
-    @Test public void test_lang_20() { testNotJDK("zh-yue-HK", "zh-yue-HK", "zh-yue", null, "HK", null, null); }
+    @Test public void test_lang_20() { testNotJDK("zh-yue-HK", "zh-yue-HK", "zh-yue", null, "HK", null, null, null); }
     @Test public void test_lang_21() { testRFC5646("yue-HK", "yue-HK", "yue", null, "HK", null, null); }
     @Test public void test_lang_22() { testRFC5646("zh-Hans-CN", "zh-Hans-CN", "zh", "Hans", "CN", null, null); }
 
     @Test public void test_lang_23() { testRFC5646("sr-Latn-RS", "sr-Latn-RS", "sr", "Latn", "RS", null, null); }
     @Test public void test_lang_24() { testRFC5646("sl-rozaj", "sl-rozaj", "sl", null, null, "rozaj", null); }
-    @Test public void test_lang_25() { testNotJDK("sl-rozaj-biske", "sl-rozaj-biske", "sl", null, null, "rozaj-biske", null); }
+    @Test public void test_lang_25() { testNotJDK("sl-rozaj-biske", "sl-rozaj-biske", "sl", null, null, "rozaj-biske", null, null); }
     @Test public void test_lang_26() { testRFC5646("sl-nedis", "sl-nedis", "sl", null, null, "nedis", null); }
     @Test public void test_lang_27() { testRFC5646("de-CH-1901", "de-CH-1901", "de", null, "CH", "1901", null); }
     @Test public void test_lang_28() { testRFC5646("sl-IT-nedis", "sl-IT-nedis", "sl", null, "IT", "nedis", null); }
@@ -108,13 +129,6 @@ public class TestLangTag {
     @Test public void test_lang_41() { testPrivateUse("zh-CN-a-myext-x-private", "zh-CN-a-myext-x-private", "zh", null, "CN", null, "a-myext", "x-private"); }
     @Test public void test_lang_42() { testRFC5646("en-a-myext-b-another", "en-a-myext-b-another", "en", null, null, null, "a-myext-b-another"); }
 
-    // From RFC 5646
-    @Test public void test_lang_60() { testPrivateUse("en-Latn-GB-boont-r-extended-sequence-x-private", "en-Latn-GB-boont-r-extended-sequence-x-private",
-                                                      "en","Latn", "GB", "boont", "r-extended-sequence", "x-private"); }
-
-    @Test public void test_lang_61s() { testPrivateUse("en-Latn-GB-boont-r-extended-sequence-s-another-x-private", "en-Latn-GB-boont-r-extended-sequence-s-another-x-private",
-                                                      "en","Latn", "GB", "boont", "r-extended-sequence-s-another", "x-private"); }
-
     @Test public void test_lang_50() { testPrivateUse("en-x-private", "en-x-private",    "en", null, null, null, null, "x-private"); }
 
     @Test public void test_lang_51() { testPrivateUse( "en-x-US",  "en-x-us",    "en", null, null, null, null, "x-us"); }
@@ -122,24 +136,32 @@ public class TestLangTag {
     // the singleton 'a' is in a private use sequence."
     @Test public void test_lang_52() { testPrivateUse( "en-a-bbb-x-a-ccc" ,  "en-a-bbb-x-a-ccc" ,    "en", null, null, null, "a-bbb", "x-a-ccc"); }
 
+    // Mentioned in RFC 5646
+    @Test public void test_lang_60() { testPrivateUse("en-Latn-GB-boont-r-extended-sequence-x-private", "en-Latn-GB-boont-r-extended-sequence-x-private",
+                                                      "en","Latn", "GB", "boont", "r-extended-sequence", "x-private"); }
+
+    @Test public void test_lang_61() { testPrivateUse("en-Latn-GB-boont-r-extended-sequence-s-another-x-private", "en-Latn-GB-boont-r-extended-sequence-s-another-x-private",
+                                                       "en","Latn", "GB", "boont", "r-extended-sequence-s-another", "x-private"); }
+
+
     /** General test - include JDK */
     private static void testRFC5646(String langString, String formatted, String lang, String script, String region, String variant, String extension) {
         runTest(langString, formatted, lang, script, region, variant, extension, null, true);
     }
 
-    /** Has a private use part - not JDK */
+    /** Has a private use part */
     private static void testPrivateUse(String langString, String formatted, String lang, String script, String region, String variant, String extension, String privateUse) {
-        // Private use is not supported by the JDK.
-        runTest(langString, formatted, lang, script, region, variant, extension, privateUse, false);
+        // Private use is supported by LanTagJDK by extracting the "x" extension
+        runTest(langString, formatted, lang, script, region, variant, extension, privateUse, true);
     }
 
 
     /** Run a test which is not properly supported by the JDK-Locale based implementation. */
-    private static void testNotJDK(String langString, String formatted, String lang, String script, String region, String variant, String extension) {
-        runTest(langString, formatted, lang, script, region, variant, extension, null, false);
+    private static void testNotJDK(String langString, String formatted, String lang, String script, String region, String variant, String extension, String privateUse) {
+        runTest(langString, formatted, lang, script, region, variant, extension, privateUse, false);
     }
 
-    /** Run a test which illgeal by RFC 5646 */
+    /** Run a test which illegal by RFC 5646 */
     private void testBad(String string) {
         try {
             LangTag langTag = LangTagRFC5646.create(string);
@@ -171,7 +193,17 @@ public class TestLangTag {
             assertEquals(variant, jdk.getVariant());
             assertEquals(extension, jdk.getExtension());
             assertEquals(privateuse, jdk.getPrivateUse());
-            // Private languages are not supported by JDK Locale.
+        }
+
+        boolean regexSupported = true;
+        if ( regexSupported ) {
+            LangTag langTagByRE = LangTagRE.create(langString);
+            assertEquals(lang, langTagByRE.getLanguage());
+            assertEquals(script, langTagByRE.getScript());
+            assertEquals(region, langTagByRE.getRegion());
+            assertEquals(variant, langTagByRE.getVariant());
+            assertEquals(extension, langTagByRE.getExtension());
+            assertEquals(privateuse, langTagByRE.getPrivateUse());
         }
     }
 

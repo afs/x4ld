@@ -26,11 +26,16 @@ import java.util.Set;
 /**
  * LangTag parsing.
  * <p>
- * A thin layer over the JDK {@link Locale} and {@link Builder} to introduce a class
+ * A layer over the JDK {@link Locale} and {@link Builder} to introduce a class without legacy langtag conversion.
  * {@link LangTag}.
  * <p>
  * This is not RFC 5646 compliant.
- * It's quite close.
+ * <ul>
+ * <li>Does not handle language subtags (e.g. "zh-cmn-Hans-CN")</li>
+ * <li>Does not handle grandfathered language tags e.g. "i-enochian"</li>
+ * <li>Multiple variant subtags</li>
+ * <li>Legacy "en-GB-oed" - "oed" is a 3 letter script (script is 4 by the grammar/)</li>
+ * <ul>
  */
 public final class LangTagJDK implements LangTag {
     private final String langTagAsGiven;
@@ -40,6 +45,7 @@ public final class LangTagJDK implements LangTag {
     private final String region;
     private final String variant;
     private final String extension;
+    // Not supported by the JDK (part of extensions).
     private final String privateUse;
 
     private static Locale.Builder locBuild = new Locale.Builder();
@@ -81,8 +87,7 @@ public final class LangTagJDK implements LangTag {
     @Override public String getRegion() { return region; }
     @Override public String getVariant() { return variant; }
     @Override public String getExtension() { return extension; }
-    @Override public String getPrivateUse()
-    { return privateUse; }
+    @Override public String getPrivateUse() { return privateUse; }
 
     public static String canonical(String str) {
         try {
@@ -117,20 +122,26 @@ public final class LangTagJDK implements LangTag {
                 && Objects.equals(fmtString, other.fmtString);
     }
 
+    private static Character privateUseSingleton = Character.valueOf('x');
+
     private static LangTag asLangTag(String string, Locale.Builder locBuild) {
         Locale locale = locBuild.build();
         Set<Character> extkeys = locale.getExtensionKeys();
-        StringBuilder sb = new StringBuilder();
-        String privateUse = null;
+        StringBuilder sb1 = new StringBuilder();
+        StringBuilder sb2 = new StringBuilder();
         for ( Character k : extkeys ) {
             String ext = locale.getExtension(k);
+            StringBuilder sb = sb1;
+            if ( privateUseSingleton.equals(k) )
+                sb = sb2;
             if ( sb.length() != 0 )
                 sb.append('-');
             sb.append(k);
             sb.append('-');
             sb.append(ext);
         }
-        String extension = sb.toString();
+        String extension = sb1.toString();
+        String privateUse = sb2.toString();
         return new LangTagJDK(string,
                               locale.toLanguageTag(),
                               locale.getLanguage(),
