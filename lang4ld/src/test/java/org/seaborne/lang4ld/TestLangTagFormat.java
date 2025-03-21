@@ -33,7 +33,7 @@ import org.junit.runners.Parameterized.Parameters;
 public class TestLangTagFormat {
 
     private static Function<String, String> formatter1 = (s)-> LangTagRFC5646.create(s).str();
-    private static Function<String, String> formatter2 = (s)-> LangTagOps.basicFormat(s);
+    private static Function<String, String> formatter2 = (s)-> LangTags.basicFormat(s);
 
     @Parameters(name = "{index}: {0}")
     public static Iterable<Object[]> data() {

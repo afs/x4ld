@@ -52,7 +52,10 @@ public sealed interface LangTag permits LangTagJDK, LangTagRFC5646 {
         return SysLangTag.create(string);
     }
 
-    /** Formatted according to the RFC 5646 rules */
+    /**
+     * Formatted according to the RFC 5646 rules
+     * {@code toString()} should return the language tag with the same case as it was originally.
+     */
     public String str();
 
     public String getLanguage();
@@ -61,4 +64,8 @@ public sealed interface LangTag permits LangTagJDK, LangTagRFC5646 {
     public String getVariant();
     public String getExtension();
     public String getPrivateUse();
+
+    @Override public int hashCode();
+    @Override public boolean equals(Object other);
+    @Override public String toString();
 }

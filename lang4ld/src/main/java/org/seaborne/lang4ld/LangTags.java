@@ -21,7 +21,7 @@ package org.seaborne.lang4ld;
 import java.util.List;
 import java.util.Objects;
 
-public class LangTagOps {
+public class LangTags {
 
     /** Index of the language part */
     public static final int  idxLanguage  = 0 ;
@@ -123,7 +123,7 @@ public class LangTagOps {
     }
 
     /** Is @code{langTag1} the same as @code{langTag2}? */
-    public static boolean sameAs(LangTag langTag1, LangTag langTag2) {
+    public static boolean sameLangTagAs(LangTag langTag1, LangTag langTag2) {
         Objects.requireNonNull(langTag1);
         Objects.requireNonNull(langTag2);
         if ( langTag1 == langTag2 )

@@ -46,9 +46,9 @@ public class TestLangTagsOps {
 
     private static void sameLangTag(LangTag langTag1, LangTag langTag2, boolean sameAs, boolean equals, boolean sameHash) {
         if ( sameAs )
-            assertTrue(LangTagOps.sameAs(langTag1, langTag2));
+            assertTrue(LangTags.sameLangTagAs(langTag1, langTag2));
         else
-            assertFalse(LangTagOps.sameAs(langTag1, langTag2));
+            assertFalse(LangTags.sameLangTagAs(langTag1, langTag2));
         if ( equals )
             assertTrue(langTag1.equals(langTag2));
         else

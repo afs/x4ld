@@ -33,6 +33,7 @@ import java.util.Set;
  * It's quite close.
  */
 public final class LangTagJDK implements LangTag {
+    private final String langTagAsGiven;
     private final String fmtString;
     private final String lang;
     private final String script;
@@ -43,24 +44,25 @@ public final class LangTagJDK implements LangTag {
 
     private static Locale.Builder locBuild = new Locale.Builder();
 
-    public static LangTag create(String x) {
+    public static LangTag create(String string) {
         try {
             locBuild.clear();
-            locBuild.setLanguageTag(x);
-            return asLangTag(locBuild);
+            locBuild.setLanguageTag(string);
+            return asLangTag(string, locBuild);
         } catch (IllformedLocaleException ex) {
             return null;
         }
     }
 
-    private LangTagJDK(String fmtString, String language, String script, String region, String variant, String extension, String privateUse) {
-            this.fmtString  = Objects.requireNonNull(fmtString);
-            this.lang       = maybe(language);
-            this.script     = maybe(script);
-            this.region     = maybe(region);
-            this.variant    = maybe(variant);
-            this.extension  = maybe(extension);
-            this.privateUse = maybe(privateUse);
+    private LangTagJDK(String langTagAsGiven, String fmtString, String language, String script, String region, String variant, String extension, String privateUse) {
+        this.langTagAsGiven = langTagAsGiven;
+        this.fmtString  = Objects.requireNonNull(fmtString);
+        this.lang       = maybe(language);
+        this.script     = maybe(script);
+        this.region     = maybe(region);
+        this.variant    = maybe(variant);
+        this.extension  = maybe(extension);
+        this.privateUse = maybe(privateUse);
     }
 
     private static String maybe(String x) {
@@ -91,7 +93,31 @@ public final class LangTagJDK implements LangTag {
         }
     }
 
-    private static LangTag asLangTag(Locale.Builder locBuild) {
+    @Override
+    public int hashCode() {
+        return Objects.hash(langTagAsGiven, fmtString,
+                            lang, script, region, variant,
+                            extension, privateUse);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if ( this == obj )
+            return true;
+        if ( !(obj instanceof LangTagJDK) )
+            return false;
+        LangTagJDK other = (LangTagJDK)obj;
+        return Objects.equals(lang, other.lang)
+                && Objects.equals(script, other.script)
+                && Objects.equals(region, other.region)
+                && Objects.equals(variant, other.variant)
+                && Objects.equals(extension, other.extension)
+                && Objects.equals(privateUse, other.privateUse)
+                && Objects.equals(langTagAsGiven, other.langTagAsGiven)
+                && Objects.equals(fmtString, other.fmtString);
+    }
+
+    private static LangTag asLangTag(String string, Locale.Builder locBuild) {
         Locale locale = locBuild.build();
         Set<Character> extkeys = locale.getExtensionKeys();
         StringBuilder sb = new StringBuilder();
@@ -105,7 +131,8 @@ public final class LangTagJDK implements LangTag {
             sb.append(ext);
         }
         String extension = sb.toString();
-        return new LangTagJDK(locale.toLanguageTag(),
+        return new LangTagJDK(string,
+                              locale.toLanguageTag(),
                               locale.getLanguage(),
                               locale.getScript(),
                               locale.getCountry(),

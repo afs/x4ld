@@ -19,7 +19,7 @@
 package org.seaborne.lang4ld;
 
 /**
- * See also {@link LangTagOps}.
+ * See also {@link LangTags}.
  */
 public class SysLangTag {
 
@@ -41,6 +41,6 @@ public class SysLangTag {
             return "";
         if ( input.isEmpty() )
             return input;
-        return LangTagOps.basicFormat(input);
+        return LangTags.basicFormat(input);
     }
 }

@@ -197,7 +197,7 @@ public class TestLangTag {
         String fmt1 = langTag.str();
         assertEquals("RFC5646 parser format", expected, fmt1);
         // Formatting using the general algorithm of RFC5646.
-        String fmt2 = LangTagOps.basicFormat(langString);
+        String fmt2 = LangTags.basicFormat(langString);
         assertEquals("RFC5646 basic algoithm", expected, fmt2);
     }
 }

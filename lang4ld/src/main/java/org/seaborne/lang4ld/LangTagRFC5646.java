@@ -113,20 +113,25 @@ public final  class LangTagRFC5646 implements LangTag{
 
     @Override
     public int hashCode() {
-        String x = langTagString!=null ? InternalLangTag.lowercase(langTagString) : null;
-        return Objects.hash(x,
+        return Objects.hash(langTagString,
                             language0, language1, script0, script1, variant0, variant1,
                             extension0, extension1, privateuse0, privateuse1, isGrandfathered, isPrivateUseLanguage);
     }
+
+    /**
+     * {@code .equals} and {@code .hashCode}
+     *  provide "same immutable object" semantics.
+     * The language tags are treated case-sensitively.
+     *
+     * @See LangTagOps.sameLangTagAs for equivalent language tags.
+     */
     @Override
     public boolean equals(Object obj) {
         if ( this == obj )
             return true;
         if ( !(obj instanceof LangTagRFC5646 other) )
             return false;
-
         // All but the string.
-        // && Objects.equals(langTagString, other.langTagString)
         boolean sameParsePoints =
                 extension0 == other.extension0 && extension1 == other.extension1
                 && isGrandfathered == other.isGrandfathered
@@ -139,6 +144,15 @@ public final  class LangTagRFC5646 implements LangTag{
         if ( ! sameParsePoints )
             return false;
         return Objects.equals(langTagString, other.langTagString);
+    }
+
+    /**
+     * Return the lang tag exactly as given.
+     * Use {@link #str()} for the language tag formatted by the rules of RFC 5646.
+     */
+    @Override
+    public String toString() {
+        return langTagString;
     }
 
     @Override
