@@ -18,12 +18,12 @@
 
 package org.seaborne.lang4ld;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TestLangTag {
 
@@ -195,7 +195,7 @@ public class TestLangTag {
             assertEquals(privateuse, jdk.getPrivateUse());
         }
 
-        boolean regexSupported = true;
+        final boolean regexSupported = true;
         if ( regexSupported ) {
             LangTag langTagByRE = LangTagRE.create(langString);
             assertEquals(lang, langTagByRE.getLanguage());
@@ -211,14 +211,14 @@ public class TestLangTag {
     private static void test1(String langString, String formatted, String lang, String script, String region, String variant, String extension, String privateuse) {
         LangTag langTag = LangTagRFC5646.create(langString);
         assertNotNull(langTag);
-        assertEquals("Lang", lang, langTag.getLanguage());
-        assertEquals("Script", script, langTag.getScript());
-        assertEquals("Region", region, langTag.getRegion());
-        assertEquals("Variant", variant, langTag.getVariant());
-        assertEquals("Extension", extension, langTag.getExtension());
-        assertEquals("Private use", privateuse, langTag.getPrivateUse());
+        assertEquals(lang, langTag.getLanguage(), "Lang");
+        assertEquals(script, langTag.getScript(), "Script");
+        assertEquals(region, langTag.getRegion(), "Region");
+        assertEquals(variant, langTag.getVariant(), "Variant");
+        assertEquals(extension, langTag.getExtension(), "Extension");
+        assertEquals(privateuse, langTag.getPrivateUse(), "Private use");
         String f = langTag.str();
-        assertEquals("String formatted", formatted, f);
+        assertEquals(formatted, f, "String formatted");
     }
 
     private static void testFormatting(String langString, String expected) {
@@ -227,9 +227,9 @@ public class TestLangTag {
         LangTag langTag = LangTagRFC5646.create(langString);
         // Build formatted language tag.
         String fmt1 = langTag.str();
-        assertEquals("RFC5646 parser format", expected, fmt1);
+        assertEquals(expected, fmt1, "RFC5646 parser format");
         // Formatting using the general algorithm of RFC5646.
         String fmt2 = LangTags.basicFormat(langString);
-        assertEquals("RFC5646 basic algoithm", expected, fmt2);
+        assertEquals(expected, fmt2, "RFC5646 basic algorithm");
     }
 }
