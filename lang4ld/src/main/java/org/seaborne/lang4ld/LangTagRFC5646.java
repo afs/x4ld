@@ -245,6 +245,8 @@ public final  class LangTagRFC5646 implements LangTag{
             langtag.isGrandfathered = true;
             // Exception.
             if ( string.equalsIgnoreCase("en-GB-oed") ) {
+                // "oed" is "Oxford English Dictionary spelling"
+                // Better is the replacement "en-GB-oxendict"
                 langtag.language0 = 0;
                 langtag.language1 = 2;
                 langtag.region0 = 3;

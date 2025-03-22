@@ -18,7 +18,6 @@
 
 package org.seaborne.lang4ld;
 
-import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +28,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+// JUnit4
+// Junit5 is missing @ParameterizedClass which may arrive eventually
 @RunWith(Parameterized.class)
 public class TestLangTagFormat {
 
@@ -103,6 +104,7 @@ public class TestLangTagFormat {
 
     private void test(String langString, String expected) {
         String result = formatter.apply(langString);
-        assertEquals(formatterName+"("+langString+"): ", expected, result);
+        // JUnit4 argument order.
+        org.junit.Assert.assertEquals(formatterName+"("+langString+"): ", expected, result);
     }
 }
