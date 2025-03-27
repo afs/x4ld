@@ -87,7 +87,17 @@ public final  class LangTagRFC5646 implements LangTag{
 
     @Override
     public String getLanguage() {
-        return getSubTag("Language", langTagString, language0, language1, CaseRule.LOWER);
+        String x = getSubTag("Language", langTagString, language0, language1, CaseRule.LOWER);
+        if ( ! isGrandfathered )
+            return x;
+        // The general getSubTag code will get these wrong.
+        // "sgn-BE-FR", "sgn-BE-NL", "sgn-CH-DE"
+        return switch(x) {
+            case "sgn-be-fr"->"sgn-BE-FR";
+            case "sgn-be-nl"->"sgn-BE-NL";
+            case "sgn-ch-de"->"sgn-CH-DE";
+            default -> x;
+        };
     }
 
     @Override
@@ -163,6 +173,11 @@ public final  class LangTagRFC5646 implements LangTag{
     public String str() {
         if ( isPrivateUseLanguage )
             return InternalLangTag.lowercase(langTagString);
+        String x = irregularFormat(langTagString);
+        if ( x != null )
+            return x;
+        // Format by parts
+        // Works for en-GB-oed - the variant is not syntax compatible but the variant formatting rules applies.
         StringBuffer sb = new StringBuffer();
         add(sb, getLanguage());
         add(sb, getScript());
@@ -171,6 +186,26 @@ public final  class LangTagRFC5646 implements LangTag{
         add(sb, getExtension());
         add(sb, getPrivateUse());
         return sb.toString();
+    }
+
+    /** Return a string if there is special formatting for this language tag, else return null */
+    private static String irregularFormat(String langTagString) {
+        // Some irregular special cases.
+        if ( InternalLangTag.caseInsensitivePrefix(langTagString, "sgn-") ) {
+            // "sgn-BE-FR", "sgn-BE-NL", "sgn-CH-DE"
+            if ( langTagString.equalsIgnoreCase("sgn-BE-FR") )
+                return "sgn-BE-FR";
+            if ( langTagString.equalsIgnoreCase("sgn-BE-NL") )
+                return "sgn-BE-NL";
+            if ( langTagString.equalsIgnoreCase("sgn-CH-DE") )
+                return "sgn-CH-DE";
+        }
+        if ( langTagString.startsWith("i-") || langTagString.startsWith("I-") ) {
+            String lcLangTagStr = InternalLangTag.lowercase(langTagString);
+            if ( irregular_i.contains(lcLangTagStr) )
+                return lcLangTagStr;
+        }
+        return null;
     }
 
     private void add(StringBuffer sb, String subtag) {
@@ -197,7 +232,9 @@ public final  class LangTagRFC5646 implements LangTag{
     }
 
     private static LangTagRFC5646 parser(String string) {
-        // Change immutable?
+
+        // A segment is a sequence of A2ZN characters separated by '-'.
+
         LangTagRFC5646 langtag = new LangTagRFC5646(string);
         final int N = string.length();
         // Language-Tag  = langtag             ; normal language tags
@@ -267,14 +304,6 @@ public final  class LangTagRFC5646 implements LangTag{
         // Private use in the language position.
         if ( segLen == 1 ) {
             if ( string.startsWith("x-") || string.startsWith("X-") ) {
-                langtag.isPrivateUseLanguage = true;
-                int idxPrivateUseStart = 0;
-                int idxPrivateUseEnd = maybeSubtags(string, N, idxPrivateUseStart+segLen, 1, 8);
-                langtag.privateuse0 = idxPrivateUseStart;
-                langtag.privateuse1 = idxPrivateUseEnd;
-                if ( langtag.privateuse1 < N )
-                    InternalLangTag.error("Trailing characters in private langtag: '%s'", string.substring(langtag.privateuse1));
-                return langtag;
                 /*
                 The primary language subtag is the first subtag in a language tag and
                 cannot be omitted, with two exceptions:
@@ -287,12 +316,14 @@ public final  class LangTagRFC5646 implements LangTag{
                    registry) unless there is a private agreement in place to do so.
                    See Section 4.6.
                 */
-
-//                // The whole string is the language.
-//                langtag.language0 = 0;
-//                langtag.language1 = N;
-//                langtag.isPrivateUseLanguage = true;
-//                return langtag;
+                langtag.isPrivateUseLanguage = true;
+                int idxPrivateUseStart = 0;
+                int idxPrivateUseEnd = maybeSubtags(string, N, idxPrivateUseStart+segLen, 1, 8);
+                langtag.privateuse0 = idxPrivateUseStart;
+                langtag.privateuse1 = idxPrivateUseEnd;
+                if ( langtag.privateuse1 < N )
+                    InternalLangTag.error("Trailing characters in private langtag: '%s'", string.substring(langtag.privateuse1));
+                return langtag;
             }
             InternalLangTag.error("Language part is 1 character: it must be 2-3 characters (4-8 reserved for future use), \"x-\", or a recognized grandfathered tag");
         }
@@ -542,7 +573,7 @@ public final  class LangTagRFC5646 implements LangTag{
             char ch = string.charAt(x);
             if ( ch != '-' )
                 break;
-            int x1 = maybeSubtag1(string, N, x+1, min, max);
+            int x1 = maybeOneSubtag(string, N, x+1, min, max);
             if ( x1 <= 0 )
                 break;
             if ( x1 == N ) {
@@ -558,7 +589,7 @@ public final  class LangTagRFC5646 implements LangTag{
      * Peek for a segment between min and max in length.
      * The initial  "-" has been read.
      */
-    private static int maybeSubtag1(String string, int N, int idxStart, int min, int max) {
+    private static int maybeOneSubtag(String string, int N, int idxStart, int min, int max) {
         int idx = idxStart;
         if ( idx >= N )
             return -1;
@@ -621,8 +652,13 @@ public final  class LangTagRFC5646 implements LangTag{
             return -1;
         for ( ; idx < N ; idx++ ) {
             char ch = x.charAt(idx);
-            if ( ch == '-' )
+            if ( ch == '-' ) {
+                if ( idx == N-1 ) {
+                    // The case of "subtag-"
+                    InternalLangTag.error("Language tag string ends in '-'");
+                }
                 return idx;
+            }
         }
         return -1;
     }
@@ -641,6 +677,11 @@ public final  class LangTagRFC5646 implements LangTag{
         return grandfathered.contains(s) || regular.contains(s) ;
     }
 
+    // These tags match the 'langtag' production, but their subtags are not extended
+    // language or variant subtags: their meaning is defined by their registration and
+    // all of these are deprecated in favor of a more modern subtag or sequence of
+    // subtags
+
     private static Set<String> regular =
             Set.of("art-lojban", "cel-gaulish", "no-bok", "no-nyn", "zh-guoyu", "zh-hakka", "zh-min", "zh-min-nan", "zh-xiang");
 
@@ -655,7 +696,15 @@ public final  class LangTagRFC5646 implements LangTag{
             Set.of("en-GB-oed",
                    "i-ami", "i-bnn", "i-default", "i-enochian", "i-hak", "i-klingon",
                    "i-lux", "i-mingo", "i-navajo", "i-pwn", "i-tao", "i-tay", "i-tsu",
+                   // These are irregular in that they are "primary subtag ("sgn" - sign language)
+                   // then two region-like subtags.
+                   // They do obey the basic formatting rule - two letters non-primary subtag is uppercase.
                    "sgn-BE-FR", "sgn-BE-NL", "sgn-CH-DE");
+
+    // The "i-" irregulars.
+    private static Set<String> irregular_i =
+            Set.of("i-ami", "i-bnn", "i-default", "i-enochian", "i-hak", "i-klingon",
+                   "i-lux", "i-mingo", "i-navajo", "i-pwn", "i-tao", "i-tay", "i-tsu");
 
     // ---
 

@@ -26,7 +26,6 @@ public class SysLangTag {
     /**
      * Create a {@link LangTag} using the system-wide default language tag parser,
      * which is {@link LangTagRFC5646}.
-     *
      */
     public static LangTag create(String languageTag) {
         return LangTagRFC5646.create(languageTag);
@@ -41,6 +40,6 @@ public class SysLangTag {
             return "";
         if ( input.isEmpty() )
             return input;
-        return LangTags.basicFormat(input);
+        return create(input).str();
     }
 }

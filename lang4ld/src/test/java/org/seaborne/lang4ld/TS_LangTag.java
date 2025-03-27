@@ -26,6 +26,7 @@ import org.junit.platform.suite.api.Suite;
     TestLangTag.class
     , TestLangTagFormat.class
     , TestLangTagsOps.class
+    , TestBasicSyntaxLangTags.class
 })
 
 public class TS_LangTag { }
