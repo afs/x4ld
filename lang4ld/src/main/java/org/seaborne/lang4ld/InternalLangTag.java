@@ -147,7 +147,7 @@ class InternalLangTag {
         }
     }
 
-    private static String str(char ch) {
+    /*package*/ static String str(char ch) {
         return String.format("'%s' U+%04X", Character.valueOf(ch), (int)ch);
     }
 
@@ -172,4 +172,8 @@ class InternalLangTag {
         return (ch >= a && ch <= b);
     }
 
+    /** Case insensitive test of whether a string has a prefix. */
+    static boolean caseInsensitivePrefix(String string, String prefix) {
+        return string.regionMatches(true, 0, prefix, 0, prefix.length());
+    }
 }

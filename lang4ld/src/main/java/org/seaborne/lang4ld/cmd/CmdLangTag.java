@@ -51,6 +51,7 @@ public class CmdLangTag {
         try {
             System.out.printf("%-16s %s\n", "Input:", languageTag);
             LangTag langTag = SysLangTag.create(languageTag);
+            System.out.printf("%-16s %s\n", "Formatted:", langTag.str());
             print("Language:",    langTag.getLanguage(), true);
             print("Script:",      langTag.getScript(), true);
             print("Region:",      langTag.getRegion(), true);
