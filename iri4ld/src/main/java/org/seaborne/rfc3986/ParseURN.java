@@ -215,8 +215,12 @@ public class ParseURN {
             handler.accept(Issue.urn_bad_nid, "No namespace id");
             return -1;
         }
+        if ( ch == ':' ) {
+            handler.accept(Issue.urn_bad_nid, "Missing namespace id");
+            return -1;
+        }
         if ( ! Chars3986.isAlphaNum(ch) ) {
-            handler.accept(Issue.urn_bad_nid, "Namespace id does no start with an alphabetic ASCII character");
+            handler.accept(Issue.urn_bad_nid, "Namespace id does not start with an alphabetic ASCII character");
             return -1;
         }
         x++;
