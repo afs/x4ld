@@ -1,0 +1,26 @@
+#!/usr/bin/bash
+
+DIR1=$HOME/ASF/x4ld/iri4ld/src
+DIR2=$HOME/ASF/jena5/jena-iri3986/src
+
+## org/seaborne/rfc3986/
+## org/apache/jena/rfc3986/
+
+function dwim() {
+    local F1="$1"
+    local F2="$2"
+    ##ls -1 "$F1" "$F2"
+    echo "==== $basename $F1)"
+    ##diff "$F1" "$F2"
+    
+    ## cp "$F1" "$F2"
+    echo
+}
+
+dwim \
+    "$DIR1/main/java/org/seaborne/rfc3986/IRI3986.java" \
+    "$DIR2/main/java/org/apache/jena/rfc3986/IRI3986.java"
+
+dwim \
+    "$DIR1/test/java/org/seaborne/rfc3986/TestURISchemes.java" \
+    "$DIR2/test/java/org/apache/jena/rfc3986/TestURISchemes.java"

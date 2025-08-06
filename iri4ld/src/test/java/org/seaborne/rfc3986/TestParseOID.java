@@ -18,12 +18,12 @@
 
 package org.seaborne.rfc3986;
 
-import org.junit.Test;
-
-import org.seaborne.rfc3986.ParseOID.OIDParseException;
-
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.seaborne.rfc3986.LibTestURI.test3986;
+
+import org.junit.jupiter.api.Test;
+
+import org.seaborne.rfc3986.ParseOID.OIDParseException;
 
 /** Test the class ParseOID */
 public class TestParseOID {

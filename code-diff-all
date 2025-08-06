@@ -9,8 +9,12 @@ then
 fi
 
 ## echo "==== IRI"
-## DIR1=$HOME/ASF/jena5/jena-iri3986/src/main/java/org/apache/jena/rfc3986/
-## DIR2=$HOME/ASF/x4ld/iri4ld/src/main/java/org/seaborne/rfc3986/
+DIR1=$HOME/ASF/jena5/jena-iri3986/src/main/java/org/apache/jena/rfc3986/
+DIR2=$HOME/ASF/x4ld/iri4ld/src/main/java/org/seaborne/rfc3986/
+
+## echo "==== IRI (test)"
+## DIR1=$HOME/ASF/jena5/jena-iri3986/src/test/java/org/apache/jena/rfc3986/
+## DIR2=$HOME/ASF/x4ld/iri4ld/src/test/java/org/seaborne/rfc3986/
 
 ## echo "==== Langtag"
 ## DIR1=$HOME/ASF/jena5/jena-langtag/src/main/java/org/apache/jena/langtag/
