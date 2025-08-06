@@ -6,4 +6,9 @@ updates:
     interval: monthly 
     # interval: "weekly"
     # day: "wednesday"
+  groups:
+    maven-patch-group:
+      update-types:
+      - "minor"
+
   open-pull-requests-limit: 10
