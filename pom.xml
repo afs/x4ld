@@ -51,8 +51,7 @@
     <!-- Testing only -->
     <ver.jena-iri>5.5.0</ver.jena-iri>  
     <ver.junit4>4.13.2</ver.junit4>
-    <ver.junit5>5.13.4</ver.junit5>
-    <ver.junit5-platform>1.10.2</ver.junit5-platform>
+    <ver.junit>6.0.0</ver.junit>
  
     <!-- Plugins -->
     <ver.plugin.rat>0.16.1</ver.plugin.rat>
@@ -82,7 +81,7 @@
      <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>${ver.junit5}</version>
+        <version>${ver.junit}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
