@@ -133,7 +133,7 @@ public class TestRelativeVariants_JenaIRI {
             IRI3986 r = AlgRelativizeIRI.relativeParentPath(base, target);
             executeTest("relativeParentPath", flag, base, target, r);
         }{
-            int flag = IRIRelativize.SAMEDOCUMENT;;
+            int flag = IRIRelativize.SAMEDOCUMENT;
             IRI3986 r = AlgRelativizeIRI.relativeSameDocument(base, target);
             executeTest("relativeSameDocument", flag, base, target, r);
         }
@@ -180,7 +180,6 @@ public class TestRelativeVariants_JenaIRI {
                 variance = true;
                 return;
             }
-
         }
 
         if ( ! s1.equals(s2) ) {
@@ -207,11 +206,6 @@ public class TestRelativeVariants_JenaIRI {
         System.out.println(z);
         System.exit(0);
     }
-
-    // Consider if relativeFlags is not -1, one routine per case for backwards compatibility.
-    private static int RelativizeFlags = IRIRelativize.ABSOLUTE | IRIRelativize.SAMEDOCUMENT |
-                                         IRIRelativize.CHILD    | IRIRelativize.PARENT |
-                                         IRIRelativize.GRANDPARENT;
 
     /** Calculate the relative URI using using jena-iri. */
     private static String calcJenaIRI(String basePath, String targetPath) {

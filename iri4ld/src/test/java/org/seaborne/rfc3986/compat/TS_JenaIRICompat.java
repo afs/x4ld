@@ -29,4 +29,7 @@ import org.junit.platform.suite.api.Suite;
     TestResolve_JenaIRI.class
 } )
 
+/**
+ * Compare IRI3986 (jena-iri3986) with Jena's original IRI (jena-iri)
+ */
 public class TS_JenaIRICompat { }

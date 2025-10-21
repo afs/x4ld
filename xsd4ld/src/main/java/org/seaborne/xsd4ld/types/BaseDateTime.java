@@ -68,7 +68,7 @@ abstract class BaseDateTime extends XSDDatatype  {
 
         TemporalAccessor temporalAccessor = dtFmt.parse(lex);
 
-        // dateTime vs date (vs g*
+        // dateTime vs date (vs g*)
 
         if ( temporalAccessor.isSupported(ChronoField.OFFSET_SECONDS) ) {
             // XSD: Timezones are +/- 14 hours.

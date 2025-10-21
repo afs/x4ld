@@ -201,13 +201,7 @@ public class MimeType {
         return sb.toString();
     }
 
-    public static class Parameter
-    {
-        final String attribute ;
-        final String value;
-
-        public Parameter(String _attribute, String _value) { this.attribute = _attribute; this.value = _value ; }
-    }
+    public record Parameter(String attribute, String value) { }
 
     private void parse() {
         // type "/" subtype ["+" suffix] *[";" parameter]
@@ -243,7 +237,7 @@ public class MimeType {
         if ( idx >= length )
             return;
         startParameters = idx;
-        int x = parseParameters(idx, (a0, a1, v0, v1)->{});
+        int x = parseParameters(idx, (_, _, _, _)->{});
         if ( x > idx )
             startParameters = idx;
         idx = x ;

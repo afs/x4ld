@@ -43,14 +43,7 @@
 
   <dependencies>
 
-  <!--
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    -->
-  <!-- No logging 
+  <!-- No logging in main 
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -59,15 +52,15 @@
   -->
 
     <!-- For testing -->
+	<dependency>
+      <groupId>org.apache.jena</groupId>
+      <artifactId>jena-iri</artifactId>
+      <scope>test</scope>
+    </dependency>
+    
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j2-impl</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.jena</groupId>
-      <artifactId>jena-iri</artifactId>
       <scope>test</scope>
     </dependency>
 

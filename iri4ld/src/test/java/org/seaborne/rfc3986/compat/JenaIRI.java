@@ -21,7 +21,7 @@ package org.seaborne.rfc3986.compat;
 import org.apache.jena.iri.IRIFactory;
 import org.apache.jena.iri.ViolationCodes;
 
-// Copied from jena-arq. The Jena IRI settings.
+// Copied from jena-arq 5.x. The Jena IRI settings.
 class JenaIRI {
 
     /*package*/ static IRIFactory iriFactory() { return iriFactoryInst; }

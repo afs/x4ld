@@ -175,7 +175,6 @@ public class TestRelativePaths_JenaIRI {
         return "http://example"+path;
     }
 
-
     private static String enclose(String x) {
         if ( x == null )
             return "<null>";
