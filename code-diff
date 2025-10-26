@@ -33,5 +33,10 @@ then
     exit 1
 fi
 
+cat $FN1 | grep -E -v '^(import|package)' > FILE1
+cat $FN2 | grep -E -v '^(import|package)' > FILE2
+
 echo "== Diff of $FN (jena<, iri4ld>)"
-diff "$FN1" "$FN2"
+##diff "$FN1" "$FN2"
+diff "FILE1" "FILE2"
+rm -rf FILE1 FILE2

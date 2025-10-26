@@ -19,7 +19,6 @@
 package org.seaborne.rfc3986;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-//import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.seaborne.rfc3986.LibTestURI.badSyntax;
 import static org.seaborne.rfc3986.LibTestURI.goodSyntax;
 

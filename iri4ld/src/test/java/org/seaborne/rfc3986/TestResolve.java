@@ -45,7 +45,6 @@ public class TestResolve {
     @Test public void resolve_abs_11() { testResolve("http://example/dir1/dir2/", "//EX/OtherPath", "http://EX/OtherPath"); }
     @Test public void resolve_abs_12() { testResolve("http:", "//EX/OtherPath", "http://EX/OtherPath"); }
 
-
     @Test public void resolve_abs_20() { testResolve("https://example/", "//", "https://"); }
     @Test public void resolve_abs_21() { testResolve("https://example/", "//host", "https://host"); }
     @Test public void resolve_abs_22() { testResolve("https://example/", "//host/", "https://host/"); }
@@ -56,7 +55,7 @@ public class TestResolve {
     @Test public void resolve_ref_3() { testResolve("http://example/dir", "A/", "http://example/A/"); }
     @Test public void resolve_ref_4() { testResolve("http://example/dir/", "A/", "http://example/dir/A/"); }
 
-    // Different scheme. Can't make an absolute path.
+    // Different scheme.
     @Test public void resolve_ref_5() { testResolve("http://example/", "https:subdir/", "https:subdir/"); }
     @Test public void resolve_ref_6() { testResolve("http://example/", "https:subdir", "https:subdir"); }
     @Test public void resolve_ref_7() { testResolve("http://example/", "urn:foo/", "urn:foo/"); }
