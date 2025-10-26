@@ -52,7 +52,7 @@ public class ParseDNS {
      *   Internationalization
      */
 
-    /* RFC952:
+    /* RFC 952:
      *
      * <hname> ::= <name>*["."<name>]
      * <name> ::=  <let>[*[<let-or-digit-or-hyphen>]<let-or-digit>]
@@ -135,11 +135,7 @@ public class ParseDNS {
             // Must have one or more labels.
             error("No subdomains.");
 
-
         List<Integer> dots = new ArrayList<>(4);
-
-        // XXX if string starts "."
-        // XXX if string ends "."
 
         while (p < end) {
             p = label(p);
@@ -151,7 +147,6 @@ public class ParseDNS {
             // Separator dots
             dots.add(p-1);
         }
-        //System.out.println("Dots: "+dots);
     }
 
     // <label> ::= <letter> [ [ <ldh-str> ] <let-dig> ]

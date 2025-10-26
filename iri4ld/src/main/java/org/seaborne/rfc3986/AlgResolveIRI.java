@@ -21,7 +21,7 @@ package org.seaborne.rfc3986;
 import java.util.Objects;
 import java.util.StringJoiner;
 
-/** Algorithms for IRIs : resolution */
+/** Algorithms for IRIs : resolution and relativize (reverse of resolution). */
 public class AlgResolveIRI {
 
     /**
@@ -198,16 +198,17 @@ public class AlgResolveIRI {
         }
 
         boolean initialSlash = segments[0].isEmpty();
+        // path has a trailing slash, special case is "/"
         boolean trailingSlash = false;
         // Determine whether there is going to be a trailing slash.
         // *  if it isn't the initial "/" and it ends in "/"
         // *  there is "/." or "/.." which will be resolved below.
         if ( N > (initialSlash ? 1 : 0) ) {
             if ( segments[N-1].equals(".") || segments[N-1].equals("..") )
-                // Not the initial slash and the last segment is "." or ".."
+                // Not the initial slash, and the last segment is "." or ".."
                 trailingSlash = true;
             else if ( path.charAt(path.length()-1) == '/' )
-                // Not the initial slash and the ast character is "/"
+                // Not the initial slash, and the last character is "/"
                 trailingSlash = true;
         }
 
