@@ -54,7 +54,7 @@
     <ver.junit>6.0.0</ver.junit>
  
     <!-- Plugins -->
-    <ver.plugin.rat>0.16.1</ver.plugin.rat>
+    <ver.plugin.rat>0.17</ver.plugin.rat>
     <ver.plugin.resources>3.3.1</ver.plugin.resources>
     <ver.plugin.source>3.3.1</ver.plugin.source>
     <ver.plugin.jar>3.4.2</ver.plugin.jar>
