@@ -63,7 +63,7 @@
     <ver.plugin.surefire>3.5.4</ver.plugin.surefire>
     <ver.plugin.javadoc>3.12.0</ver.plugin.javadoc>
 
-    <ver.plugin.enforcer>3.6.1</ver.plugin.enforcer>
+    <ver.plugin.enforcer>3.6.2</ver.plugin.enforcer>
     <ver.plugin.cyclonedx>2.7.9</ver.plugin.cyclonedx>
 
   </properties>
