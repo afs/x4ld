@@ -49,7 +49,7 @@ import java.util.Arrays;
  *
  * @version $Id$
  */
-public class XMLChar {
+public class XML10Char {
 
     //
     // Constants

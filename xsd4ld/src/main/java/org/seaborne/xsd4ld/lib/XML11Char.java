@@ -303,8 +303,8 @@ public class XML11Char {
         if (!isXML11NameStart(ch)) {
             if (length > 1 && isXML11NameHighSurrogate(ch)) {
                 char ch2 = name.charAt(1);
-                if (!XMLChar.isLowSurrogate(ch2) ||
-                    !isXML11NameStart(XMLChar.supplemental(ch, ch2))) {
+                if (!XML10Char.isLowSurrogate(ch2) ||
+                    !isXML11NameStart(XML10Char.supplemental(ch, ch2))) {
                     return false;
                 }
                 i = 2;
@@ -318,8 +318,8 @@ public class XML11Char {
             if (!isXML11Name(ch)) {
                 if (++i < length && isXML11NameHighSurrogate(ch)) {
                     char ch2 = name.charAt(i);
-                    if (!XMLChar.isLowSurrogate(ch2) ||
-                        !isXML11Name(XMLChar.supplemental(ch, ch2))) {
+                    if (!XML10Char.isLowSurrogate(ch2) ||
+                        !isXML11Name(XML10Char.supplemental(ch, ch2))) {
                         return false;
                     }
                 }
@@ -353,8 +353,8 @@ public class XML11Char {
         if (!isXML11NCNameStart(ch)) {
             if (length > 1 && isXML11NameHighSurrogate(ch)) {
                 char ch2 = ncName.charAt(1);
-                if (!XMLChar.isLowSurrogate(ch2) ||
-                    !isXML11NCNameStart(XMLChar.supplemental(ch, ch2))) {
+                if (!XML10Char.isLowSurrogate(ch2) ||
+                    !isXML11NCNameStart(XML10Char.supplemental(ch, ch2))) {
                     return false;
                 }
                 i = 2;
@@ -368,8 +368,8 @@ public class XML11Char {
             if (!isXML11NCName(ch)) {
                 if (++i < length && isXML11NameHighSurrogate(ch)) {
                     char ch2 = ncName.charAt(i);
-                    if (!XMLChar.isLowSurrogate(ch2) ||
-                        !isXML11NCName(XMLChar.supplemental(ch, ch2))) {
+                    if (!XML10Char.isLowSurrogate(ch2) ||
+                        !isXML11NCName(XML10Char.supplemental(ch, ch2))) {
                         return false;
                     }
                 }
@@ -402,8 +402,8 @@ public class XML11Char {
             if (!isXML11Name(ch)) {
                 if (++i < length && isXML11NameHighSurrogate(ch)) {
                     char ch2 = nmtoken.charAt(i);
-                    if (!XMLChar.isLowSurrogate(ch2) ||
-                        !isXML11Name(XMLChar.supplemental(ch, ch2))) {
+                    if (!XML10Char.isLowSurrogate(ch2) ||
+                        !isXML11Name(XML10Char.supplemental(ch, ch2))) {
                         return false;
                     }
                 }
