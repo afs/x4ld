@@ -51,7 +51,7 @@
     <!-- Testing only -->
     <ver.jena-iri>5.6.0</ver.jena-iri>  
     <ver.junit4>4.13.2</ver.junit4>
-    <ver.junit>6.0.1</ver.junit>
+    <ver.junit>6.0.2</ver.junit>
  
     <!-- Plugins -->
     <ver.plugin.rat>0.17</ver.plugin.rat>
