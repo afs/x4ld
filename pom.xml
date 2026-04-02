@@ -246,71 +246,32 @@
         </executions>
       </plugin>
       <!-- Run the RAT Plugin -->
-      <plugin>
-        <groupId>org.apache.rat</groupId>
-        <artifactId>apache-rat-plugin</artifactId>
-        <!-- 
+      <!--
+          To run from the command line:
+          mvn apache-rat:rat \
+          -Drat.excludeSubProjects=false \
+          -Drat.excludesFile=build-files/rat-exclusions.txt
+       -->
+       <plugin>
+         <groupId>org.apache.rat</groupId>
+         <artifactId>apache-rat-plugin</artifactId>
+         <!-- 
              Run only if maven is running from this POM,
              not when run in a sub-module with this as parent.
-        -->
-        <inherited>false</inherited>
-        <executions>
-          <execution>
-            <id>rat-checks</id>
-            <phase>validate</phase>
-            <goals>
+         -->
+         <inherited>false</inherited>
+         <executions>
+           <execution>
+             <id>rat-checks</id>
+             <phase>validate</phase>
+             <goals>
               <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <excludeSubProjects>false</excludeSubProjects>
-          <excludes>
-            <exclude>**/hs_err_pid*.log</exclude>
-            <exclude>docs/**</exclude>
-            <exclude>local/**</exclude>
-            <exclude>.github/**</exclude>
-
-            <exclude>**/.project</exclude>
-            <exclude>**/.settings/**</exclude>
-            <exclude>**/.classpath</exclude>
-            <exclude>**/*.recommenders/**/*</exclude>
-
-            <exclude>**/delta.classpath*</exclude>
-            <exclude>**/README.*</exclude>
-            <exclude>**/*.cfg</exclude>
-
-            <exclude>**/src/main/**/*.html</exclude>
-            <exclude>**/src/**/package-info.java</exclude>
-            
-            <!--
-                Text and Markdown files are typically used only for documentation purposes
-                and license declarations are usually spurious in these files since often they
-                will refer to the LICENSE/NOTICE for users to find the actual licenses
-            -->
-            <exclude>**/*.txt</exclude>
-            <exclude>**/*.md</exclude>
-           
-            <!--
-                META-INF services files can include comments but a license header would be
-                unnecessarily clutter so we exclude these
-            -->
-            <exclude>**/META-INF/services/*</exclude>
-            
-            <exclude>**/testing/**/*</exclude>
-            <exclude>**/log4j*.properties</exclude>
-            <exclude>**/logging*.properties</exclude>
-
-            <!-- Exclude anything created during the build (plugin generated files) ->-->
-            <exclude>**/target/**/*</exclude>
-            <!-- MSHADE-124 -->
-            <exclude>**/dependency-reduced-pom.xml</exclude>
-
-            <!-- ZooKeeper files -->
-            <exclude>**/Tutorial/**/zoo.dynamic</exclude>
-            <exclude>**/Tutorial/**/myid</exclude>
-
-          </excludes>
+             </goals>
+           </execution>
+         </executions>
+         <configuration>
+           <excludeSubProjects>false</excludeSubProjects>
+           <inputExcludeFile>build-files/rat-exclusions.txt</inputExcludeFile>
         </configuration>
       </plugin>
       <plugin>
