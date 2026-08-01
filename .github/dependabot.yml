@@ -4,7 +4,11 @@ updates:
 - package-ecosystem: "maven"
   directory: "/"
   schedule:
-    interval: "monthly"
+    # cron: minute hour day-of-month(1..31) month-of-year (1..12) day-of-week (0-6,SUN-SAT)
+    # 04:15 on the 7th of each month.
+    interval: "cron"
+    cronjob: "15 4 7 * *"
+    # interval: "monthly"
     # interval: "weekly"
     # day: "wednesday"
   groups:
