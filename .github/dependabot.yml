@@ -1,14 +1,15 @@
 version: 2
+
 updates:
-- package-ecosystem: maven
+- package-ecosystem: "maven"
   directory: "/"
   schedule:
-    interval: monthly 
+    interval: "monthly"
     # interval: "weekly"
     # day: "wednesday"
   groups:
     maven-patch-group:
       update-types:
-      - "minor"
+      - "patch"
 
   open-pull-requests-limit: 10
